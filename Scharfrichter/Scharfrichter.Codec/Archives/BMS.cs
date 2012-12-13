@@ -200,13 +200,11 @@ namespace Scharfrichter.Codec.Archives
 									if (chart.Tags.ContainsKey("BPM" + pair))
 									{
 										string bpmValue = chart.Tags["BPM" + pair];
-										double num = Convert.ToDouble(bpmValue);
-										while (Math.Round(num) != num)
-										{
-											num *= 10;
-											entry.ValueDenominator *= 10;
-										}
-										entry.ValueNumerator = (int)num;
+										long num;
+										long den;
+										Util.Rationalize(Convert.ToDouble(bpmValue), out num, out den);
+										entry.OffsetNumerator = num;
+										entry.OffsetDenominator = den;
 									}
 									else
 									{

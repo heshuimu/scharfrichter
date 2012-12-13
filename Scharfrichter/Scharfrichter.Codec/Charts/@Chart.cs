@@ -10,6 +10,23 @@ namespace Scharfrichter.Codec.Charts
 		private List<Entry> entries = new List<Entry>();
 		private Dictionary<string, string> tags = new Dictionary<string, string>();
 
+		public long DefaultBPMDenominator;
+		public long DefaultBPMNumerator;
+
+		public double DefaultBPM
+		{
+			get
+			{
+				if (DefaultBPMDenominator > 0)
+					return (DefaultBPMNumerator / DefaultBPMDenominator);
+				return 0;
+			}
+			set
+			{
+				Util.Rationalize(value, out DefaultBPMNumerator, out DefaultBPMDenominator);
+			}
+		}
+
 		public List<Entry> Entries
 		{
 			get
@@ -31,12 +48,12 @@ namespace Scharfrichter.Codec.Charts
 	{
 		private const int FallbackDenominator = 2 * 3 * 5 * 7 * 9 * 11 * 13 * 17;
 
-		private int digitalOffsetDenominator;
-		private int digitalOffsetNumerator;
+		private long digitalOffsetDenominator;
+		private long digitalOffsetNumerator;
 		private double floatValue;
 		private double metricOffsetValue;
-		private int valueDenominator;
-		private int valueNumerator;
+		private long valueDenominator;
+		private long valueNumerator;
 
 		public bool DigitalOffsetInitialized;
 		public bool FloatInitialized;
@@ -53,7 +70,7 @@ namespace Scharfrichter.Codec.Charts
 			return (Type.ToString() + ": P" + Player.ToString() + ", C" + Column.ToString() + ", O" + Measure.ToString() + "-" + digitalOffsetNumerator.ToString() + "/" + digitalOffsetDenominator.ToString() + "(" + metricOffsetValue.ToString() + ")");
 		}
 
-		public int OffsetDenominator
+		public long OffsetDenominator
 		{
 			get
 			{
@@ -79,7 +96,7 @@ namespace Scharfrichter.Codec.Charts
 			}
 		}
 
-		public int OffsetNumerator
+		public long OffsetNumerator
 		{
 			get
 			{
@@ -91,7 +108,7 @@ namespace Scharfrichter.Codec.Charts
 			}
 		}
 
-		public int ValueDenominator
+		public long ValueDenominator
 		{
 			get
 			{
@@ -117,7 +134,7 @@ namespace Scharfrichter.Codec.Charts
 			}
 		}
 
-		public int ValueNumerator
+		public long ValueNumerator
 		{
 			get
 			{

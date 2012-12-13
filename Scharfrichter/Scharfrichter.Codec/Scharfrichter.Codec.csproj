@@ -46,6 +46,7 @@
     <Compile Include="Graphics\%40Graphic.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Sounds\%40Sound.cs" />
+    <Compile Include="Util.cs" />
     <Compile Include="Videos\%40Video.cs" />
   </ItemGroup>
   <ItemGroup />
