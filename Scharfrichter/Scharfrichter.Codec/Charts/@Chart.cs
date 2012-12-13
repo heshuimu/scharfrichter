@@ -7,7 +7,16 @@ namespace Scharfrichter.Codec.Charts
 {
 	public class Chart
 	{
-		private Dictionary<string, string> tags = new Dictionary<string,string>();
+		private List<Entry> entries = new List<Entry>();
+		private Dictionary<string, string> tags = new Dictionary<string, string>();
+
+		public List<Entry> Entries
+		{
+			get
+			{
+				return entries;
+			}
+		}
 
 		public Dictionary<string, string> Tags
 		{
@@ -18,40 +27,41 @@ namespace Scharfrichter.Codec.Charts
 		}
 	}
 
-	// this structure converts between both metric and
-	// digital seamlessly and behind the scenes.
-
 	public struct Entry
 	{
 		private const int FallbackDenominator = 2 * 3 * 5 * 7 * 9 * 11 * 13 * 17;
 
 		private int digitalOffsetDenominator;
-		private bool digitalOffsetInitialized;
 		private int digitalOffsetNumerator;
-		private bool floatInitialized;
 		private double floatValue;
-		private bool metricOffsetInitialized;
 		private double metricOffsetValue;
 		private int valueDenominator;
-		private bool valueInitialized;
 		private int valueNumerator;
+
+		public bool DigitalOffsetInitialized;
+		public bool FloatInitialized;
+		public bool MetricOffsetInitialized;
+		public bool ValueInitialized;
+
+		public int Column;
+		public int Measure;
+		public int Player;
+		public EntryType Type;
+
+		public override string ToString()
+		{
+			return (Type.ToString() + ": P" + Player.ToString() + ", C" + Column.ToString() + ", O" + Measure.ToString() + "-" + digitalOffsetNumerator.ToString() + "/" + digitalOffsetDenominator.ToString() + "(" + metricOffsetValue.ToString() + ")");
+		}
 
 		public int OffsetDenominator
 		{
 			get
 			{
-				if (!digitalOffsetInitialized && metricOffsetInitialized)
-				{
-					digitalOffsetDenominator = FallbackDenominator;
-					digitalOffsetNumerator = (int)((double)FallbackDenominator * metricOffsetValue);
-					digitalOffsetInitialized = true;
-				}
 				return digitalOffsetDenominator;
 			}
 			set
 			{
-				metricOffsetInitialized = false;
-				digitalOffsetInitialized = true;
+				DigitalOffsetInitialized = true;
 				digitalOffsetDenominator = value;
 			}
 		}
@@ -60,17 +70,11 @@ namespace Scharfrichter.Codec.Charts
 		{
 			get
 			{
-				if (!metricOffsetInitialized && digitalOffsetInitialized)
-				{
-					metricOffsetValue = (double)digitalOffsetNumerator / (double)digitalOffsetDenominator;
-					metricOffsetInitialized = true;
-				}
 				return metricOffsetValue;
 			}
 			set
 			{
-				digitalOffsetInitialized = false;
-				metricOffsetInitialized = true;
+				MetricOffsetInitialized = true;
 				metricOffsetValue = value;
 			}
 		}
@@ -83,7 +87,6 @@ namespace Scharfrichter.Codec.Charts
 			}
 			set
 			{
-				metricOffsetInitialized = false;
 				digitalOffsetNumerator = value;
 			}
 		}
@@ -92,18 +95,11 @@ namespace Scharfrichter.Codec.Charts
 		{
 			get
 			{
-				if (!valueInitialized && floatInitialized)
-				{
-					valueDenominator = FallbackDenominator;
-					valueNumerator = (int)((double)FallbackDenominator * floatValue);
-					valueInitialized = true;
-				}
 				return valueDenominator;
 			}
 			set
 			{
-				floatInitialized = false;
-				valueInitialized = true;
+				ValueInitialized = true;
 				valueDenominator = value;
 			}
 		}
@@ -112,17 +108,11 @@ namespace Scharfrichter.Codec.Charts
 		{
 			get
 			{
-				if (!floatInitialized && valueInitialized)
-				{
-					floatValue = (double)valueNumerator / (double)valueDenominator;
-					floatInitialized = true;
-				}
 				return floatValue;
 			}
 			set
 			{
-				valueInitialized = false;
-				floatInitialized = true;
+				FloatInitialized = true;
 				floatValue = value;
 			}
 		}
@@ -135,10 +125,22 @@ namespace Scharfrichter.Codec.Charts
 			}
 			set
 			{
-				floatInitialized = false;
 				valueNumerator = value;
 			}
 		}
+	}
 
+	public enum EntryType
+	{
+		Invalid,
+		Marker,
+		Sample,
+		Freeze,
+		Tempo,
+		Measure,
+		Mine,
+		Event,
+		Judgement,
+		BGA
 	}
 }
