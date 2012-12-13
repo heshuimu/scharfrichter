@@ -74,7 +74,7 @@ namespace Scharfrichter.Codec.Archives
 					}
 				}
 			}
-
+			 
 			foreach (KeyValuePair<string, string> tag in noteTags)
 			{
 				if (tag.Key.Length == 5)
