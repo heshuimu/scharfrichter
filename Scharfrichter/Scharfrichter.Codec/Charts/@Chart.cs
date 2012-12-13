@@ -23,63 +23,122 @@ namespace Scharfrichter.Codec.Charts
 
 	public struct Entry
 	{
-		private const int FallbackDenominator = 768;
+		private const int FallbackDenominator = 2 * 3 * 5 * 7 * 9 * 11 * 13 * 17;
 
-		private int digitalDenominator;
-		private bool digitalInitialized;
-		private int digitalNumerator;
-		private bool metricInitialized;
-		private double metricValue;
+		private int digitalOffsetDenominator;
+		private bool digitalOffsetInitialized;
+		private int digitalOffsetNumerator;
+		private bool floatInitialized;
+		private double floatValue;
+		private bool metricOffsetInitialized;
+		private double metricOffsetValue;
+		private int valueDenominator;
+		private bool valueInitialized;
+		private int valueNumerator;
 
-		public int Denominator
+		public int OffsetDenominator
 		{
 			get
 			{
-				if (!digitalInitialized && metricInitialized)
+				if (!digitalOffsetInitialized && metricOffsetInitialized)
 				{
-					digitalDenominator = FallbackDenominator;
-					digitalInitialized = true;
+					digitalOffsetDenominator = FallbackDenominator;
+					digitalOffsetNumerator = (int)((double)FallbackDenominator * metricOffsetValue);
+					digitalOffsetInitialized = true;
 				}
-				return digitalDenominator;
+				return digitalOffsetDenominator;
 			}
 			set
 			{
-				metricInitialized = false;
-				digitalInitialized = true;
-				digitalDenominator = value;
+				metricOffsetInitialized = false;
+				digitalOffsetInitialized = true;
+				digitalOffsetDenominator = value;
 			}
 		}
 
-		public double Metric
+		public double OffsetMetric
 		{
 			get
 			{
-				if (!metricInitialized && digitalInitialized)
+				if (!metricOffsetInitialized && digitalOffsetInitialized)
 				{
-					metricValue = (double)digitalNumerator / (double)digitalDenominator;
-					metricInitialized = true;
+					metricOffsetValue = (double)digitalOffsetNumerator / (double)digitalOffsetDenominator;
+					metricOffsetInitialized = true;
 				}
-				return metricValue;
+				return metricOffsetValue;
 			}
 			set
 			{
-				digitalInitialized = false;
-				metricInitialized = true;
-				metricValue = value;
+				digitalOffsetInitialized = false;
+				metricOffsetInitialized = true;
+				metricOffsetValue = value;
 			}
 		}
 
-		public int Numerator
+		public int OffsetNumerator
 		{
 			get
 			{
-				return digitalNumerator;
+				return digitalOffsetNumerator;
 			}
 			set
 			{
-				metricInitialized = false;
-				digitalNumerator = value;
+				metricOffsetInitialized = false;
+				digitalOffsetNumerator = value;
 			}
 		}
+
+		public int ValueDenominator
+		{
+			get
+			{
+				if (!valueInitialized && floatInitialized)
+				{
+					valueDenominator = FallbackDenominator;
+					valueNumerator = (int)((double)FallbackDenominator * floatValue);
+					valueInitialized = true;
+				}
+				return valueDenominator;
+			}
+			set
+			{
+				floatInitialized = false;
+				valueInitialized = true;
+				valueDenominator = value;
+			}
+		}
+
+		public double ValueFloat
+		{
+			get
+			{
+				if (!floatInitialized && valueInitialized)
+				{
+					floatValue = (double)valueNumerator / (double)valueDenominator;
+					floatInitialized = true;
+				}
+				return floatValue;
+			}
+			set
+			{
+				valueInitialized = false;
+				floatInitialized = true;
+				floatValue = value;
+			}
+		}
+
+		public int ValueNumerator
+		{
+			get
+			{
+				return valueNumerator;
+			}
+			set
+			{
+				floatInitialized = false;
+				valueNumerator = value;
+			}
+		}
+
 	}
 }
