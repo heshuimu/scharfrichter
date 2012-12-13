@@ -20,8 +20,8 @@ namespace Scharfrichter.Codec.Charts
 			// find the highest measure index
 			foreach (Entry entry in entries)
 			{
-				if (entry.Measure >= measureCount)
-					measureCount = entry.Measure + 1;
+				if (entry.MetricMeasure >= measureCount)
+					measureCount = entry.MetricMeasure + 1;
 			}
 
 			// add measure lines for each measure
@@ -29,9 +29,7 @@ namespace Scharfrichter.Codec.Charts
 			{
 				Entry entry = new Entry();
 				entry.Column = 0;
-				entry.Measure = i;
-				entry.OffsetDenominator = 1;
-				entry.OffsetNumerator = 0;
+				entry.MetricMeasure = i;
 				entry.MetricDenominator = 1;
 				entry.MetricNumerator = 0;
 				entry.Player = 0;
@@ -46,9 +44,7 @@ namespace Scharfrichter.Codec.Charts
 			{
 				Entry entry = new Entry();
 				entry.Column = 0;
-				entry.Measure = measureCount;
-				entry.OffsetDenominator = 1;
-				entry.OffsetNumerator = 0;
+				entry.MetricMeasure = measureCount;
 				entry.MetricDenominator = 1;
 				entry.MetricNumerator = 0;
 				entry.Player = 0;
@@ -56,6 +52,28 @@ namespace Scharfrichter.Codec.Charts
 				entry.ValueDenominator = 1;
 				entry.ValueNumerator = 0;
 				entries.Add(entry);
+			}
+		}
+
+		public void CalculateDigitalOffsets()
+		{
+			entries.Sort();
+
+			foreach (Entry entry in entries)
+			{
+				if (!entry.MetricOffsetInitialized)
+					throw new Exception("Digital offsets can't be calculated because at least one entry is missing Metric offset information.");
+			}
+		}
+
+		public void CalculateMetricOffsets()
+		{
+			entries.Sort();
+
+			foreach (Entry entry in entries)
+			{
+				if (!entry.DigitalOffsetInitialized)
+					throw new Exception("Metric offsets can't be calculated because at least one entry is missing Digital offset information.");
 			}
 		}
 
@@ -90,7 +108,7 @@ namespace Scharfrichter.Codec.Charts
 		}
 	}
 
-	public struct Entry : IComparable<Entry>
+	public class Entry : IComparable<Entry>
 	{
 		private const int FallbackDenominator = 2 * 3 * 5 * 7 * 9 * 11 * 13 * 17;
 
@@ -102,23 +120,23 @@ namespace Scharfrichter.Codec.Charts
 		private long valueNumerator;
 
 		public bool DigitalOffsetInitialized;
+		public int MetricMeasure;
 		public bool MetricOffsetInitialized;
 		public bool ValueInitialized;
 
 		public int Column;
-		public int Measure;
 		public int Player;
 		public EntryType Type;
 
 		public int CompareTo(Entry other)
 		{
-			if (other.Measure > this.Measure)
-				return -1;
-			if (other.Measure < this.Measure)
-				return 1;
-
 			if (other.MetricOffsetInitialized && this.MetricOffsetInitialized)
 			{
+				if (other.MetricMeasure > this.MetricMeasure)
+					return -1;
+				if (other.MetricMeasure < this.MetricMeasure)
+					return 1;
+
 				double myFloat = (double)MetricNumerator / (double)MetricDenominator;
 				double otherFloat = (double)other.MetricNumerator / (double)other.MetricDenominator;
 

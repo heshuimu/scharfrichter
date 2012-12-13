@@ -25,9 +25,16 @@ namespace Scharfrichter
 
 		private void button1_Click(object sender, EventArgs e)
 		{
+			// run all tests (local files here)
+
 			using (FileStream fs = new FileStream(@"D:\BMS\026\@026 1P Another.bms", FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
 			{
-				BMS test = BMS.Load(fs);
+				BMS test = BMS.Read(fs);
+			}
+
+			using (FileStream fs = new FileStream(@"D:\BMS\1101.1", FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+			{
+				Bemani1 test = Bemani1.Read(fs, 100, 5994);
 			}
 		}
 	}

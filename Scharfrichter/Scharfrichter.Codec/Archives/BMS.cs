@@ -50,7 +50,7 @@ namespace Scharfrichter.Codec.Archives
 			}
 		}
 
-		static public BMS Load(Stream source)
+		static public BMS Read(Stream source)
 		{
 			Dictionary<int, double> measureLengths = new Dictionary<int, double>();
 			List<KeyValuePair<string, string>> noteTags = new List<KeyValuePair<string, string>>();
@@ -194,10 +194,10 @@ namespace Scharfrichter.Codec.Archives
 								Entry entry = new Entry();
 								entry.Column = currentColumn;
 								entry.Player = currentPlayer;
-								entry.Measure = currentMeasure;
+								entry.MetricMeasure = currentMeasure;
 								entry.Type = currentType;
-								entry.OffsetDenominator = valueLength;
-								entry.OffsetNumerator = i;
+								entry.MetricDenominator = valueLength;
+								entry.MetricNumerator = i;
 								entry.ValueDenominator = 1;
 
 								if (coding == ValueCoding.BPMTable)
@@ -230,12 +230,13 @@ namespace Scharfrichter.Codec.Archives
 			}
 
 			chart.AddMeasureLines();
-			chart.Entries.Sort();
+			chart.CalculateDigitalOffsets();
+
 			result.chart = chart;
 			return result;
 		}
 
-		public void Save(Stream target)
+		public void Write(Stream target)
 		{
 		}
 	}
