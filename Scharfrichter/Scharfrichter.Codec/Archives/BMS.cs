@@ -89,6 +89,11 @@ namespace Scharfrichter.Codec.Archives
 				}
 			}
 
+			if (chart.Tags.ContainsKey("BPM"))
+			{
+				chart.DefaultBPM = Convert.ToDouble(chart.Tags["BPM"]);
+			}
+
 			foreach (KeyValuePair<string, string> tag in noteTags)
 			{
 				if (tag.Key.Length == 5)
@@ -203,8 +208,8 @@ namespace Scharfrichter.Codec.Archives
 										long num;
 										long den;
 										Util.Rationalize(Convert.ToDouble(bpmValue), out num, out den);
-										entry.OffsetNumerator = num;
-										entry.OffsetDenominator = den;
+										entry.ValueNumerator = num;
+										entry.ValueDenominator = den;
 									}
 									else
 									{
@@ -223,7 +228,9 @@ namespace Scharfrichter.Codec.Archives
 					}
 				}
 			}
-			 
+
+			chart.AddMeasureLines();
+			chart.Entries.Sort();
 			result.chart = chart;
 			return result;
 		}
