@@ -92,9 +92,19 @@ namespace Scharfrichter.Codec
 			return Reduce(result);
 		}
 
+		public static explicit operator Fraction(double d)
+		{
+			return Rationalize(d);
+		}
+
+		public static explicit operator double(Fraction f)
+		{
+			return ((double)f.Numerator / (double)f.Denominator);
+		}
+
 		public override string ToString()
 		{
-			return Numerator.ToString() + "/" + Denominator.ToString();
+			return Numerator.ToString() + "/" + Denominator.ToString() + ":" + (Denominator == 0 ? "undef" : ((double)Numerator / (double)Denominator).ToString());
 		}
 
 		public static void Commonize(Fraction a, Fraction b, out Fraction outputA, out Fraction outputB)
