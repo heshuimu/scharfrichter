@@ -42,6 +42,7 @@
   <ItemGroup>
     <Compile Include="Archives\%40Archive.cs" />
     <Compile Include="Archives\Bemani1.cs" />
+    <Compile Include="Archives\BemaniCS2.cs" />
     <Compile Include="Archives\BMS.cs" />
     <Compile Include="Charts\%40Chart.cs" />
     <Compile Include="Compression\BemaniLZ.cs" />

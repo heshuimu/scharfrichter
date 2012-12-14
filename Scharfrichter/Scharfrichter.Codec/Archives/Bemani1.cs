@@ -37,89 +37,85 @@ namespace Scharfrichter.Codec.Archives
 		{
 			Bemani1 result = new Bemani1();
 			long offsetBase = source.Position;
+			BinaryReader reader = new BinaryReader(source);
 
-			using (BinaryReader reader = new BinaryReader(source))
+			int[] offset = new int[12];
+			int[] length = new int[12];
+
+			for (int i = 0; i < 12; i++)
 			{
-				int[] offset = new int[12];
-				int[] length = new int[12];
+				offset[i] = reader.ReadInt32();
+				length[i] = reader.ReadInt32();
+			}
 
-				for (int i = 0; i < 12; i++)
+			for (int i = 0; i < 12; i++)
+			{
+				if (length[i] > 0 && offset[i] >= 0x60)
 				{
-					offset[i] = reader.ReadInt32();
-					length[i] = reader.ReadInt32();
-				}
+					Chart chart = new Chart();
+					source.Position = offsetBase + offset[i];
 
-				for (int i = 0; i < 12; i++)
-				{
-					if (length[i] > 0 && offset[i] >= 0x60)
+					byte[] chartData = reader.ReadBytes(length[i]);
+
+					using (MemoryStream mem = new MemoryStream(chartData))
 					{
-						Chart chart = new Chart();
-						source.Position = offsetBase + offset[i];
-
-						byte[] chartData = reader.ReadBytes(length[i]);
-
-						using (MemoryStream mem = new MemoryStream(chartData))
+						BinaryReader memReader = new BinaryReader(mem);
+						while (mem.Position < mem.Length)
 						{
-							using (BinaryReader memReader = new BinaryReader(mem))
-							{
-								while (mem.Position < mem.Length)
-								{
-									Entry entry = new Entry();
-									long eventOffset = memReader.ReadInt32();
+							Entry entry = new Entry();
+							long eventOffset = memReader.ReadInt32();
 
-									if (eventOffset >= 0x7FFFFFFF)
-										break;
-
-									entry.LinearOffset = new Fraction(eventOffset * unitNumerator, unitDenominator);
-									entry.Value = new Fraction(0, 1);
-
-									int eventType = memReader.ReadByte();
-									int eventParameter = memReader.ReadByte();
-									int eventValue = memReader.ReadInt16();
-
-									// unhandled parameter types:
-									//  0x05: measure length
-									//  0x08: judgement
-									//  0x10: note count
-									switch (eventType)
-									{
-										case 0x00: entry.Type = EntryType.Marker; entry.Player = 1; entry.Column = eventParameter; break;
-										case 0x01: entry.Type = EntryType.Marker; entry.Player = 2; entry.Column = eventParameter; break;
-										case 0x02: entry.Type = EntryType.Sample; entry.Player = 1; entry.Column = eventParameter; entry.Value = new Fraction(eventValue, 1); break;
-										case 0x03: entry.Type = EntryType.Sample; entry.Player = 2; entry.Column = eventParameter; entry.Value = new Fraction(eventValue, 1); break;
-										case 0x04: entry.Type = EntryType.Tempo; entry.Value = new Fraction(eventValue, eventParameter); break;
-										case 0x06: entry.Type = EntryType.EndOfSong; entry.Player = eventParameter + 1; break;
-										case 0x07: entry.Type = EntryType.Marker; entry.Player = 0; entry.Value = new Fraction(eventValue, 1); entry.Parameter = eventParameter; break;
-										case 0x08: entry.Type = EntryType.Judgement; entry.Player = 0; entry.Value = new Fraction(eventValue, 1); entry.Parameter = eventParameter; break;
-										case 0x0C: entry.Type = (eventParameter == 0 ? EntryType.Measure : EntryType.Invalid); entry.Player = eventParameter + 1; break;
-										default: entry.Type = EntryType.Invalid; break;
-									}
-
-									if (entry.Type != EntryType.Invalid)
-										chart.Entries.Add(entry);
-								}
-								chart.Entries.Sort();
-							}
-						}
-
-						// find the default bpm
-						foreach (Entry entry in chart.Entries)
-						{
-							if (entry.Type == EntryType.Tempo)
-							{
-								chart.DefaultBPM = entry.Value;
+							if (eventOffset >= 0x7FFFFFFF)
 								break;
+
+							entry.LinearOffset = new Fraction(eventOffset * unitNumerator, unitDenominator);
+							entry.Value = new Fraction(0, 1);
+
+							int eventType = memReader.ReadByte();
+							int eventParameter = memReader.ReadByte();
+							int eventValue = memReader.ReadInt16();
+
+							// unhandled parameter types:
+							//  0x05: measure length
+							//  0x08: judgement
+							//  0x10: note count
+							switch (eventType)
+							{
+								case 0x00: entry.Type = EntryType.Marker; entry.Player = 1; entry.Column = eventParameter; break;
+								case 0x01: entry.Type = EntryType.Marker; entry.Player = 2; entry.Column = eventParameter; break;
+								case 0x02: entry.Type = EntryType.Sample; entry.Player = 1; entry.Column = eventParameter; entry.Value = new Fraction(eventValue, 1); break;
+								case 0x03: entry.Type = EntryType.Sample; entry.Player = 2; entry.Column = eventParameter; entry.Value = new Fraction(eventValue, 1); break;
+								case 0x04: entry.Type = EntryType.Tempo; entry.Value = new Fraction(eventValue, eventParameter); break;
+								case 0x06: entry.Type = EntryType.EndOfSong; entry.Player = eventParameter + 1; break;
+								case 0x07: entry.Type = EntryType.Marker; entry.Player = 0; entry.Value = new Fraction(eventValue, 1); entry.Parameter = eventParameter; break;
+								case 0x08: entry.Type = EntryType.Judgement; entry.Player = 0; entry.Value = new Fraction(eventValue, 1); entry.Parameter = eventParameter; break;
+								case 0x0C: entry.Type = (eventParameter == 0 ? EntryType.Measure : EntryType.Invalid); entry.Player = eventParameter + 1; break;
+								default: entry.Type = EntryType.Invalid; break;
 							}
+
+							if (entry.Type != EntryType.Invalid)
+								chart.Entries.Add(entry);
 						}
-
-						// fill in the metric offsets
-						chart.CalculateMetricOffsets();
-
-						if (chart.Entries.Count > 0)
-							result.charts[i] = chart;
-						else
-							result.charts[i] = null;
+						chart.Entries.Sort();
 					}
+
+					// find the default bpm
+					foreach (Entry entry in chart.Entries)
+					{
+						if (entry.Type == EntryType.Tempo)
+						{
+							chart.DefaultBPM = entry.Value;
+							break;
+						}
+					}
+
+					// fill in the metric offsets
+					chart.CalculateMetricOffsets();
+
+					if (chart.Entries.Count > 0)
+						result.charts[i] = chart;
+					else
+						result.charts[i] = null;
 				}
 			}
 
@@ -235,25 +231,23 @@ namespace Scharfrichter.Codec.Archives
 					writer.Flush();
 				}
 
+				BinaryWriter outputWriter = new BinaryWriter(target);
 				// write the offsets and data block
-				using (BinaryWriter writer = new BinaryWriter(target))
+				for (int i = 0; i < 12; i++)
 				{
-					for (int i = 0; i < 12; i++)
+					if (length[i] > 0)
 					{
-						if (length[i] > 0)
-						{
-							writer.Write((Int32)(offset[i] + 0x60));
-							writer.Write((Int32)length[i]);
-						}
-						else
-						{
-							writer.Write((Int32)0);
-							writer.Write((Int32)0);
-						}
+						outputWriter.Write((Int32)(offset[i] + 0x60));
+						outputWriter.Write((Int32)length[i]);
 					}
-					writer.Write(mem.ToArray());
-					writer.Flush();
+					else
+					{
+						outputWriter.Write((Int32)0);
+						outputWriter.Write((Int32)0);
+					}
 				}
+				outputWriter.Write(mem.ToArray());
+				outputWriter.Flush();
 			}
 
 			target.Flush();

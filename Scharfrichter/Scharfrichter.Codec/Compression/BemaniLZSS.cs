@@ -93,12 +93,13 @@ namespace Scharfrichter.Codec.Compression
 							}
 
 							offset++;
-							while (length-- > 0)
+							while (length > 0)
 							{
 								data = reader.ReadByte();
 								writer.Write(data);
 								buffer[bufferOffset] = data;
 								bufferOffset = (bufferOffset + 1) & bufferMask;
+								length--;
 							}
 						}
 					}

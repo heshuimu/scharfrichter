@@ -52,16 +52,27 @@ namespace Scharfrichter
 				}
 			}
 
-			// bemaniLZ decompression test
+			// bemaniLZ decompression test and bemanics2 to bemani1 test
 			using (FileStream fs = new FileStream(@"D:\BMS\compchart.dat", FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
 			{
 				using (MemoryStream mem = new MemoryStream())
 				{
 					BemaniLZ.Decode(fs, mem);
 					File.WriteAllBytes(@"D:\BMS\compchart.dec", mem.ToArray());
+					mem.Position = 0;
+
+					using (MemoryStream output = new MemoryStream())
+					{
+						Bemani1 b1 = new Bemani1();
+						BemaniCS2 bcs2 = BemaniCS2.Read(mem);
+						b1.Charts[0] = bcs2.Charts[0];
+						b1.Write(output, 100, 5994);
+						File.WriteAllBytes(@"D:\BMS\compchart.1", output.ToArray());
+					}
 				}
 			}
 
+			MessageBox.Show("Finished.");
 		}
 	}
 }
