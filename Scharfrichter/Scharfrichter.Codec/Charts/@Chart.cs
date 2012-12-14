@@ -93,16 +93,12 @@ namespace Scharfrichter.Codec.Charts
 			}
 		}
 
-		public void CalculateDigitalOffsets()
+		public void CalculateLinearOffsets()
 		{
 			// verify all required metric info is present
 			foreach (Entry entry in entries)
 				if (!entry.MetricOffsetInitialized)
 					throw new Exception("Linear offsets can't be calculated because at least one entry is missing Metric offset information.");
-
-			// reset all linear offset information
-			foreach (Entry entry in entries)
-				entry.LinearOffsetInitialized = false;
 
 			// make sure everything is sorted before we begin
 			entries.Sort();
@@ -229,6 +225,21 @@ namespace Scharfrichter.Codec.Charts
 			}
 		}
 
+		public int Measures
+		{
+			get
+			{
+				int measureCount = -1;
+				// find the highest measure index
+				foreach (Entry entry in entries)
+				{
+					if (entry.MetricMeasure >= measureCount)
+						measureCount = entry.MetricMeasure + 1;
+				}
+				return measureCount + 1;
+			}
+		}
+
 		public Dictionary<int, Fraction> MeasureLengths
 		{
 			get
@@ -262,6 +273,44 @@ namespace Scharfrichter.Codec.Charts
 			}
 		}
 
+		// Because so many people use BMSE and BMSE doesn't like measure lengths that are not a multiple of 1/64,
+		// this is here to please the people that still use it. (I hate you guys.)
+		public void QuantizeMeasureLengths(int quantizeValue)
+		{
+			// verify all required metric info is present
+			foreach (Entry entry in entries)
+				if (!entry.MetricOffsetInitialized)
+					throw new Exception("Measure lengths can't be quantized because at least one entry is missing Metric offset information.");
+
+			double quantizationFloat = quantizeValue;
+			int measureCount = Measures;
+			Fraction lengthBefore = Fraction.Rationalize(TotalMeasureLength);
+
+			for (int i = 0; i < measureCount; i++)
+			{
+				if (lengths.ContainsKey(i))
+				{
+					if (lengths[i].Denominator != quantizeValue)
+						lengths[i] = new Fraction((long)(Math.Round((double)lengths[i] * quantizationFloat)), quantizeValue);
+				}
+			}
+
+			Fraction lengthAfter = Fraction.Rationalize(TotalMeasureLength);
+			Fraction ratio = lengthAfter / lengthBefore;
+
+			// since we adjusted measure lengths, we also need to adjust BPMs
+			foreach (Entry entry in entries)
+			{
+				if (entry.Type == EntryType.Tempo)
+				{
+					entry.Value *= ratio;
+				}
+			}
+
+			// we also need to regenerate linear offsets
+			CalculateLinearOffsets();
+		}
+
 		public void RemoveJudgements()
 		{
 			foreach (Entry entry in entries)
@@ -285,6 +334,27 @@ namespace Scharfrichter.Codec.Charts
 			get
 			{
 				return tags;
+			}
+		}
+
+		public double TotalMeasureLength
+		{
+			get
+			{
+				double result = 0;
+				int measureCount = Measures;
+				for (int i = 0; i < measureCount; i++)
+				{
+					if (lengths.ContainsKey(i))
+					{
+						result += (double)lengths[i];
+					}
+					else
+					{
+						result += 1;
+					}
+				}
+				return result;
 			}
 		}
 	}

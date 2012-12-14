@@ -224,7 +224,7 @@ namespace Scharfrichter.Codec.Archives
 
 			chart.AddMeasureLines();
 			chart.AddJudgements();
-			chart.CalculateDigitalOffsets();
+			chart.CalculateLinearOffsets();
 
 			result.chart = chart;
 			return result;

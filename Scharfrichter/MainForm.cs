@@ -41,7 +41,7 @@ namespace Scharfrichter
 				}
 			}
 
-			// bemani1 writeback test
+			// bemani1 writeback test with quantization
 			using (FileStream fs = new FileStream(@"D:\BMS\1101.1", FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
 			{
 				Bemani1 test = Bemani1.Read(fs, 100, 5994);
@@ -49,6 +49,16 @@ namespace Scharfrichter
 				{
 					test.Write(mem, 100, 5994);
 					File.WriteAllBytes(@"D:\BMS\1101.out", mem.ToArray());
+				}
+				using (MemoryStream mem = new MemoryStream())
+				{
+					for (int i = 0; i < 12; i++)
+					{
+						if (test.Charts[i] != null)
+							test.Charts[i].QuantizeMeasureLengths(32);
+					}
+					test.Write(mem, 100, 5994);
+					File.WriteAllBytes(@"D:\BMS\1101q.out", mem.ToArray());
 				}
 			}
 
