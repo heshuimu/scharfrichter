@@ -13,7 +13,8 @@ namespace Scharfrichter.Codec.Charts
 
 		public Fraction DefaultBPM;
 
-		// for now we are going to default to IIDX timing
+		// IIDX: F0, FA, FF, 03, 08, 12
+		// 5key: F4, FC, FF, 03, 06, 0E
 
 		public void AddJudgements()
 		{

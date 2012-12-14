@@ -22,7 +22,7 @@ namespace Scharfrichter.Codec.Compression
 						byte[] buffer = new byte[bufferSize];
 						int bufferOffset = 0;
 						byte data = 0;
-						int control = 0;
+						int control = 0; // used as flags
 						int distance = 0; // used as a byte-distance
 						int length = 0; // used as a counter
 						bool loop = false;
@@ -55,10 +55,10 @@ namespace Scharfrichter.Codec.Compression
 							}
 
 							// short distance
-							if ((data & 0x40) == 0)
+							else if ((data & 0x40) == 0)
 							{
 								distance = (data & 0xF) + 1;
-								length = ((data >> 4) & 0x3) + 1;
+								length = (data >> 4) - 7;
 								loop = true;
 							}
 
@@ -80,13 +80,14 @@ namespace Scharfrichter.Codec.Compression
 								break;
 
 							// block copy
-							length = (data & 0xBF) + 7;
-							while (length-- >= 0)
+							length = data - 0xB9;
+							while (length >= 0)
 							{
 								data = reader.ReadByte();
 								writer.Write(data);
 								buffer[bufferOffset] = data;
 								bufferOffset = (bufferOffset + 1) & bufferMask;
+								length--;
 							}
 						}
 					}
