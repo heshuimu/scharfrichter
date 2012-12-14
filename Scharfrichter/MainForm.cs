@@ -30,11 +30,23 @@ namespace Scharfrichter
 			using (FileStream fs = new FileStream(@"D:\BMS\026\@026 1P Another.bms", FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
 			{
 				BMS test = BMS.Read(fs);
+				using (MemoryStream mem = new MemoryStream())
+				{
+					Bemani1 output = new Bemani1();
+					output.Charts[0] = test.Charts[0];
+					output.Write(mem, 100, 5994);
+					File.WriteAllBytes(@"D:\BMS\bms.out", mem.ToArray());
+				}
 			}
 
 			using (FileStream fs = new FileStream(@"D:\BMS\1101.1", FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
 			{
 				Bemani1 test = Bemani1.Read(fs, 100, 5994);
+				using (MemoryStream mem = new MemoryStream())
+				{
+					test.Write(mem, 100, 5994);
+					File.WriteAllBytes(@"D:\BMS\1101.out", mem.ToArray());
+				}
 			}
 		}
 	}

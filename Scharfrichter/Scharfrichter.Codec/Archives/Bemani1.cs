@@ -88,9 +88,9 @@ namespace Scharfrichter.Codec.Archives
 										case 0x02: entry.Type = EntryType.Sample; entry.Player = 1; entry.Column = eventParameter; entry.Value = new Fraction(eventValue, 1); break;
 										case 0x03: entry.Type = EntryType.Sample; entry.Player = 2; entry.Column = eventParameter; entry.Value = new Fraction(eventValue, 1); break;
 										case 0x04: entry.Type = EntryType.Tempo; entry.Value = new Fraction(eventValue, eventParameter); break;
-										case 0x06: entry.Type = EntryType.EndOfSong; break;
-										case 0x07: entry.Type = EntryType.Marker; entry.Player = 0; entry.Value = new Fraction(eventValue, 1); break;
-										case 0x0C: entry.Type = (eventParameter == 0 ? EntryType.Measure : EntryType.Invalid); break;
+										case 0x06: entry.Type = EntryType.EndOfSong; entry.Player = eventParameter + 1; break;
+										case 0x07: entry.Type = EntryType.Marker; entry.Player = 0; entry.Value = new Fraction(eventValue, 1); entry.Parameter = eventParameter; break;
+										case 0x0C: entry.Type = (eventParameter == 0 ? EntryType.Measure : EntryType.Invalid); entry.Player = eventParameter + 1; break;
 										default: entry.Type = EntryType.Invalid; break;
 									}
 
@@ -125,8 +125,118 @@ namespace Scharfrichter.Codec.Archives
 			return result;
 		}
 
-		public void Write(Stream target)
+		public void Write(Stream target, long unitNumerator, long unitDenominator)
 		{
+			Fraction unit = new Fraction(unitDenominator, unitNumerator);
+			long baseOffset = target.Position;
+			int[] offset = new int[12];
+			int[] length = new int[12];
+
+			using (MemoryStream mem = new MemoryStream())
+			{
+				// generate the data block
+				using (BinaryWriter writer = new BinaryWriter(mem))
+				{
+					for (int i = 0; i < 12; i++)
+					{
+						if (charts[i] != null)
+						{
+							baseOffset = mem.Position;
+							offset[i] = (int)baseOffset;
+							foreach (Entry entry in charts[i].Entries)
+							{
+								long num;
+								long den;
+								Int32 entryOffset = (Int32)(entry.LinearOffset * unit);
+								byte entryType = 0xFF;
+								byte entryParameter = (byte)(entry.Parameter & 0xFF);
+								Int16 entryValue = 0;
+
+								switch (entry.Type)
+								{
+									case EntryType.EndOfSong:
+										entryType = 0x06;
+										entryParameter = 0;
+										entryValue = 0;
+										break;
+									case EntryType.Marker:
+										if (entry.Player < 1)
+										{
+											entryType = 0x07;
+											entryValue = (Int16)entry.Value;
+										}
+										else
+										{
+											entryType = (byte)(entry.Player - 1);
+											entryValue = 0;
+											entryParameter = (byte)entry.Column;
+										}
+										break;
+									case EntryType.Measure:
+										entryType = 0x0C;
+										entryParameter = (byte)(entry.Player - 1);
+										break;
+									case EntryType.Sample:
+										if (entry.Player > 0)
+										{
+											entryType = (byte)(entry.Player + 1);
+											entryValue = (Int16)entry.Value;
+											entryParameter = (byte)entry.Column;
+										}
+										break;
+									case EntryType.Tempo:
+										num = entry.Value.Numerator;
+										den = entry.Value.Denominator;
+										while ((num > 32767) || (den > 255))
+										{
+											num /= 2;
+											den /= 2;
+										}
+										entryValue = (Int16)num;
+										entryParameter = (byte)den;
+										entryType = 0x04;
+										break;
+									default:
+										continue;
+								}
+								if (entryType == 0xFF)
+									continue;
+
+								writer.Write(entryOffset);
+								writer.Write(entryType);
+								writer.Write(entryParameter);
+								writer.Write(entryValue);
+							}
+							writer.Write((Int32)0x7FFFFFFF);
+							writer.Write((Int32)0);
+							length[i] = (int)(mem.Position - baseOffset);
+						}
+					}
+					writer.Flush();
+				}
+
+				// write the offsets and data block
+				using (BinaryWriter writer = new BinaryWriter(target))
+				{
+					for (int i = 0; i < 12; i++)
+					{
+						if (length[i] > 0)
+						{
+							writer.Write((Int32)(offset[i] + 0x60));
+							writer.Write((Int32)length[i]);
+						}
+						else
+						{
+							writer.Write((Int32)0);
+							writer.Write((Int32)0);
+						}
+					}
+					writer.Write(mem.ToArray());
+					writer.Flush();
+				}
+			}
+
+			target.Flush();
 		}
 	}
 }

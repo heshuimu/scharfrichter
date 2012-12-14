@@ -16,6 +16,15 @@ namespace Scharfrichter.Codec.Charts
 		public void AddMeasureLines()
 		{
 			int measureCount = -1;
+			int playerCount = Players;
+
+			// verify all required metric info is present
+			foreach (Entry entry in entries)
+				if (!entry.MetricOffsetInitialized)
+					throw new Exception("Measure lines can't be added because at least one entry is missing Metric offset information.");
+
+			// clear up existing ones
+			RemoveMeasureLines();
 
 			// find the highest measure index
 			foreach (Entry entry in entries)
@@ -27,31 +36,35 @@ namespace Scharfrichter.Codec.Charts
 			// add measure lines for each measure
 			for (int i = 0; i < measureCount; i++)
 			{
-				Entry entry = new Entry();
-				entry.Column = 0;
-				entry.MetricMeasure = i;
-				entry.MetricOffset = new Fraction(0, 1);
-				entry.Player = 0;
-				entry.Type = EntryType.Measure;
-				entry.Value = new Fraction(0, 1);
-				entries.Add(entry);
+				for (int j = 0; j < playerCount; j++)
+				{
+					Entry entry = new Entry();
+					entry.Column = 0;
+					entry.MetricMeasure = i;
+					entry.MetricOffset = new Fraction(0, 1);
+					entry.Player = j + 1;
+					entry.Type = EntryType.Measure;
+					entry.Value = new Fraction(0, 1);
+					entries.Add(entry);
+				}
 			}
 
 			// add end of song marker
 			if (measureCount >= 0)
 			{
-				Entry entry = new Entry();
-				entry.Column = 0;
-				entry.MetricMeasure = measureCount;
-				entry.MetricOffset = new Fraction(0, 1);
-				entry.Player = 0;
-				entry.Type = EntryType.EndOfSong;
-				entry.Value = new Fraction(0, 1);
-				entries.Add(entry);
+				for (int j = 0; j < playerCount; j++)
+				{
+					Entry entry = new Entry();
+					entry.Column = 0;
+					entry.MetricMeasure = measureCount;
+					entry.MetricOffset = new Fraction(0, 1);
+					entry.Player = j + 1;
+					entry.Type = EntryType.EndOfSong;
+					entry.Value = new Fraction(0, 1);
+					entries.Add(entry);
+				}
 			}
 		}
-
-		// *HUGE* TODO: consolidate all these numerator/denominator things into one struct
 
 		public void CalculateDigitalOffsets()
 		{
@@ -197,6 +210,29 @@ namespace Scharfrichter.Codec.Charts
 			}
 		}
 
+		public int Players
+		{
+			get
+			{
+				int result = 0;
+				foreach (Entry entry in entries)
+				{
+					if ((entry.Type == EntryType.Marker || entry.Type == EntryType.Sample) && (entry.Player > result))
+						result = entry.Player;
+				}
+				return result;
+			}
+		}
+
+		public void RemoveMeasureLines()
+		{
+			foreach (Entry entry in entries)
+			{
+				if (entry.Type == EntryType.Measure || entry.Type == EntryType.EndOfSong)
+					entry.Type = EntryType.Invalid;
+			}
+		}
+
 		public Dictionary<string, string> Tags
 		{
 			get
@@ -218,6 +254,7 @@ namespace Scharfrichter.Codec.Charts
 		public bool ValueInitialized;
 
 		public int Column;
+		public int Parameter;
 		public int Player;
 		public EntryType Type;
 
