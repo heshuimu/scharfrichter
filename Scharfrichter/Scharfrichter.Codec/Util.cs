@@ -96,12 +96,14 @@ namespace Scharfrichter.Codec
 
 		public static bool operator ==(Fraction a, Fraction b)
 		{
-			return (a.Numerator == b.Numerator) && (a.Denominator == b.Denominator);
+			Commonize(a, b, out a, out b);
+			return (a.Numerator == b.Numerator);
 		}
 
 		public static bool operator !=(Fraction a, Fraction b)
 		{
-			return (a.Numerator != b.Numerator) || (a.Denominator != b.Denominator);
+			Commonize(a, b, out a, out b);
+			return (a.Numerator != b.Numerator);
 		}
 
 		public static explicit operator Fraction(double d)

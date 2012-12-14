@@ -145,8 +145,9 @@ namespace Scharfrichter.Codec.Charts
 			Fraction lastTempoOffset = new Fraction(0, 1);
 			Fraction length = new Fraction(0, 1);
 			int measure = 0;
+			Fraction measureLength = new Fraction(0, 1);
 			Fraction metricBase = new Fraction(0, 1);
-			List<Entry> tempoList = new List<Entry>();
+			Fraction rate = Util.CalculateMeasureRate(bpm);
 
 			lengths.Clear();
 
@@ -155,24 +156,28 @@ namespace Scharfrichter.Codec.Charts
 			{
 				if (entry.Type == EntryType.Measure || entry.Type == EntryType.Tempo)
 				{
+					measureLength += (entry.LinearOffset - lastTempoOffset) / rate;
+
 					if (entry.Type == EntryType.Measure)
 					{
 						if (entry.LinearOffset != lastMeasureOffset)
 						{
+							MeasureLengths[measure] = measureLength;
 							measure++;
 							lastMeasureOffset = entry.LinearOffset;
+							measureLength = new Fraction(0, 1);
 						}
 					}
-
-					foreach (Entry listEntry in tempoList)
+					else if (entry.Type == EntryType.Tempo)
 					{
-
+						bpm = entry.Value;
+						rate = Util.CalculateMeasureRate(bpm);
 					}
 					lastTempoOffset = entry.LinearOffset;
-					tempoList.Clear();
 				}
 
-				tempoList.Add(entry);
+				entry.MetricOffset = (entry.LinearOffset - lastTempoOffset) / rate;
+				entry.MetricMeasure = measure;
 			}
 		}
 
