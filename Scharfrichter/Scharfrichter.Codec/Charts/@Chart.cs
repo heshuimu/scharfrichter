@@ -164,16 +164,12 @@ namespace Scharfrichter.Codec.Charts
 
 			// we keep going through the list until we hit a measure line. when we do,
 			// we take a look at how long the measure is, how long a measure should be,
-			// and determine its length from there. after that, we take all the entries
-			// we passed and assign them a position within the measure in the metric offset.
+			// and determine its length from there.
 			// if we encounter a tempo change mid-measure, that's where things get tricky.
 			// in order to convert losslessly, we have to multiply both the pre-change and
 			// post-change granularities, and the number will get exponentially larger as
 			// more tempo changes are included (however with the built-in fraction reduction
 			// this effect should be minimized).
-			//
-			// we determine how long the measure line should be by converting BPM into
-			// seconds per measure.
 
 			// initialization
 			Fraction bpm = DefaultBPM;
