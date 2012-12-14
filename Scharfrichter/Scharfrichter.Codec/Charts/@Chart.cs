@@ -224,6 +224,18 @@ namespace Scharfrichter.Codec.Charts
 			}
 		}
 
+		public int NoteCount(int player)
+		{
+			int result = 0;
+
+			foreach (Entry entry in entries)
+				if (entry.Type == EntryType.Marker && entry.Player == player)
+					result++;
+
+			return result;
+		}
+
+
 		public void RemoveMeasureLines()
 		{
 			foreach (Entry entry in entries)
