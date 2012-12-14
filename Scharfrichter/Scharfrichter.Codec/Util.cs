@@ -5,7 +5,7 @@ using System.Text;
 
 namespace Scharfrichter.Codec
 {
-	static class Util
+	public struct Fraction
 	{
 		private static long[] Primes = new long[]
 		{
@@ -46,66 +46,118 @@ namespace Scharfrichter.Codec
 		};
 		private static int PrimeCount = Primes.Length;
 
-		public static void Approximate(ref long numerator, ref long denominator, long desiredDenominator)
+		public static Fraction operator +(Fraction a, Fraction b)
 		{
-			numerator = (numerator * desiredDenominator) / denominator;
-			denominator = desiredDenominator;
+			Fraction result = new Fraction();
+			Fraction commonA;
+			Fraction commonB;
+
+			Commonize(a, b, out commonA, out commonB);
+			result.Numerator = (commonA.Numerator + commonB.Numerator);
+			result.Denominator = commonA.Denominator;
+
+			return Reduce(result);
 		}
 
-		public static void Commonize(ref long numeratorA, ref long denominatorA, ref long numeratorB, ref long denominatorB)
+		public static Fraction operator -(Fraction a, Fraction b)
 		{
-			long newNumeratorA = numeratorA * denominatorB;
-			long newDenominator = denominatorA * denominatorB;
-			long newNumeratorB = numeratorB * denominatorA;
+			Fraction result = new Fraction();
+			Fraction commonA;
+			Fraction commonB;
+
+			Commonize(a, b, out commonA, out commonB);
+			result.Numerator = (commonA.Numerator - commonB.Numerator);
+			result.Denominator = commonA.Denominator;
+
+			return Reduce(result);
+		}
+
+		public static Fraction operator *(Fraction a, Fraction b)
+		{
+			Fraction result = new Fraction();
+
+			result.Numerator = (a.Numerator * b.Numerator);
+			result.Denominator = (a.Denominator * b.Denominator);
+
+			return Reduce(result);
+		}
+
+		public static Fraction operator /(Fraction a, Fraction b)
+		{
+			Fraction result = new Fraction();
+
+			result.Numerator = (a.Numerator * b.Denominator);
+			result.Denominator = (a.Denominator * b.Numerator);
+
+			return Reduce(result);
+		}
+
+		public override string ToString()
+		{
+			return Numerator.ToString() + "/" + Denominator.ToString();
+		}
+
+		public static void Commonize(Fraction a, Fraction b, out Fraction outputA, out Fraction outputB)
+		{
+			long newNumeratorA = a.Numerator * b.Denominator;
+			long newDenominator = a.Denominator * b.Denominator;
+			long newNumeratorB = b.Numerator * a.Denominator;
 			bool finished = false;
 
-			while (!finished)
+			if (a.Denominator != b.Denominator)
 			{
-				long max = newDenominator / 2;
-
-				for (int i = 0; i < PrimeCount; i++)
+				while (!finished)
 				{
-					long thisPrime = Primes[i];
+					long max = newDenominator / 2;
 
-					if (thisPrime > max)
+					for (int i = 0; i < PrimeCount; i++)
 					{
-						finished = true;
-						break;
-					}
-					if ((newDenominator % thisPrime == 0) && (newNumeratorA % thisPrime == 0) && (newNumeratorB % thisPrime == 0))
-					{
-						newDenominator /= thisPrime;
-						newNumeratorA /= thisPrime;
-						newNumeratorB /= thisPrime;
-						break;
+						long thisPrime = Primes[i];
+
+						if (thisPrime > max)
+						{
+							finished = true;
+							break;
+						}
+						if ((newDenominator % thisPrime == 0) && (newNumeratorA % thisPrime == 0) && (newNumeratorB % thisPrime == 0))
+						{
+							newDenominator /= thisPrime;
+							newNumeratorA /= thisPrime;
+							newNumeratorB /= thisPrime;
+							break;
+						}
 					}
 				}
+				outputA = new Fraction(newNumeratorA, newDenominator);
+				outputB = new Fraction(newNumeratorB, newDenominator);
 			}
-
-			numeratorA = newNumeratorA;
-			numeratorB = newNumeratorB;
-			denominatorA = newDenominator;
-			denominatorB = newDenominator;
+			else
+			{
+				outputA = a;
+				outputB = b;
+			}
 		}
 
-		public static void Rationalize(double input, out long numerator, out long denominator)
+		public static Fraction Rationalize(double input)
 		{
-			denominator = 1;
+			Fraction result = new Fraction();
+			result.Denominator = 1;
 			while (input != Math.Round(input))
 			{
 				input *= 10;
-				denominator *= 10;
+				result.Denominator *= 10;
 			}
-			numerator = (long)input;
+			result.Numerator = (long)input;
+			return Reduce(result);
 		}
 
-		public static void Reduce(ref long numerator, ref long denominator)
+		public static Fraction Reduce(Fraction input)
 		{
 			bool finished = false;
 
 			while (!finished)
 			{
-				long max = denominator / 2;
+				long max = input.Denominator / 2;
 
 				for (int i = 0; i < PrimeCount; i++)
 				{
@@ -116,14 +168,36 @@ namespace Scharfrichter.Codec
 						finished = true;
 						break;
 					}
-					if ((denominator % thisPrime == 0) && (numerator % thisPrime == 0))
+					if ((input.Denominator % thisPrime == 0) && (input.Numerator % thisPrime == 0))
 					{
-						denominator /= thisPrime;
-						numerator /= thisPrime;
+						input.Denominator /= thisPrime;
+						input.Numerator /= thisPrime;
 						break;
 					}
 				}
 			}
+
+			return input;
+		}
+
+		public Fraction(long newNum, long newDen)
+		{
+			Denominator = newDen;
+			Numerator = newNum;
+		}
+
+		public long Denominator;
+		public long Numerator;
+	}
+
+	static class Util
+	{
+		public static Fraction CalculateMeasureRate(Fraction bpm)
+		{
+			Fraction result = new Fraction();
+			result.Numerator = 240 * bpm.Denominator;
+			result.Denominator = bpm.Numerator;
+			return Fraction.Reduce(result);
 		}
 	}
 }

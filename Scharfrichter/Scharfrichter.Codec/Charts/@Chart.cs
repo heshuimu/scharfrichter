@@ -8,6 +8,7 @@ namespace Scharfrichter.Codec.Charts
 	public class Chart
 	{
 		private List<Entry> entries = new List<Entry>();
+		private Dictionary<int, double> lengths = new Dictionary<int, double>();
 		private Dictionary<string, string> tags = new Dictionary<string, string>();
 
 		public long DefaultBPMDenominator;
@@ -55,26 +56,85 @@ namespace Scharfrichter.Codec.Charts
 			}
 		}
 
+		// *HUGE* TODO: consolidate all these numerator/denominator things into one struct
+
 		public void CalculateDigitalOffsets()
 		{
+			// verify all required metric info is present
+			foreach (Entry entry in entries)
+				if (!entry.MetricOffsetInitialized)
+					throw new Exception("Linear offsets can't be calculated because at least one entry is missing Metric offset information.");
+
+			// reset all linear offset information
+			foreach (Entry entry in entries)
+				entry.LinearOffsetInitialized = false;
+
+			// make sure everything is sorted before we begin
 			entries.Sort();
+
+			// initialization
+			Fraction baseLinear = new Fraction(0, 1);
+			Fraction bpm = new Fraction(DefaultBPMNumerator, DefaultBPMDenominator);
+			double lengthFloat = 1;
+			Fraction lastMetric = new Fraction(0, 1);
+			Fraction length = new Fraction(0, 1);
+			int measure = -1;
+			Fraction measureRate = new Fraction(0, 1);
+			Fraction rate = new Fraction(0, 1);
+			
+			// BPM into seconds per measure
+			measureRate = Util.CalculateMeasureRate(bpm);
 
 			foreach (Entry entry in entries)
 			{
-				if (!entry.MetricOffsetInitialized)
-					throw new Exception("Digital offsets can't be calculated because at least one entry is missing Metric offset information.");
+				if (entry.Type == EntryType.Measure)
+				{
+					baseLinear += rate;
+					measure = entry.MetricMeasure;
+
+					if (lengths.ContainsKey(measure))
+					{
+						length = Fraction.Rationalize(lengths[measure]);
+						rate = length * measureRate;
+					}
+					else
+					{
+						length = new Fraction(1, 1);
+						rate = measureRate;
+					}
+					lastMetric.Denominator = entry.MetricDenominator;
+					lastMetric.Numerator = entry.MetricNumerator;
+				}
+
+				Fraction entryOffset = new Fraction(entry.MetricNumerator, entry.MetricDenominator);
+				entryOffset -= lastMetric;
+				entryOffset *= rate;
+				entryOffset += baseLinear;
+				entry.OffsetNumerator = entryOffset.Numerator;
+				entry.OffsetDenominator = entryOffset.Denominator;
+
+				if (entry.Type == EntryType.Tempo)
+				{
+					measureRate = Util.CalculateMeasureRate(bpm);
+					rate = length * measureRate;
+					lastMetric.Numerator = entry.MetricNumerator;
+					lastMetric.Denominator = entry.MetricDenominator;
+				}
 			}
 		}
 
 		public void CalculateMetricOffsets()
 		{
-			entries.Sort();
-
+			// verify all required linear info is present
 			foreach (Entry entry in entries)
 			{
-				if (!entry.DigitalOffsetInitialized)
-					throw new Exception("Metric offsets can't be calculated because at least one entry is missing Digital offset information.");
+				if (!entry.LinearOffsetInitialized)
+					throw new Exception("Metric offsets can't be calculated because at least one entry is missing Linear offset information.");
 			}
+
+			// make sure everything is sorted before we begin
+			entries.Sort();
+
 		}
 
 		public double DefaultBPM
@@ -87,7 +147,9 @@ namespace Scharfrichter.Codec.Charts
 			}
 			set
 			{
-				Util.Rationalize(value, out DefaultBPMNumerator, out DefaultBPMDenominator);
+				Fraction bpmFrac = Fraction.Rationalize(value);
+				DefaultBPMDenominator = bpmFrac.Denominator;
+				DefaultBPMNumerator = bpmFrac.Numerator;
 			}
 		}
 
@@ -96,6 +158,14 @@ namespace Scharfrichter.Codec.Charts
 			get
 			{
 				return entries;
+			}
+		}
+
+		public Dictionary<int, double> MeasureLengths
+		{
+			get
+			{
+				return lengths;
 			}
 		}
 
@@ -112,14 +182,14 @@ namespace Scharfrichter.Codec.Charts
 	{
 		private const int FallbackDenominator = 2 * 3 * 5 * 7 * 9 * 11 * 13 * 17;
 
-		private long digitalOffsetDenominator;
-		private long digitalOffsetNumerator;
+		private long linearOffsetDenominator;
+		private long linearOffsetNumerator;
 		private long metricOffsetDenominator;
 		private long metricOffsetNumerator;
 		private long valueDenominator;
 		private long valueNumerator;
 
-		public bool DigitalOffsetInitialized;
+		public bool LinearOffsetInitialized;
 		public int MetricMeasure;
 		public bool MetricOffsetInitialized;
 		public bool ValueInitialized;
@@ -145,7 +215,7 @@ namespace Scharfrichter.Codec.Charts
 				if (otherFloat < myFloat)
 					return 1;
 			}
-			else if (other.DigitalOffsetInitialized && this.DigitalOffsetInitialized)
+			else if (other.LinearOffsetInitialized && this.LinearOffsetInitialized)
 			{
 				double myFloat = (double)OffsetNumerator / (double)OffsetDenominator;
 				double otherFloat = (double)other.OffsetNumerator / (double)other.OffsetDenominator;
@@ -241,12 +311,12 @@ namespace Scharfrichter.Codec.Charts
 		{
 			get
 			{
-				return digitalOffsetDenominator;
+				return linearOffsetDenominator;
 			}
 			set
 			{
-				DigitalOffsetInitialized = true;
-				digitalOffsetDenominator = value;
+				LinearOffsetInitialized = true;
+				linearOffsetDenominator = value;
 			}
 		}
 
@@ -254,11 +324,11 @@ namespace Scharfrichter.Codec.Charts
 		{
 			get
 			{
-				return digitalOffsetNumerator;
+				return linearOffsetNumerator;
 			}
 			set
 			{
-				digitalOffsetNumerator = value;
+				linearOffsetNumerator = value;
 			}
 		}
 
