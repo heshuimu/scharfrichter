@@ -76,6 +76,8 @@ namespace Scharfrichter.Codec
 		{
 			Fraction result = new Fraction();
 
+			a = Shrink(a);
+			b = Shrink(b);
 			result.Numerator = (a.Numerator * b.Numerator);
 			result.Denominator = (a.Denominator * b.Denominator);
 
@@ -90,6 +92,16 @@ namespace Scharfrichter.Codec
 			result.Denominator = (a.Denominator * b.Numerator);
 
 			return Reduce(result);
+		}
+
+		public static bool operator ==(Fraction a, Fraction b)
+		{
+			return (a.Numerator == b.Numerator) && (a.Denominator == b.Denominator);
+		}
+
+		public static bool operator !=(Fraction a, Fraction b)
+		{
+			return (a.Numerator != b.Numerator) || (a.Denominator != b.Denominator);
 		}
 
 		public static explicit operator Fraction(double d)
@@ -109,6 +121,9 @@ namespace Scharfrichter.Codec
 
 		public static void Commonize(Fraction a, Fraction b, out Fraction outputA, out Fraction outputB)
 		{
+			a = Shrink(a);
+			b = Shrink(b);
+
 			long newNumeratorA = a.Numerator * b.Denominator;
 			long newDenominator = a.Denominator * b.Denominator;
 			long newNumeratorB = b.Numerator * a.Denominator;
@@ -118,22 +133,17 @@ namespace Scharfrichter.Codec
 			{
 				while (!finished)
 				{
-					long max = newDenominator / 2;
-
+					finished = true;
 					for (int i = 0; i < PrimeCount; i++)
 					{
 						long thisPrime = Primes[i];
 
-						if (thisPrime > max)
-						{
-							finished = true;
-							break;
-						}
 						if ((newDenominator % thisPrime == 0) && (newNumeratorA % thisPrime == 0) && (newNumeratorB % thisPrime == 0))
 						{
 							newDenominator /= thisPrime;
 							newNumeratorA /= thisPrime;
 							newNumeratorB /= thisPrime;
+							finished = false;
 							break;
 						}
 					}
@@ -146,6 +156,11 @@ namespace Scharfrichter.Codec
 				outputA = a;
 				outputB = b;
 			}
+		}
+
+		public static Fraction Compound(Fraction f, long val)
+		{
+			return new Fraction(f.Numerator * val, f.Denominator * val);
 		}
 
 		public static Fraction Rationalize(double input)
@@ -161,33 +176,48 @@ namespace Scharfrichter.Codec
 			return Reduce(result);
 		}
 
+		public Fraction Reciprocate()
+		{
+			return new Fraction(Denominator, Numerator);
+		}
+
 		public static Fraction Reduce(Fraction input)
 		{
 			bool finished = false;
 
+			if (input.Numerator == 0)
+			{
+				input.Denominator = 1;
+				return input;
+			}
+
 			while (!finished)
 			{
-				long max = input.Denominator / 2;
-
+				finished = true;
 				for (int i = 0; i < PrimeCount; i++)
 				{
 					long thisPrime = Primes[i];
 
-					if (thisPrime > max)
-					{
-						finished = true;
-						break;
-					}
 					if ((input.Denominator % thisPrime == 0) && (input.Numerator % thisPrime == 0))
 					{
 						input.Denominator /= thisPrime;
 						input.Numerator /= thisPrime;
+						finished = false;
 						break;
 					}
 				}
 			}
-
 			return input;
+		}
+
+		public static Fraction Shrink(Fraction f)
+		{
+			while (f.Numerator > int.MaxValue || f.Numerator < int.MinValue || f.Denominator > int.MaxValue || f.Denominator < int.MinValue)
+			{
+				f.Numerator /= 2;
+				f.Denominator /= 2;
+			}
+			return f;
 		}
 
 		public Fraction(long newNum, long newDen)

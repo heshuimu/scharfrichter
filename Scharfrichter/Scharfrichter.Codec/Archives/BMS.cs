@@ -52,7 +52,6 @@ namespace Scharfrichter.Codec.Archives
 
 		static public BMS Read(Stream source)
 		{
-			Dictionary<int, double> measureLengths = new Dictionary<int, double>();
 			List<KeyValuePair<string, string>> noteTags = new List<KeyValuePair<string, string>>();
 
 			BMS result = new BMS();
@@ -91,7 +90,7 @@ namespace Scharfrichter.Codec.Archives
 
 			if (chart.Tags.ContainsKey("BPM"))
 			{
-				chart.DefaultBPM = Convert.ToDouble(chart.Tags["BPM"]);
+				chart.DefaultBPM = Fraction.Rationalize(Convert.ToDouble(chart.Tags["BPM"]));
 			}
 
 			foreach (KeyValuePair<string, string> tag in noteTags)
@@ -109,7 +108,7 @@ namespace Scharfrichter.Codec.Archives
 
 					if (lane == "02")
 					{
-						measureLengths[Convert.ToInt32(measure)] = Convert.ToDouble(tag.Value);
+						chart.MeasureLengths[Convert.ToInt32(measure)] = Fraction.Rationalize(Convert.ToDouble(tag.Value));
 					}
 					else
 					{
@@ -196,18 +195,14 @@ namespace Scharfrichter.Codec.Archives
 								entry.Player = currentPlayer;
 								entry.MetricMeasure = currentMeasure;
 								entry.Type = currentType;
-								entry.MetricDenominator = valueLength;
-								entry.MetricNumerator = i;
-								entry.ValueDenominator = 1;
+								entry.MetricOffset = new Fraction(i, valueLength);
 
 								if (coding == ValueCoding.BPMTable)
 								{
 									if (chart.Tags.ContainsKey("BPM" + pair))
 									{
 										string bpmValue = chart.Tags["BPM" + pair];
-										Fraction bpmFrac = Fraction.Rationalize(Convert.ToDouble(bpmValue));
-										entry.ValueNumerator = bpmFrac.Numerator;
-										entry.ValueDenominator = bpmFrac.Denominator;
+										entry.Value = Fraction.Rationalize(Convert.ToDouble(bpmValue));
 									}
 									else
 									{
@@ -216,7 +211,7 @@ namespace Scharfrichter.Codec.Archives
 								}
 								else
 								{
-									entry.ValueNumerator = val;
+									entry.Value = new Fraction(val, 1);
 								}
 
 								if (entry.Type != EntryType.Invalid)

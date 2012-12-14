@@ -8,11 +8,10 @@ namespace Scharfrichter.Codec.Charts
 	public class Chart
 	{
 		private List<Entry> entries = new List<Entry>();
-		private Dictionary<int, double> lengths = new Dictionary<int, double>();
+		private Dictionary<int, Fraction> lengths = new Dictionary<int, Fraction>();
 		private Dictionary<string, string> tags = new Dictionary<string, string>();
 
-		public long DefaultBPMDenominator;
-		public long DefaultBPMNumerator;
+		public Fraction DefaultBPM;
 
 		public void AddMeasureLines()
 		{
@@ -31,12 +30,10 @@ namespace Scharfrichter.Codec.Charts
 				Entry entry = new Entry();
 				entry.Column = 0;
 				entry.MetricMeasure = i;
-				entry.MetricDenominator = 1;
-				entry.MetricNumerator = 0;
+				entry.MetricOffset = new Fraction(0, 1);
 				entry.Player = 0;
 				entry.Type = EntryType.Measure;
-				entry.ValueDenominator = 1;
-				entry.ValueNumerator = 0;
+				entry.Value = new Fraction(0, 1);
 				entries.Add(entry);
 			}
 
@@ -46,12 +43,10 @@ namespace Scharfrichter.Codec.Charts
 				Entry entry = new Entry();
 				entry.Column = 0;
 				entry.MetricMeasure = measureCount;
-				entry.MetricDenominator = 1;
-				entry.MetricNumerator = 0;
+				entry.MetricOffset = new Fraction(0, 1);
 				entry.Player = 0;
 				entry.Type = EntryType.EndOfSong;
-				entry.ValueDenominator = 1;
-				entry.ValueNumerator = 0;
+				entry.Value = new Fraction(0, 1);
 				entries.Add(entry);
 			}
 		}
@@ -74,8 +69,7 @@ namespace Scharfrichter.Codec.Charts
 
 			// initialization
 			Fraction baseLinear = new Fraction(0, 1);
-			Fraction bpm = new Fraction(DefaultBPMNumerator, DefaultBPMDenominator);
-			double lengthFloat = 1;
+			Fraction bpm = DefaultBPM;
 			Fraction lastMetric = new Fraction(0, 1);
 			Fraction length = new Fraction(0, 1);
 			int measure = -1;
@@ -94,7 +88,7 @@ namespace Scharfrichter.Codec.Charts
 
 					if (lengths.ContainsKey(measure))
 					{
-						length = Fraction.Rationalize(lengths[measure]);
+						length = lengths[measure];
 						rate = length * measureRate;
 					}
 					else
@@ -102,23 +96,20 @@ namespace Scharfrichter.Codec.Charts
 						length = new Fraction(1, 1);
 						rate = measureRate;
 					}
-					lastMetric.Denominator = entry.MetricDenominator;
-					lastMetric.Numerator = entry.MetricNumerator;
+					lastMetric = entry.MetricOffset;
 				}
 
-				Fraction entryOffset = new Fraction(entry.MetricNumerator, entry.MetricDenominator);
+				Fraction entryOffset = entry.MetricOffset;
 				entryOffset -= lastMetric;
 				entryOffset *= rate;
 				entryOffset += baseLinear;
-				entry.OffsetNumerator = entryOffset.Numerator;
-				entry.OffsetDenominator = entryOffset.Denominator;
+				entry.LinearOffset = entryOffset;
 
 				if (entry.Type == EntryType.Tempo)
 				{
 					measureRate = Util.CalculateMeasureRate(bpm);
 					rate = length * measureRate;
-					lastMetric.Numerator = entry.MetricNumerator;
-					lastMetric.Denominator = entry.MetricDenominator;
+					lastMetric = entry.MetricOffset;
 				}
 			}
 		}
@@ -135,21 +126,53 @@ namespace Scharfrichter.Codec.Charts
 			// make sure everything is sorted before we begin
 			entries.Sort();
 
-		}
+			// we keep going through the list until we hit a measure line. when we do,
+			// we take a look at how long the measure is, how long a measure should be,
+			// and determine its length from there. after that, we take all the entries
+			// we passed and assign them a position within the measure in the metric offset.
+			// if we encounter a tempo change mid-measure, that's where things get tricky.
+			// in order to convert losslessly, we have to multiply both the pre-change and
+			// post-change granularities, and the number will get exponentially larger as
+			// more tempo changes are included (however with the built-in fraction reduction
+			// this effect should be minimized).
+			//
+			// we determine how long the measure line should be by converting BPM into
+			// seconds per measure.
 
-		public double DefaultBPM
-		{
-			get
+			// initialization
+			Fraction bpm = DefaultBPM;
+			Fraction lastMeasureOffset = new Fraction(0, 1);
+			Fraction lastTempoOffset = new Fraction(0, 1);
+			Fraction length = new Fraction(0, 1);
+			int measure = 0;
+			Fraction metricBase = new Fraction(0, 1);
+			List<Entry> tempoList = new List<Entry>();
+
+			lengths.Clear();
+
+			// process
+			foreach (Entry entry in entries)
 			{
-				if (DefaultBPMDenominator > 0)
-					return (DefaultBPMNumerator / DefaultBPMDenominator);
-				return 0;
-			}
-			set
-			{
-				Fraction bpmFrac = Fraction.Rationalize(value);
-				DefaultBPMDenominator = bpmFrac.Denominator;
-				DefaultBPMNumerator = bpmFrac.Numerator;
+				if (entry.Type == EntryType.Measure || entry.Type == EntryType.Tempo)
+				{
+					if (entry.Type == EntryType.Measure)
+					{
+						if (entry.LinearOffset != lastMeasureOffset)
+						{
+							measure++;
+							lastMeasureOffset = entry.LinearOffset;
+						}
+					}
+
+					foreach (Entry listEntry in tempoList)
+					{
+
+					}
+					lastTempoOffset = entry.LinearOffset;
+					tempoList.Clear();
+				}
+
+				tempoList.Add(entry);
 			}
 		}
 
@@ -161,7 +184,7 @@ namespace Scharfrichter.Codec.Charts
 			}
 		}
 
-		public Dictionary<int, double> MeasureLengths
+		public Dictionary<int, Fraction> MeasureLengths
 		{
 			get
 			{
@@ -180,14 +203,9 @@ namespace Scharfrichter.Codec.Charts
 
 	public class Entry : IComparable<Entry>
 	{
-		private const int FallbackDenominator = 2 * 3 * 5 * 7 * 9 * 11 * 13 * 17;
-
-		private long linearOffsetDenominator;
-		private long linearOffsetNumerator;
-		private long metricOffsetDenominator;
-		private long metricOffsetNumerator;
-		private long valueDenominator;
-		private long valueNumerator;
+		private Fraction linearOffset;
+		private Fraction metricOffset;
+		private Fraction value;
 
 		public bool LinearOffsetInitialized;
 		public int MetricMeasure;
@@ -207,8 +225,8 @@ namespace Scharfrichter.Codec.Charts
 				if (other.MetricMeasure < this.MetricMeasure)
 					return 1;
 
-				double myFloat = (double)MetricNumerator / (double)MetricDenominator;
-				double otherFloat = (double)other.MetricNumerator / (double)other.MetricDenominator;
+				double myFloat = (double)metricOffset;
+				double otherFloat = (double)other.metricOffset;
 
 				if (otherFloat > myFloat)
 					return -1;
@@ -217,8 +235,8 @@ namespace Scharfrichter.Codec.Charts
 			}
 			else if (other.LinearOffsetInitialized && this.LinearOffsetInitialized)
 			{
-				double myFloat = (double)OffsetNumerator / (double)OffsetDenominator;
-				double otherFloat = (double)other.OffsetNumerator / (double)other.OffsetDenominator;
+				double myFloat = (double)linearOffset;
+				double otherFloat = (double)other.linearOffset;
 
 				if (otherFloat > myFloat)
 					return -1;
@@ -282,78 +300,42 @@ namespace Scharfrichter.Codec.Charts
 			return (Type.ToString() + ": P" + Player.ToString() + ", C" + Column.ToString());
 		}
 
-		public long MetricDenominator
+		public Fraction LinearOffset
 		{
 			get
 			{
-				return metricOffsetDenominator;
+				return linearOffset;
 			}
 			set
 			{
-				MetricOffsetInitialized = true;
-				metricOffsetDenominator = value;
-			}
-		}
-
-		public long MetricNumerator
-		{
-			get
-			{
-				return metricOffsetNumerator;
-			}
-			set
-			{
-				metricOffsetNumerator = value;
-			}
-		}
-
-		public long OffsetDenominator
-		{
-			get
-			{
-				return linearOffsetDenominator;
-			}
-			set
-			{
+				linearOffset = value;
 				LinearOffsetInitialized = true;
-				linearOffsetDenominator = value;
 			}
 		}
 
-		public long OffsetNumerator
+		public Fraction MetricOffset
 		{
 			get
 			{
-				return linearOffsetNumerator;
+				return metricOffset;
 			}
 			set
 			{
-				linearOffsetNumerator = value;
+				metricOffset = value;
+				MetricOffsetInitialized = true;
 			}
 		}
 
-		public long ValueDenominator
+		public Fraction Value
 		{
 			get
 			{
-				return valueDenominator;
+				return this.value;
 			}
 			set
 			{
+				this.value = value;
 				ValueInitialized = true;
-				valueDenominator = value;
-			}
-		}
-
-		public long ValueNumerator
-		{
-			get
-			{
-				return valueNumerator;
-			}
-			set
-			{
-				valueNumerator = value;
 			}
 		}
 	}

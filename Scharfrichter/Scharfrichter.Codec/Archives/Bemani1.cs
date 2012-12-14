@@ -70,9 +70,8 @@ namespace Scharfrichter.Codec.Archives
 									if (eventOffset >= 0x7FFFFFFF)
 										break;
 
-									entry.OffsetNumerator = eventOffset * unitNumerator;
-									entry.OffsetDenominator = unitDenominator;
-									entry.ValueDenominator = 1;
+									entry.LinearOffset = new Fraction(eventOffset * unitNumerator, unitDenominator);
+									entry.Value = new Fraction(0, 1);
 
 									int eventType = memReader.ReadByte();
 									int eventParameter = memReader.ReadByte();
@@ -86,11 +85,11 @@ namespace Scharfrichter.Codec.Archives
 									{
 										case 0x00: entry.Type = EntryType.Marker; entry.Player = 1; entry.Column = eventParameter; break;
 										case 0x01: entry.Type = EntryType.Marker; entry.Player = 2; entry.Column = eventParameter; break;
-										case 0x02: entry.Type = EntryType.Sample; entry.Player = 1; entry.Column = eventParameter; entry.ValueNumerator = eventValue; break;
-										case 0x03: entry.Type = EntryType.Sample; entry.Player = 2; entry.Column = eventParameter; entry.ValueNumerator = eventValue; break;
-										case 0x04: entry.Type = EntryType.Tempo; entry.ValueNumerator = eventValue; entry.ValueDenominator = eventParameter; break;
+										case 0x02: entry.Type = EntryType.Sample; entry.Player = 1; entry.Column = eventParameter; entry.Value = new Fraction(eventValue, 1); break;
+										case 0x03: entry.Type = EntryType.Sample; entry.Player = 2; entry.Column = eventParameter; entry.Value = new Fraction(eventValue, 1); break;
+										case 0x04: entry.Type = EntryType.Tempo; entry.Value = new Fraction(eventValue, eventParameter); break;
 										case 0x06: entry.Type = EntryType.EndOfSong; break;
-										case 0x07: entry.Type = EntryType.Marker; entry.Player = 0; entry.ValueNumerator = eventValue; break;
+										case 0x07: entry.Type = EntryType.Marker; entry.Player = 0; entry.Value = new Fraction(eventValue, 1); break;
 										case 0x0C: entry.Type = (eventParameter == 0 ? EntryType.Measure : EntryType.Invalid); break;
 										default: entry.Type = EntryType.Invalid; break;
 									}
@@ -102,6 +101,17 @@ namespace Scharfrichter.Codec.Archives
 							}
 						}
 
+						// find the default bpm
+						foreach (Entry entry in chart.Entries)
+						{
+							if (entry.Type == EntryType.Tempo)
+							{
+								chart.DefaultBPM = entry.Value;
+								break;
+							}
+						}
+
+						// fill in the metric offsets
 						chart.CalculateMetricOffsets();
 
 						if (chart.Entries.Count > 0)
