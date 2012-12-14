@@ -90,6 +90,7 @@ namespace Scharfrichter.Codec.Archives
 										case 0x04: entry.Type = EntryType.Tempo; entry.Value = new Fraction(eventValue, eventParameter); break;
 										case 0x06: entry.Type = EntryType.EndOfSong; entry.Player = eventParameter + 1; break;
 										case 0x07: entry.Type = EntryType.Marker; entry.Player = 0; entry.Value = new Fraction(eventValue, 1); entry.Parameter = eventParameter; break;
+										case 0x08: entry.Type = EntryType.Judgement; entry.Player = 0; entry.Value = new Fraction(eventValue, 1); entry.Parameter = eventParameter; break;
 										case 0x0C: entry.Type = (eventParameter == 0 ? EntryType.Measure : EntryType.Invalid); entry.Player = eventParameter + 1; break;
 										default: entry.Type = EntryType.Invalid; break;
 									}
@@ -143,6 +144,20 @@ namespace Scharfrichter.Codec.Archives
 						{
 							baseOffset = mem.Position;
 							offset[i] = (int)baseOffset;
+
+							// I don't know if these are needed, but they are
+							// parameters for note count you would typically find
+							// in such a chart, so we will include them
+
+							writer.Write((Int32)0);
+							writer.Write((byte)0x10);	// notecount ID
+							writer.Write((byte)0x00);	// player#
+							writer.Write((Int16)charts[i].NoteCount(1));
+							writer.Write((Int32)0);
+							writer.Write((byte)0x10);	// notecount ID
+							writer.Write((byte)0x01);	// player#
+							writer.Write((Int16)charts[i].NoteCount(2));
+
 							foreach (Entry entry in charts[i].Entries)
 							{
 								long num;
@@ -158,6 +173,11 @@ namespace Scharfrichter.Codec.Archives
 										entryType = 0x06;
 										entryParameter = 0;
 										entryValue = 0;
+										break;
+									case EntryType.Judgement:
+										entryType = 0x08;
+										entryParameter = (byte)entry.Parameter;
+										entryValue = (Int16)entry.Value;
 										break;
 									case EntryType.Marker:
 										if (entry.Player < 1)

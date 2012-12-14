@@ -223,6 +223,7 @@ namespace Scharfrichter.Codec.Archives
 			}
 
 			chart.AddMeasureLines();
+			chart.AddJudgements();
 			chart.CalculateDigitalOffsets();
 
 			result.chart = chart;

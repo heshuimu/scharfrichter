@@ -13,6 +13,32 @@ namespace Scharfrichter.Codec.Charts
 
 		public Fraction DefaultBPM;
 
+		// for now we are going to default to IIDX timing
+
+		public void AddJudgements()
+		{
+			int[] judgementValues = new int[] { 0xF0, 0xFA, 0xFF, 0x03, 0x08, 0x12 };
+			int judgementCount = judgementValues.Length;
+			int playerCount = Players;
+
+			for (int j = 0; j < playerCount; j++)
+			{
+				for (int i = 0; i < judgementCount; i++)
+				{
+					Entry entry = new Entry();
+					entry.Column = 0;
+					entry.LinearOffset = new Fraction(0, 1);
+					entry.MetricMeasure = 0;
+					entry.MetricOffset = new Fraction(0, 1);
+					entry.Parameter = i;
+					entry.Player = j + 1;
+					entry.Type = EntryType.Judgement;
+					entry.Value = new Fraction(judgementValues[i], 1);
+					entries.Add(entry);
+				}
+			}
+		}
+
 		public void AddMeasureLines()
 		{
 			int measureCount = -1;
@@ -210,6 +236,17 @@ namespace Scharfrichter.Codec.Charts
 			}
 		}
 
+		public int NoteCount(int player)
+		{
+			int result = 0;
+
+			foreach (Entry entry in entries)
+				if (entry.Type == EntryType.Marker && entry.Player == player)
+					result++;
+
+			return result;
+		}
+
 		public int Players
 		{
 			get
@@ -224,17 +261,14 @@ namespace Scharfrichter.Codec.Charts
 			}
 		}
 
-		public int NoteCount(int player)
+		public void RemoveJudgements()
 		{
-			int result = 0;
-
 			foreach (Entry entry in entries)
-				if (entry.Type == EntryType.Marker && entry.Player == player)
-					result++;
-
-			return result;
+			{
+				if (entry.Type == EntryType.Judgement)
+					entry.Type = EntryType.Invalid;
+			}
 		}
-
 
 		public void RemoveMeasureLines()
 		{
@@ -306,6 +340,11 @@ namespace Scharfrichter.Codec.Charts
 			if (other.Column > this.Column)
 				return -1;
 			if (other.Column < this.Column)
+				return 1;
+
+			if (other.Parameter > this.Parameter)
+				return -1;
+			if (other.Parameter < this.Parameter)
 				return 1;
 
 			// these must come at the beginning
