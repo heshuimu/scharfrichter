@@ -69,6 +69,25 @@ namespace Scharfrichter.Codec.Archives
 			}
 		}
 
+		public virtual byte[][] RawData
+		{
+			get
+			{
+				return new byte[][] { };
+			}
+			set
+			{
+			}
+		}
+
+		public virtual int RawDataCount
+		{
+			get
+			{
+				return 0;
+			}
+		}
+
 		public virtual int SoundCount
 		{
 			get

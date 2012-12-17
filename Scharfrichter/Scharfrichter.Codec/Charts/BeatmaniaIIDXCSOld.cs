@@ -1,45 +1,20 @@
-﻿using Scharfrichter.Codec.Charts;
-
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
 
-namespace Scharfrichter.Codec.Archives
+namespace Scharfrichter.Codec.Charts
 {
-	public class BemaniCS2 : Archive
+	public static class BeatmaniaIIDXCSOld
 	{
-		private Chart chart;
-
-		public override Chart[] Charts
+		static public Chart Load(Stream source)
 		{
-			get
-			{
-				return new Chart[] { chart };
-			}
-			set
-			{
-				chart = value[0];
-			}
-		}
-
-		public override int ChartCount
-		{
-			get
-			{
-				return 1;
-			}
-		}
-
-		public static BemaniCS2 Read(Stream source)
-		{
-			BemaniCS2 result = new BemaniCS2();
 			BinaryReader reader = new BinaryReader(source);
 			Chart chart = new Chart();
 
 			if (reader.ReadInt32() != 0x00000008)
-				throw new Exception("Can't load this CS2 file: invalid signature.");
+				throw new Exception("Can't load this file: invalid signature.");
 
 			long granularity = reader.ReadInt32();
 
@@ -96,13 +71,8 @@ namespace Scharfrichter.Codec.Archives
 
 			// fill in the metric offsets
 			chart.CalculateMetricOffsets();
-			
-			result.chart = chart;
-			return result;
-		}
 
-		public void Write(Stream target, long unitNumerator, long unitDenominator)
-		{
+			return chart;
 		}
 	}
 }

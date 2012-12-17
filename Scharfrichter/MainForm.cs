@@ -74,8 +74,7 @@ namespace Scharfrichter
 					using (MemoryStream output = new MemoryStream())
 					{
 						Bemani1 b1 = new Bemani1();
-						BemaniCS2 bcs2 = BemaniCS2.Read(mem);
-						b1.Charts[0] = bcs2.Charts[0];
+						b1.Charts[0] = BeatmaniaIIDXCSOld.Load(mem);
 						b1.Write(output, 100, 5994);
 						File.WriteAllBytes(@"D:\BMS\compchart.1", output.ToArray());
 					}
