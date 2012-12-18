@@ -213,6 +213,12 @@ namespace Scharfrichter.Codec.Charts
 			}
 		}
 
+		public void ClearUsed()
+		{
+			foreach (Entry entry in entries)
+				entry.Used = false;
+		}
+
 		public List<Entry> Entries
 		{
 			get
@@ -370,6 +376,7 @@ namespace Scharfrichter.Codec.Charts
 		public int Parameter;
 		public int Player;
 		public EntryType Type;
+		public bool Used;
 
 		public int CompareTo(Entry other)
 		{

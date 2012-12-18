@@ -5,6 +5,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Scharfrichter", "Scharfrich
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Scharfrichter.Codec", "Scharfrichter.Codec\Scharfrichter.Codec.csproj", "{DB34F6AF-C522-4149-A6D3-37A36D2D9590}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LZDecompress", "..\LZDecompress\LZDecompress.csproj", "{69F69199-130F-405C-B494-4DFBDE282A04}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -35,6 +37,16 @@ Global
 		{DB34F6AF-C522-4149-A6D3-37A36D2D9590}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
 		{DB34F6AF-C522-4149-A6D3-37A36D2D9590}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{DB34F6AF-C522-4149-A6D3-37A36D2D9590}.Release|x86.ActiveCfg = Release|Any CPU
+		{69F69199-130F-405C-B494-4DFBDE282A04}.Debug|Any CPU.ActiveCfg = Debug|x86
+		{69F69199-130F-405C-B494-4DFBDE282A04}.Debug|Mixed Platforms.ActiveCfg = Debug|x86
+		{69F69199-130F-405C-B494-4DFBDE282A04}.Debug|Mixed Platforms.Build.0 = Debug|x86
+		{69F69199-130F-405C-B494-4DFBDE282A04}.Debug|x86.ActiveCfg = Debug|x86
+		{69F69199-130F-405C-B494-4DFBDE282A04}.Debug|x86.Build.0 = Debug|x86
+		{69F69199-130F-405C-B494-4DFBDE282A04}.Release|Any CPU.ActiveCfg = Release|x86
+		{69F69199-130F-405C-B494-4DFBDE282A04}.Release|Mixed Platforms.ActiveCfg = Release|x86
+		{69F69199-130F-405C-B494-4DFBDE282A04}.Release|Mixed Platforms.Build.0 = Release|x86
+		{69F69199-130F-405C-B494-4DFBDE282A04}.Release|x86.ActiveCfg = Release|x86
+		{69F69199-130F-405C-B494-4DFBDE282A04}.Release|x86.Build.0 = Release|x86
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

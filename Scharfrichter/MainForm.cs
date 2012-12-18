@@ -41,7 +41,7 @@ namespace Scharfrichter
 				}
 			}
 
-			// bemani1 writeback test with quantization
+			// bemani1 to BMS test with quantization
 			using (FileStream fs = new FileStream(@"D:\BMS\1101.1", FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
 			{
 				Bemani1 test = Bemani1.Read(fs, 100, 5994);
@@ -57,27 +57,10 @@ namespace Scharfrichter
 						if (test.Charts[i] != null)
 							test.Charts[i].QuantizeMeasureLengths(32);
 					}
-					test.Write(mem, 100, 5994);
-					File.WriteAllBytes(@"D:\BMS\1101q.out", mem.ToArray());
-				}
-			}
-
-			// bemaniLZ decompression test and bemanics2 to bemani1 test
-			using (FileStream fs = new FileStream(@"D:\BMS\compchart.dat", FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
-			{
-				using (MemoryStream mem = new MemoryStream())
-				{
-					BemaniLZ.Decode(fs, mem);
-					File.WriteAllBytes(@"D:\BMS\compchart.dec", mem.ToArray());
-					mem.Position = 0;
-
-					using (MemoryStream output = new MemoryStream())
-					{
-						Bemani1 b1 = new Bemani1();
-						b1.Charts[0] = BeatmaniaIIDXCSOld.Load(mem);
-						b1.Write(output, 100, 5994);
-						File.WriteAllBytes(@"D:\BMS\compchart.1", output.ToArray());
-					}
+					BMS bms = new BMS();
+					bms.Charts[0] = test.Charts[0];
+					bms.Write(mem);
+					File.WriteAllBytes(@"D:\BMS\1101.bms", mem.ToArray());
 				}
 			}
 

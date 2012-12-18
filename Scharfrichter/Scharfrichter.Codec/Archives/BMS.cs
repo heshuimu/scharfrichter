@@ -24,21 +24,18 @@ namespace Scharfrichter.Codec.Archives
 		private const string alphabetHex = "0123456789ABCDEF";
 		private const string alphabetDecimal = "0123456789";
 
-		private Chart chart = null;
+		private Chart[] charts = new Chart[] { null };
 
 		public override Chart[] Charts
 		{
 			get
 			{
-				if (chart != null)
-					return new Chart[] { chart };
-				else
-					return base.Charts;
+				return charts;
 			}
 			set
 			{
 				if (value != null && value.Length > 0)
-					chart = value[0];
+					charts[0] = value[0];
 			}
 		}
 
@@ -46,7 +43,7 @@ namespace Scharfrichter.Codec.Archives
 		{
 			get
 			{
-				return (chart != null) ? 1 : 0;
+				return (charts[0] != null) ? 1 : 0;
 			}
 		}
 
@@ -56,34 +53,32 @@ namespace Scharfrichter.Codec.Archives
 
 			BMS result = new BMS();
 			Chart chart = new Chart();
+			StreamReader reader = new StreamReader(source);
 
-			using (StreamReader reader = new StreamReader(source))
+			while (!reader.EndOfStream)
 			{
-				while (!reader.EndOfStream)
+				string currentLine = reader.ReadLine();
+
+				if (currentLine.StartsWith("#"))
 				{
-					string currentLine = reader.ReadLine();
+					currentLine = currentLine.Substring(1);
+					currentLine = currentLine.Replace("\t", " ");
 
-					if (currentLine.StartsWith("#"))
+					if (currentLine.Contains(" "))
 					{
-						currentLine = currentLine.Substring(1);
-						currentLine = currentLine.Replace("\t", " ");
-
-						if (currentLine.Contains(" "))
-						{
-							int separatorOffset = currentLine.IndexOf(" ");
-							string val = currentLine.Substring(separatorOffset + 1).Trim();
-							string tag = currentLine.Substring(0, separatorOffset).Trim().ToUpper();
-							if (tag != "")
-								chart.Tags[tag] = val;
-						}
-						else if (currentLine.Contains(":"))
-						{
-							int separatorOffset = currentLine.IndexOf(":");
-							string val = currentLine.Substring(separatorOffset + 1).Trim();
-							string tag = currentLine.Substring(0, separatorOffset).Trim().ToUpper();
-							if (tag != "")
-								noteTags.Add(new KeyValuePair<string, string>(tag, val));
-						}
+						int separatorOffset = currentLine.IndexOf(" ");
+						string val = currentLine.Substring(separatorOffset + 1).Trim();
+						string tag = currentLine.Substring(0, separatorOffset).Trim().ToUpper();
+						if (tag != "")
+							chart.Tags[tag] = val;
+					}
+					else if (currentLine.Contains(":"))
+					{
+						int separatorOffset = currentLine.IndexOf(":");
+						string val = currentLine.Substring(separatorOffset + 1).Trim();
+						string tag = currentLine.Substring(0, separatorOffset).Trim().ToUpper();
+						if (tag != "")
+							noteTags.Add(new KeyValuePair<string, string>(tag, val));
 					}
 				}
 			}
@@ -226,12 +221,160 @@ namespace Scharfrichter.Codec.Archives
 			chart.AddJudgements();
 			chart.CalculateLinearOffsets();
 
-			result.chart = chart;
+			result.charts = new Chart[] { chart };
 			return result;
+		}
+
+		private static int[] Reduce(int[] source)
+		{
+			long[] primes = Util.Primes;
+			int primeCount = Util.PrimeCount;
+			return null;
 		}
 
 		public void Write(Stream target)
 		{
+			List<Fraction> bpmMap = new List<Fraction>();
+			BinaryWriter writer = new BinaryWriter(target);
+			Chart chart = charts[0];
+
+			MemoryStream header = new MemoryStream();
+			MemoryStream body = new MemoryStream();
+
+			StreamWriter headerWriter = new StreamWriter(header);
+			StreamWriter bodyWriter = new StreamWriter(body);
+
+			// note count header. this can assist people tagging.
+			headerWriter.WriteLine("; 1P = " + chart.NoteCount(1).ToString());
+			headerWriter.WriteLine("; 2P = " + chart.NoteCount(2).ToString());
+			headerWriter.WriteLine("");
+
+			// create BPM metadata
+			chart.Tags["BPM"] = Math.Round((double)(chart.DefaultBPM), 2).ToString();
+
+			// write all metadata
+			foreach (KeyValuePair<string, string> tag in chart.Tags)
+			{
+				if (tag.Value != null && tag.Value.Length > 0)
+					headerWriter.WriteLine("#" + tag.Key + " " + tag.Value);
+				else
+					headerWriter.WriteLine("#" + tag.Key);
+			}
+			
+			// iterate through all events
+			int currentMeasure = 0;
+			int currentOperation = 0;
+			int measureCount = chart.Measures;
+
+			while (currentMeasure < measureCount)
+			{
+				List<Entry> entries = new List<Entry>();
+				bool processedEntry = false;
+				EntryType currentType = EntryType.Invalid;
+				int currentColumn = 0;
+				int currentPlayer = 0;
+				string laneString = "00";
+
+				switch (currentOperation)
+				{
+					case 00: currentType = EntryType.Tempo; currentPlayer = 0; currentColumn = 0; laneString = "08"; break;
+					case 01: currentType = EntryType.BGA; currentPlayer = 0; currentColumn = 0; laneString = "04"; break;
+					case 02: currentType = EntryType.BGA; currentPlayer = 0; currentColumn = 1; laneString = "05"; break;
+					case 03: currentType = EntryType.BGA; currentPlayer = 0; currentColumn = 2; laneString = "06"; break;
+					case 04: currentType = EntryType.BGA; currentPlayer = 0; currentColumn = 3; laneString = "07"; break;
+					case 05: currentType = EntryType.Marker; currentPlayer = 0; currentColumn = 0; laneString = "01"; break;
+					case 06: currentOperation++; continue; // placeholders
+					case 07: currentOperation++; continue;
+					case 08: currentOperation++; continue;
+					case 09: currentOperation++; continue;
+					case 10: currentType = EntryType.Marker; currentPlayer = 1; currentColumn = 0; laneString = "11"; break;
+					case 11: currentType = EntryType.Marker; currentPlayer = 1; currentColumn = 1; laneString = "12"; break;
+					case 12: currentType = EntryType.Marker; currentPlayer = 1; currentColumn = 2; laneString = "13"; break;
+					case 13: currentType = EntryType.Marker; currentPlayer = 1; currentColumn = 3; laneString = "14"; break;
+					case 14: currentType = EntryType.Marker; currentPlayer = 1; currentColumn = 4; laneString = "15"; break;
+					case 15: currentType = EntryType.Marker; currentPlayer = 1; currentColumn = 5; laneString = "18"; break;
+					case 16: currentType = EntryType.Marker; currentPlayer = 1; currentColumn = 6; laneString = "19"; break;
+					case 17: currentType = EntryType.Marker; currentPlayer = 1; currentColumn = 7; laneString = "16"; break;
+					case 18: currentType = EntryType.Marker; currentPlayer = 1; currentColumn = 8; laneString = "17"; break;
+					case 19: currentType = EntryType.Marker; currentPlayer = 2; currentColumn = 0; laneString = "21"; break;
+					case 20: currentType = EntryType.Marker; currentPlayer = 2; currentColumn = 1; laneString = "22"; break;
+					case 21: currentType = EntryType.Marker; currentPlayer = 2; currentColumn = 2; laneString = "23"; break;
+					case 22: currentType = EntryType.Marker; currentPlayer = 2; currentColumn = 3; laneString = "24"; break;
+					case 23: currentType = EntryType.Marker; currentPlayer = 2; currentColumn = 4; laneString = "25"; break;
+					case 24: currentType = EntryType.Marker; currentPlayer = 2; currentColumn = 5; laneString = "28"; break;
+					case 25: currentType = EntryType.Marker; currentPlayer = 2; currentColumn = 6; laneString = "29"; break;
+					case 26: currentType = EntryType.Marker; currentPlayer = 2; currentColumn = 7; laneString = "26"; break;
+					case 27: currentType = EntryType.Marker; currentPlayer = 2; currentColumn = 8; laneString = "27"; break;
+					case 28: currentType = EntryType.Freeze; currentPlayer = 1; currentColumn = 0; laneString = "51"; break;
+					case 29: currentType = EntryType.Freeze; currentPlayer = 1; currentColumn = 1; laneString = "52"; break;
+					case 30: currentType = EntryType.Freeze; currentPlayer = 1; currentColumn = 2; laneString = "53"; break;
+					case 31: currentType = EntryType.Freeze; currentPlayer = 1; currentColumn = 3; laneString = "54"; break;
+					case 32: currentType = EntryType.Freeze; currentPlayer = 1; currentColumn = 4; laneString = "55"; break;
+					case 33: currentType = EntryType.Freeze; currentPlayer = 1; currentColumn = 5; laneString = "58"; break;
+					case 34: currentType = EntryType.Freeze; currentPlayer = 1; currentColumn = 6; laneString = "59"; break;
+					case 35: currentType = EntryType.Freeze; currentPlayer = 1; currentColumn = 7; laneString = "56"; break;
+					case 36: currentType = EntryType.Freeze; currentPlayer = 2; currentColumn = 0; laneString = "61"; break;
+					case 37: currentType = EntryType.Freeze; currentPlayer = 2; currentColumn = 1; laneString = "62"; break;
+					case 38: currentType = EntryType.Freeze; currentPlayer = 2; currentColumn = 2; laneString = "63"; break;
+					case 39: currentType = EntryType.Freeze; currentPlayer = 2; currentColumn = 3; laneString = "64"; break;
+					case 40: currentType = EntryType.Freeze; currentPlayer = 2; currentColumn = 4; laneString = "65"; break;
+					case 41: currentType = EntryType.Freeze; currentPlayer = 2; currentColumn = 5; laneString = "68"; break;
+					case 42: currentType = EntryType.Freeze; currentPlayer = 2; currentColumn = 6; laneString = "69"; break;
+					case 43: currentType = EntryType.Freeze; currentPlayer = 2; currentColumn = 7; laneString = "66"; break;
+					default: currentOperation = 0; currentMeasure++; continue;
+				}
+
+				// separate events we'll use
+				foreach (Entry entry in chart.Entries)
+				{
+					if (entry.MetricMeasure == currentMeasure &&
+						entry.Player == currentPlayer &&
+						entry.Type == currentType &&
+						entry.Column == currentColumn)
+					{
+						entries.Add(entry);
+					}
+					
+					// slight optimization
+					if (entry.MetricMeasure > currentMeasure)
+						break;
+				}
+
+				// build a line if necessary
+				if (entries.Count > 0)
+				{
+					Fraction common = new Fraction(1, 1);
+					Fraction temp;
+
+					// get common denominator
+					for (int i = 0; i < 2; i++)
+					{
+						foreach (Entry entry in entries)
+						{
+							Fraction.Commonize(entry.MetricOffset, common, out temp, out common);
+							entry.MetricOffset = temp;
+						}
+					}
+
+					// reduce if really huge
+
+					// build line
+					int[] values = new int[common.Denominator];
+
+					foreach (Entry entry in entries)
+					{
+					}
+				}
+
+				currentOperation++;
+			}
+
+			// finalize data and dump to stream
+			headerWriter.Flush();
+			bodyWriter.Flush();
+			writer.Write(header.ToArray());
+			writer.Write(body.ToArray());
+			writer.Flush();
 		}
 	}
 }
