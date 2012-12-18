@@ -410,8 +410,6 @@ namespace Scharfrichter.Codec.Archives
 						}
 					}
 
-					// reduce if really huge
-
 					// build line
 					int[] values = new int[common.Denominator];
 
@@ -423,7 +421,7 @@ namespace Scharfrichter.Codec.Archives
 							int count = values.Length;
 
 							if (offset >= 0 && offset < count)
-								values[offset] = 1295;
+								values[offset] = (int)(double)entry.Value;
 						}
 					}
 					else if (currentType == EntryType.Tempo)

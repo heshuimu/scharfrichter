@@ -11,8 +11,9 @@ namespace Scharfrichter.Codec.Charts
 		public static Chart Read(Stream source)
 		{
 			Chart chart = new Chart();
-
 			BinaryReader memReader = new BinaryReader(source);
+			Fraction[,] lastSample = new Fraction[9, 2];
+
 			while (true)
 			{
 				Entry entry = new Entry();
@@ -34,10 +35,10 @@ namespace Scharfrichter.Codec.Charts
 				//  0x10: note count
 				switch (eventType)
 				{
-					case 0x00: entry.Type = EntryType.Marker; entry.Player = 1; entry.Column = eventParameter; break;
-					case 0x01: entry.Type = EntryType.Marker; entry.Player = 2; entry.Column = eventParameter; break;
-					case 0x02: entry.Type = EntryType.Sample; entry.Player = 1; entry.Column = eventParameter; entry.Value = new Fraction(eventValue, 1); break;
-					case 0x03: entry.Type = EntryType.Sample; entry.Player = 2; entry.Column = eventParameter; entry.Value = new Fraction(eventValue, 1); break;
+					case 0x00: entry.Type = EntryType.Marker; entry.Player = 1; entry.Column = eventParameter; entry.Value = lastSample[entry.Column, entry.Player - 1]; break;
+					case 0x01: entry.Type = EntryType.Marker; entry.Player = 2; entry.Column = eventParameter; entry.Value = lastSample[entry.Column, entry.Player - 1]; break;
+					case 0x02: entry.Type = EntryType.Sample; entry.Player = 1; entry.Column = eventParameter; entry.Value = new Fraction(eventValue, 1); lastSample[entry.Column, entry.Player - 1] = entry.Value; break;
+					case 0x03: entry.Type = EntryType.Sample; entry.Player = 2; entry.Column = eventParameter; entry.Value = new Fraction(eventValue, 1); lastSample[entry.Column, entry.Player - 1] = entry.Value; break;
 					case 0x04: entry.Type = EntryType.Tempo; entry.Value = new Fraction(eventValue, eventParameter); break;
 					case 0x06: entry.Type = EntryType.EndOfSong; entry.Player = eventParameter + 1; break;
 					case 0x07: entry.Type = EntryType.Marker; entry.Player = 0; entry.Value = new Fraction(eventValue, 1); entry.Parameter = eventParameter; break;
