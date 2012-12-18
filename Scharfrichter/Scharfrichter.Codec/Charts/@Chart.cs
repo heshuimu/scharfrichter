@@ -177,20 +177,72 @@ namespace Scharfrichter.Codec.Charts
 			Fraction lastMeasureOffset = new Fraction(0, 1);
 			Fraction lastTempoOffset = new Fraction(0, 1);
 			Fraction length = new Fraction(0, 1);
+			Dictionary<int, Fraction> lengthList = new Dictionary<int, Fraction>();
 			int measure = 0;
 			Fraction measureLength = new Fraction(0, 1);
 			Fraction metricBase = new Fraction(0, 1);
-			Fraction rate = Util.CalculateMeasureRate(bpm) * TickRate;
+			Fraction rate = Util.CalculateMeasureRate(bpm);
+			bool tempoChanged = false;
 			lengths.Clear();
+
+			// get measure lengths for non-tempo-changing measures
+			foreach (Entry entry in entries)
+			{
+				if (entry.Type == EntryType.Measure || entry.Type == EntryType.EndOfSong)
+				{
+					if (entry.LinearOffset != lastMeasureOffset)
+					{
+						if (!tempoChanged)
+						{
+							lengthList.Add(measure, entry.LinearOffset - lastMeasureOffset);
+							lastMeasureOffset = entry.LinearOffset;
+						}
+						measure++;
+						tempoChanged = false;
+					}
+				}
+				else if (entry.Type == EntryType.Tempo)
+				{
+					if ((entry.LinearOffset - lastMeasureOffset).Numerator != 0)
+					{
+						tempoChanged = true;
+					}
+				}
+			}
+
+			measure = 0;
+			lastMeasureOffset = new Fraction(0, 1);
+
+			Fraction tickMeasureLength;
+			if (lengthList.ContainsKey(0))
+				tickMeasureLength = lengthList[0];
+			else
+				tickMeasureLength = new Fraction(0, 1);
+
+			List<Entry> entryList = new List<Entry>();
 
 			// process
 			foreach (Entry entry in entries)
 			{
-				if (entry.Type == EntryType.Measure || entry.Type == EntryType.Tempo)
+				if (entry.Type == EntryType.Measure || entry.Type == EntryType.Tempo || entry.Type == EntryType.EndOfSong)
 				{
-					measureLength += (entry.LinearOffset - lastTempoOffset) / rate;
+					Fraction measureDistance = ((entry.LinearOffset - lastTempoOffset) * TickRate) / rate;
+					measureLength += measureDistance;
 
-					if (entry.Type == EntryType.Measure)
+					foreach (Entry measureEntry in entryList)
+					{
+						measureEntry.MetricOffset = (measureEntry.LinearOffset - lastTempoOffset) * measureDistance;
+						measureEntry.MetricMeasure = measure;
+						while ((double)measureEntry.MetricOffset >= 1)
+						{
+							Fraction offs = measureEntry.MetricOffset;
+							measureEntry.MetricMeasure++;
+							offs.Numerator -= offs.Denominator;
+							measureEntry.MetricOffset = offs;
+						}
+					}
+
+					if (entry.Type == EntryType.Measure || entry.Type == EntryType.EndOfSong)
 					{
 						if (entry.LinearOffset != lastMeasureOffset)
 						{
@@ -199,17 +251,42 @@ namespace Scharfrichter.Codec.Charts
 							lastMeasureOffset = entry.LinearOffset;
 							measureLength = new Fraction(0, 1);
 						}
+						entry.MetricOffset = new Fraction(0, 1);
+						entry.MetricMeasure = measure;
 					}
 					else if (entry.Type == EntryType.Tempo)
 					{
 						bpm = entry.Value;
-						rate = Util.CalculateMeasureRate(bpm) * TickRate;
+						rate = Util.CalculateMeasureRate(bpm);
 					}
 					lastTempoOffset = entry.LinearOffset;
+
+					if (lengthList.ContainsKey(measure))
+						tickMeasureLength = lengthList[measure];
+					else
+						tickMeasureLength = new Fraction(0, 1);
+
+					entryList.Clear();
 				}
 
-				entry.MetricOffset = (entry.LinearOffset - lastTempoOffset) / rate;
-				entry.MetricMeasure = measure;
+				if (tickMeasureLength.Numerator > 0)
+				{
+					entry.MetricOffset = (entry.LinearOffset - lastTempoOffset) / tickMeasureLength;
+					entry.MetricMeasure = measure;
+					while ((double)entry.MetricOffset >= 1)
+					{
+						Fraction offs = entry.MetricOffset;
+						entry.MetricMeasure++;
+						offs.Numerator -= offs.Denominator;
+						entry.MetricOffset = offs;
+					}
+				}
+				else
+				{
+					entryList.Add(entry);
+				}
+
+				
 			}
 		}
 
