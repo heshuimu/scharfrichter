@@ -229,7 +229,57 @@ namespace Scharfrichter.Codec.Archives
 		{
 			long[] primes = Util.Primes;
 			int primeCount = Util.PrimeCount;
-			return null;
+			int count = source.Length;
+			int[] result = new int[count];
+			bool fail = false;
+
+			Array.Copy(source, result, count);
+
+			while (!fail && count > 1)
+			{
+				for (int i = 0; i < primeCount; i++)
+				{
+					int p = (int)primes[i];
+					fail = false;
+
+					if (count % p == 0)
+					{
+						for (int j = 0; j < count; j++)
+						{
+							if (j % p != 0)
+							{
+								if (result[j] != 0)
+								{
+									fail = true;
+									break;
+								}
+							}
+						}
+					}
+					else
+					{
+						fail = true;
+					}
+
+					if (!fail)
+					{
+						int newCount = count / p;
+						int[] newResult = new int[newCount];
+						int index = 0;
+
+						for (int j = 0; j < count; j += p)
+						{
+							newResult[index] = result[j];
+							index++;
+						}
+
+						result = newResult;
+						count = newCount;
+						break;
+					}
+				}
+			}
+			return result;
 		}
 
 		public void Write(Stream target)
@@ -265,9 +315,14 @@ namespace Scharfrichter.Codec.Archives
 			int currentMeasure = 0;
 			int currentOperation = 0;
 			int measureCount = chart.Measures;
-
+			int bpmCount = 0;
 			while (currentMeasure < measureCount)
 			{
+				string measureString = currentMeasure.ToString();
+
+				while (measureString.Length < 3)
+					measureString = "0" + measureString;
+
 				List<Entry> entries = new List<Entry>();
 				bool processedEntry = false;
 				EntryType currentType = EntryType.Invalid;
@@ -361,8 +416,62 @@ namespace Scharfrichter.Codec.Archives
 					// build line
 					int[] values = new int[common.Denominator];
 
-					foreach (Entry entry in entries)
+					if (currentType == EntryType.Marker)
 					{
+						foreach (Entry entry in entries)
+						{
+							long offset = (entry.MetricOffset.Numerator * common.Denominator) / entry.MetricOffset.Denominator;
+							int count = values.Length;
+
+							if (offset >= 0 && offset < count)
+								values[offset] = 1295;
+						}
+					}
+					else if (currentType == EntryType.Tempo)
+					{
+						foreach (Entry entry in entries)
+						{
+							long offset = (entry.MetricOffset.Numerator * common.Denominator) / entry.MetricOffset.Denominator;
+							int count = values.Length;
+
+							if (offset >= 0 && offset < count)
+							{
+								bpmCount++;
+
+								// this is a hack to make the numbers decimal
+								if (bpmCount % 10 == 0)
+									bpmCount += 26;
+
+								values[entry.MetricOffset.Numerator] = bpmCount;
+								headerWriter.WriteLine("#BPM" + alphabetBME.Substring(bpmCount / 36, 1) + alphabetBME.Substring(bpmCount % 36, 1) + " " + ((double)(entry.Value)).ToString());
+							}
+						}
+					}
+					else
+					{
+						foreach (Entry entry in entries)
+						{
+							long offset = (entry.MetricOffset.Numerator * common.Denominator) / entry.MetricOffset.Denominator;
+							int count = values.Length;
+
+							if (offset >= 0 && offset < count)
+								values[offset] = (int)(entry.Value.Numerator / entry.Value.Denominator);
+						}
+					}
+
+					if (values.Length > 0)
+					{
+						StringBuilder builder = new StringBuilder();
+						values = Reduce(values);
+						int length = values.Length;
+						builder.Append("#" + measureString + laneString + ":");
+
+						for (int i = 0; i < length; i++)
+						{
+							builder.Append(alphabetBME.Substring(values[i] / 36, 1) + alphabetBME.Substring(values[i] % 36, 1));
+						}
+
+						bodyWriter.WriteLine(builder.ToString());
 					}
 				}
 
