@@ -11,7 +11,8 @@ namespace Scharfrichter.Codec.Charts
 		private Dictionary<int, Fraction> lengths = new Dictionary<int, Fraction>();
 		private Dictionary<string, string> tags = new Dictionary<string, string>();
 
-		public Fraction DefaultBPM;
+		public Fraction DefaultBPM = new Fraction(0, 1);
+		public Fraction TickRate = new Fraction(0, 1);
 
 		// IIDX: F0, FA, FF, 03, 08, 12
 		// 5key: F4, FC, FF, 03, 06, 0E
@@ -179,8 +180,7 @@ namespace Scharfrichter.Codec.Charts
 			int measure = 0;
 			Fraction measureLength = new Fraction(0, 1);
 			Fraction metricBase = new Fraction(0, 1);
-			Fraction rate = Util.CalculateMeasureRate(bpm);
-
+			Fraction rate = Util.CalculateMeasureRate(bpm) * TickRate;
 			lengths.Clear();
 
 			// process
@@ -203,7 +203,7 @@ namespace Scharfrichter.Codec.Charts
 					else if (entry.Type == EntryType.Tempo)
 					{
 						bpm = entry.Value;
-						rate = Util.CalculateMeasureRate(bpm);
+						rate = Util.CalculateMeasureRate(bpm) * TickRate;
 					}
 					lastTempoOffset = entry.LinearOffset;
 				}
@@ -311,6 +311,37 @@ namespace Scharfrichter.Codec.Charts
 
 			// we also need to regenerate linear offsets
 			CalculateLinearOffsets();
+		}
+
+		public void QuantizeNoteOffsets(int quantizeValue)
+		{
+			// verify all required metric info is present
+			foreach (Entry entry in entries)
+				if (!entry.MetricOffsetInitialized)
+					throw new Exception("Metric note offsets can't be quantized because at least one entry is missing Metric offset information.");
+
+			int measure = 0;
+			Fraction lastMeasure = new Fraction(0, 1);
+			long quantize = quantizeValue;
+
+			foreach (Entry entry in entries)
+			{
+				if (entry.Type == EntryType.Measure)
+				{
+					if (entry.MetricOffset != lastMeasure)
+						measure++;
+
+					if (lengths.ContainsKey(measure))
+						quantize = quantizeValue * (long)(Math.Round((double)lengths[measure]));
+					else
+						quantize = quantizeValue;
+				}
+
+				if (quantize == 0)
+					quantize = 192;
+
+				entry.MetricOffset = Fraction.Quantize(entry.MetricOffset, quantize);
+			}
 		}
 
 		public void RemoveJudgements()

@@ -55,7 +55,10 @@ namespace Scharfrichter
 					for (int i = 0; i < 12; i++)
 					{
 						if (test.Charts[i] != null)
+						{
 							test.Charts[i].QuantizeMeasureLengths(32);
+							test.Charts[i].QuantizeNoteOffsets(192);
+						}
 					}
 					BMS bms = new BMS();
 					bms.Charts[0] = test.Charts[0];

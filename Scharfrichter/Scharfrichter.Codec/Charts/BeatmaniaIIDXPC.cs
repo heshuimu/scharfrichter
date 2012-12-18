@@ -8,7 +8,7 @@ namespace Scharfrichter.Codec.Charts
 {
 	public static class BeatmaniaIIDXPC
 	{
-		public static Chart Read(Stream source, long unitNumerator, long unitDenominator)
+		public static Chart Read(Stream source)
 		{
 			Chart chart = new Chart();
 
@@ -21,7 +21,7 @@ namespace Scharfrichter.Codec.Charts
 				if (eventOffset >= 0x7FFFFFFF)
 					break;
 
-				entry.LinearOffset = new Fraction(eventOffset * unitNumerator, unitDenominator);
+				entry.LinearOffset = new Fraction(eventOffset, 1);
 				entry.Value = new Fraction(0, 1);
 
 				int eventType = memReader.ReadByte();
@@ -62,21 +62,16 @@ namespace Scharfrichter.Codec.Charts
 					break;
 				}
 			}
-
-			// fill in the metric offsets
-			chart.CalculateMetricOffsets();
-
 			return chart;
 		}
 
-		public static void Write(Stream target, long unitNumerator, long unitDenominator, Chart chart)
+		public static void Write(Stream target, Chart chart)
 		{
 			// I don't know if these are needed, but they are
 			// parameters for note count you would typically find
 			// in such a chart, so we will include them
 
 			BinaryWriter writer = new BinaryWriter(target);
-			Fraction unit = new Fraction(unitDenominator, unitNumerator);
 
 			writer.Write((Int32)0);
 			writer.Write((byte)0x10);	// notecount ID
@@ -91,7 +86,7 @@ namespace Scharfrichter.Codec.Charts
 			{
 				long num;
 				long den;
-				Int32 entryOffset = (Int32)(entry.LinearOffset * unit);
+				Int32 entryOffset = (Int32)(entry.LinearOffset);
 				byte entryType = 0xFF;
 				byte entryParameter = (byte)(entry.Parameter & 0xFF);
 				Int16 entryValue = 0;

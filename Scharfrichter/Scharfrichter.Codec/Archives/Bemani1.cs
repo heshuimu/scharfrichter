@@ -52,13 +52,17 @@ namespace Scharfrichter.Codec.Archives
 			{
 				if (length[i] > 0 && offset[i] >= 0x60)
 				{
-					Chart chart = new Chart();
+					Chart chart;
 					source.Position = offsetBase + offset[i];
 
 					byte[] chartData = reader.ReadBytes(length[i]);
 					using (MemoryStream mem = new MemoryStream(chartData))
 					{
-						chart = BeatmaniaIIDXPC.Read(mem, unitNumerator, unitDenominator);
+						chart = BeatmaniaIIDXPC.Read(mem);
+						chart.TickRate = new Fraction(unitNumerator, unitDenominator);
+
+						// fill in the metric offsets
+						chart.CalculateMetricOffsets();
 					}
 
 					if (chart.Entries.Count > 0)
@@ -86,7 +90,7 @@ namespace Scharfrichter.Codec.Archives
 					{
 						baseOffset = mem.Position;
 						offset[i] = (int)baseOffset;
-						BeatmaniaIIDXPC.Write(mem, unitNumerator, unitDenominator, charts[i]);
+						BeatmaniaIIDXPC.Write(mem, charts[i]);
 						length[i] = (int)(mem.Position - baseOffset);
 					}
 				}

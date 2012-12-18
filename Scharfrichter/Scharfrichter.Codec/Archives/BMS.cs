@@ -324,7 +324,6 @@ namespace Scharfrichter.Codec.Archives
 					measureString = "0" + measureString;
 
 				List<Entry> entries = new List<Entry>();
-				bool processedEntry = false;
 				EntryType currentType = EntryType.Invalid;
 				int currentColumn = 0;
 				int currentPlayer = 0;
