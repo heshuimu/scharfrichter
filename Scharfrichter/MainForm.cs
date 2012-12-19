@@ -42,28 +42,28 @@ namespace Scharfrichter
 			}
 
 			// bemani1 to BMS test with quantization
-			using (FileStream fs = new FileStream(@"D:\BMS\1101.1", FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+			using (FileStream fs = new FileStream(@"D:\BMS\0100\0100.1", FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
 			{
 				Bemani1 test = Bemani1.Read(fs, 100, 5994);
-				using (MemoryStream mem = new MemoryStream())
+				for (int i = 0; i < 12; i++)
 				{
-					test.Write(mem, 100, 5994);
-					File.WriteAllBytes(@"D:\BMS\1101.out", mem.ToArray());
-				}
-				using (MemoryStream mem = new MemoryStream())
-				{
-					for (int i = 0; i < 12; i++)
+					if (test.Charts[i] != null)
 					{
-						if (test.Charts[i] != null)
+						BMS bms = new BMS();
+						test.Charts[i].QuantizeMeasureLengths(32);
+						test.Charts[i].QuantizeNoteOffsets(192);
+						bms.Charts[0] = test.Charts[i];
+						using (MemoryStream mem = new MemoryStream())
 						{
-							test.Charts[i].QuantizeMeasureLengths(32);
-							test.Charts[i].QuantizeNoteOffsets(192);
+							string bmsString = i.ToString();
+							while (bmsString.Length < 2)
+							{
+								bmsString = "0" + bmsString;
+							}
+							bms.Write(mem);
+							File.WriteAllBytes(@"D:\BMS\0100\0100-" + bmsString + ".bms", mem.ToArray());
 						}
 					}
-					BMS bms = new BMS();
-					bms.Charts[0] = test.Charts[0];
-					bms.Write(mem);
-					File.WriteAllBytes(@"D:\BMS\1101.bms", mem.ToArray());
 				}
 			}
 

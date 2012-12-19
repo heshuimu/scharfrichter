@@ -310,6 +310,20 @@ namespace Scharfrichter.Codec.Archives
 				else
 					headerWriter.WriteLine("#" + tag.Key);
 			}
+
+			// write measure lengths
+			foreach (KeyValuePair<int, Fraction> ml in chart.MeasureLengths)
+			{
+				if ((double)ml.Value != 1)
+				{
+					string line = ml.Key.ToString();
+					while (line.Length < 3)
+						line = "0" + line;
+
+					line = "#" + line + "02:" + ((double)ml.Value).ToString();
+					headerWriter.WriteLine(line);
+				}
+			}
 			
 			// iterate through all events
 			int currentMeasure = 0;

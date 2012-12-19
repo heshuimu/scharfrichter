@@ -195,8 +195,8 @@ namespace Scharfrichter.Codec.Charts
 						if (!tempoChanged)
 						{
 							lengthList.Add(measure, entry.LinearOffset - lastMeasureOffset);
-							lastMeasureOffset = entry.LinearOffset;
 						}
+						lastMeasureOffset = entry.LinearOffset;
 						measure++;
 						tempoChanged = false;
 					}
