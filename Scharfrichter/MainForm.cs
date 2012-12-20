@@ -26,21 +26,6 @@ namespace Scharfrichter
 
 		private void button1_Click(object sender, EventArgs e)
 		{
-			// run all tests (local files here)
-
-			// bms->bemani1 test
-			using (FileStream fs = new FileStream(@"D:\BMS\026\@026 1P Another.bms", FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
-			{
-				BMS test = BMS.Read(fs);
-				using (MemoryStream mem = new MemoryStream())
-				{
-					Bemani1 output = new Bemani1();
-					output.Charts[0] = test.Charts[0];
-					output.Write(mem, 100, 5994);
-					File.WriteAllBytes(@"D:\BMS\bms.out", mem.ToArray());
-				}
-			}
-
 			// bemani1 to BMS test with quantization
 			using (FileStream fs = new FileStream(@"D:\BMS\1101\1101.1", FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
 			{

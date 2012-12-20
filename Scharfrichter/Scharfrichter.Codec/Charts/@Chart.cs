@@ -228,11 +228,10 @@ namespace Scharfrichter.Codec.Charts
 				if (entry.Type == EntryType.Measure || entry.Type == EntryType.Tempo || entry.Type == EntryType.EndOfSong)
 				{
 					Fraction measureDistance = ((entry.LinearOffset - lastTempoOffset) * TickRate) / rate;
-					measureLength += measureDistance;
 
 					foreach (Entry tempoEntry in entryList)
 					{
-						tempoEntry.MetricOffset = (tempoEntry.LinearOffset - lastTempoOffset) * measureDistance;
+						tempoEntry.MetricOffset = measureLength + ((tempoEntry.LinearOffset - lastTempoOffset) / (entry.LinearOffset - lastTempoOffset));
 						tempoEntry.MetricMeasure = measure;
 						while ((double)tempoEntry.MetricOffset >= 1)
 						{
@@ -244,8 +243,30 @@ namespace Scharfrichter.Codec.Charts
 						}
 					}
 
+					measureLength += measureDistance;
+
 					if (entry.Type == EntryType.Measure || entry.Type == EntryType.EndOfSong)
 					{
+						if (tickMeasureLength.Numerator == 0)
+						{
+							foreach (Entry measureEntry in entryList)
+							{
+								if (measureEntry.MetricMeasure == measure)
+								{
+									Fraction temp = measureEntry.MetricOffset;
+									temp /= measureLength;
+									measureEntry.MetricOffset = temp;
+									while ((double)measureEntry.MetricOffset >= 1)
+									{
+										Fraction offs = measureEntry.MetricOffset;
+										measureEntry.MetricMeasure++;
+										offs.Numerator -= offs.Denominator;
+										measureEntry.MetricOffset = offs;
+									}
+								}
+							}
+						}
+
 						foreach (Entry measureEntry in measureEntryList)
 						{
 							Fraction temp = measureEntry.MetricOffset;

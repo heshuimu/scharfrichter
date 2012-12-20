@@ -436,10 +436,10 @@ namespace Scharfrichter.Codec.Archives
 								bpmCount++;
 
 								// this is a hack to make the numbers decimal
-								if (bpmCount % 10 == 0)
+								if (bpmCount % 36 == 10)
 									bpmCount += 26;
 
-								values[entry.MetricOffset.Numerator] = bpmCount;
+								values[offset] = bpmCount;
 								headerWriter.WriteLine("#BPM" + alphabetBME.Substring(bpmCount / 36, 1) + alphabetBME.Substring(bpmCount % 36, 1) + " " + (Math.Round((double)(entry.Value), 3)).ToString());
 							}
 						}
