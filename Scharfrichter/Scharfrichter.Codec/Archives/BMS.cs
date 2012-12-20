@@ -300,7 +300,7 @@ namespace Scharfrichter.Codec.Archives
 			headerWriter.WriteLine("");
 
 			// create BPM metadata
-			chart.Tags["BPM"] = Math.Round((double)(chart.DefaultBPM), 2).ToString();
+			chart.Tags["BPM"] = Math.Round((double)(chart.DefaultBPM), 3).ToString();
 
 			// write all metadata
 			foreach (KeyValuePair<string, string> tag in chart.Tags)
@@ -311,20 +311,6 @@ namespace Scharfrichter.Codec.Archives
 					headerWriter.WriteLine("#" + tag.Key);
 			}
 
-			// write measure lengths
-			foreach (KeyValuePair<int, Fraction> ml in chart.MeasureLengths)
-			{
-				if ((double)ml.Value != 1)
-				{
-					string line = ml.Key.ToString();
-					while (line.Length < 3)
-						line = "0" + line;
-
-					line = "#" + line + "02:" + ((double)ml.Value).ToString();
-					headerWriter.WriteLine(line);
-				}
-			}
-			
 			// iterate through all events
 			int currentMeasure = 0;
 			int currentOperation = 0;
@@ -454,7 +440,7 @@ namespace Scharfrichter.Codec.Archives
 									bpmCount += 26;
 
 								values[entry.MetricOffset.Numerator] = bpmCount;
-								headerWriter.WriteLine("#BPM" + alphabetBME.Substring(bpmCount / 36, 1) + alphabetBME.Substring(bpmCount % 36, 1) + " " + ((double)(entry.Value)).ToString());
+								headerWriter.WriteLine("#BPM" + alphabetBME.Substring(bpmCount / 36, 1) + alphabetBME.Substring(bpmCount % 36, 1) + " " + (Math.Round((double)(entry.Value), 3)).ToString());
 							}
 						}
 					}
@@ -489,6 +475,20 @@ namespace Scharfrichter.Codec.Archives
 				currentOperation++;
 			}
 
+			// write measure lengths
+			foreach (KeyValuePair<int, Fraction> ml in chart.MeasureLengths)
+			{
+				if ((double)ml.Value != 1)
+				{
+					string line = ml.Key.ToString();
+					while (line.Length < 3)
+						line = "0" + line;
+
+					line = "#" + line + "02:" + ((double)ml.Value).ToString();
+					headerWriter.WriteLine(line);
+				}
+			}
+			
 			// finalize data and dump to stream
 			headerWriter.Flush();
 			bodyWriter.Flush();

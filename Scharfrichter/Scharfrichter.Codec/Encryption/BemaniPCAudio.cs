@@ -53,10 +53,12 @@ namespace Scharfrichter.Codec.Encryption
 			BinaryWriter writer = new BinaryWriter(target);
 
 			byte[] lastBlock = {0, 0, 0, 0, 0, 0, 0, 0};
+			byte[] currentBlock = { 0, 0, 0, 0, 0, 0, 0, 0 };
 
 			while (source.Position < source.Length)
 			{
 				byte[] block = reader.ReadBytes(8);
+				Array.Copy(block, currentBlock, 8);
 
 				// xor with key 0
 				for (int i = 0; i < 8; i++)
@@ -93,7 +95,7 @@ namespace Scharfrichter.Codec.Encryption
 
 				// output
 				writer.Write(block);
-				lastBlock = block;
+				Array.Copy(currentBlock, lastBlock, 8);
 			}
 		}
 

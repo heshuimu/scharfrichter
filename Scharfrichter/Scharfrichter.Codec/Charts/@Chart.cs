@@ -220,6 +220,7 @@ namespace Scharfrichter.Codec.Charts
 				tickMeasureLength = new Fraction(0, 1);
 
 			List<Entry> entryList = new List<Entry>();
+			List<Entry> measureEntryList = new List<Entry>();
 
 			// process
 			foreach (Entry entry in entries)
@@ -229,21 +230,29 @@ namespace Scharfrichter.Codec.Charts
 					Fraction measureDistance = ((entry.LinearOffset - lastTempoOffset) * TickRate) / rate;
 					measureLength += measureDistance;
 
-					foreach (Entry measureEntry in entryList)
+					foreach (Entry tempoEntry in entryList)
 					{
-						measureEntry.MetricOffset = (measureEntry.LinearOffset - lastTempoOffset) * measureDistance;
-						measureEntry.MetricMeasure = measure;
-						while ((double)measureEntry.MetricOffset >= 1)
+						tempoEntry.MetricOffset = (tempoEntry.LinearOffset - lastTempoOffset) * measureDistance;
+						tempoEntry.MetricMeasure = measure;
+						while ((double)tempoEntry.MetricOffset >= 1)
 						{
-							Fraction offs = measureEntry.MetricOffset;
-							measureEntry.MetricMeasure++;
+							Fraction offs = tempoEntry.MetricOffset;
+							tempoEntry.MetricMeasure++;
 							offs.Numerator -= offs.Denominator;
-							measureEntry.MetricOffset = offs;
+							tempoEntry.MetricOffset = offs;
+							measureEntryList.Add(tempoEntry);
 						}
 					}
 
 					if (entry.Type == EntryType.Measure || entry.Type == EntryType.EndOfSong)
 					{
+						foreach (Entry measureEntry in measureEntryList)
+						{
+							Fraction temp = measureEntry.MetricOffset;
+							temp /= measureLength;
+							measureEntry.MetricOffset = temp;
+						}
+
 						if (entry.LinearOffset != lastMeasureOffset)
 						{
 							MeasureLengths[measure] = measureLength;
@@ -385,6 +394,8 @@ namespace Scharfrichter.Codec.Charts
 					entry.Value *= ratio;
 				}
 			}
+
+			DefaultBPM *= ratio;
 
 			// we also need to regenerate linear offsets
 			CalculateLinearOffsets();
