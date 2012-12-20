@@ -397,27 +397,28 @@ namespace Scharfrichter.Codec.Archives
 				// build a line if necessary
 				if (entries.Count > 0)
 				{
-					Fraction common = new Fraction(1, 1);
 					Fraction temp;
 
 					// get common denominator
+					long common = 1;
 					for (int i = 0; i < 2; i++)
 					{
 						foreach (Entry entry in entries)
 						{
-							Fraction.Commonize(entry.MetricOffset, common, out temp, out common);
-							entry.MetricOffset = temp;
+							if (common % entry.MetricOffset.Denominator != 0)
+								common *= entry.MetricOffset.Denominator;
 						}
 					}
 
 					// build line
-					int[] values = new int[common.Denominator];
+					int[] values = new int[common];
 
 					if (currentType == EntryType.Marker)
 					{
 						foreach (Entry entry in entries)
 						{
-							long offset = (entry.MetricOffset.Numerator * common.Denominator) / entry.MetricOffset.Denominator;
+							long multiplier = common / entry.MetricOffset.Denominator;
+							long offset = entry.MetricOffset.Numerator * multiplier;
 							int count = values.Length;
 
 							if (offset >= 0 && offset < count)
@@ -428,7 +429,7 @@ namespace Scharfrichter.Codec.Archives
 					{
 						foreach (Entry entry in entries)
 						{
-							long offset = (entry.MetricOffset.Numerator * common.Denominator) / entry.MetricOffset.Denominator;
+							long offset = (entry.MetricOffset.Numerator * common) / entry.MetricOffset.Denominator;
 							int count = values.Length;
 
 							if (offset >= 0 && offset < count)
@@ -448,7 +449,7 @@ namespace Scharfrichter.Codec.Archives
 					{
 						foreach (Entry entry in entries)
 						{
-							long offset = (entry.MetricOffset.Numerator * common.Denominator) / entry.MetricOffset.Denominator;
+							long offset = (entry.MetricOffset.Numerator * common) / entry.MetricOffset.Denominator;
 							int count = values.Length;
 
 							if (offset >= 0 && offset < count)

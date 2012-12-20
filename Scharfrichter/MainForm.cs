@@ -27,7 +27,7 @@ namespace Scharfrichter
 		private void button1_Click(object sender, EventArgs e)
 		{
 			// bemani1 to BMS test with quantization
-			using (FileStream fs = new FileStream(@"D:\BMS\1101\1101.1", FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+			using (FileStream fs = new FileStream(@"D:\BMS\1204\1204.1", FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
 			{
 				Bemani1 test = Bemani1.Read(fs, 100, 5994);
 				for (int i = 0; i < 12; i++)
@@ -46,12 +46,12 @@ namespace Scharfrichter
 								bmsString = "0" + bmsString;
 							}
 							bms.Write(mem);
-							File.WriteAllBytes(@"D:\BMS\1101\1101-" + bmsString + ".bms", mem.ToArray());
+							File.WriteAllBytes(@"D:\BMS\1204\1204-" + bmsString + ".bms", mem.ToArray());
 						}
 					}
 				}
 			}
-			using (FileStream fs = new FileStream(@"D:\BMS\1101\1101.2dx", FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+			using (FileStream fs = new FileStream(@"D:\BMS\1204\1204.2dx", FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
 			{
 				Bemani2DX archive = Bemani2DX.Read(fs);
 			}

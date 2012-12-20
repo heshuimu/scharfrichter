@@ -239,48 +239,35 @@ namespace Scharfrichter.Codec.Charts
 							tempoEntry.MetricMeasure++;
 							offs.Numerator -= offs.Denominator;
 							tempoEntry.MetricOffset = offs;
-							measureEntryList.Add(tempoEntry);
 						}
+						measureEntryList.Add(tempoEntry);
 					}
 
 					measureLength += measureDistance;
 
 					if (entry.Type == EntryType.Measure || entry.Type == EntryType.EndOfSong)
 					{
-						if (tickMeasureLength.Numerator == 0)
-						{
-							foreach (Entry measureEntry in entryList)
-							{
-								if (measureEntry.MetricMeasure == measure)
-								{
-									Fraction temp = measureEntry.MetricOffset;
-									temp /= measureLength;
-									measureEntry.MetricOffset = temp;
-									while ((double)measureEntry.MetricOffset >= 1)
-									{
-										Fraction offs = measureEntry.MetricOffset;
-										measureEntry.MetricMeasure++;
-										offs.Numerator -= offs.Denominator;
-										measureEntry.MetricOffset = offs;
-									}
-								}
-							}
-						}
-
-						foreach (Entry measureEntry in measureEntryList)
-						{
-							Fraction temp = measureEntry.MetricOffset;
-							temp /= measureLength;
-							measureEntry.MetricOffset = temp;
-						}
-
 						if (entry.LinearOffset != lastMeasureOffset)
 						{
+							foreach (Entry measureEntry in measureEntryList)
+							{
+								Fraction temp = measureEntry.MetricOffset;
+								temp /= measureLength;
+								measureEntry.MetricOffset = temp;
+								while ((double)measureEntry.MetricOffset >= 1)
+								{
+									Fraction offs = measureEntry.MetricOffset;
+									measureEntry.MetricMeasure++;
+									offs.Numerator -= offs.Denominator;
+									measureEntry.MetricOffset = offs;
+								}
+							}
 							MeasureLengths[measure] = measureLength;
 							measure++;
 							lastMeasureOffset = entry.LinearOffset;
 							measureLength = new Fraction(0, 1);
 						}
+						measureEntryList.Clear();
 						entry.MetricOffset = new Fraction(0, 1);
 						entry.MetricMeasure = measure;
 					}
@@ -617,6 +604,8 @@ namespace Scharfrichter.Codec.Charts
 			{
 				linearOffset = value;
 				LinearOffsetInitialized = true;
+				if (linearOffset.Denominator == 0)
+					LinearOffsetInitialized = false;
 			}
 		}
 
@@ -630,6 +619,8 @@ namespace Scharfrichter.Codec.Charts
 			{
 				metricOffset = value;
 				MetricOffsetInitialized = true;
+				if (metricOffset.Denominator == 0)
+					MetricOffsetInitialized = false;
 			}
 		}
 
@@ -643,6 +634,8 @@ namespace Scharfrichter.Codec.Charts
 			{
 				this.value = value;
 				ValueInitialized = true;
+				if (this.value.Denominator == 0)
+					ValueInitialized = false;
 			}
 		}
 	}

@@ -1,4 +1,8 @@
-﻿using Scharfrichter.Codec.Encryption;
+﻿using NAudio;
+using NAudio.Codecs;
+using NAudio.Wave;
+
+using Scharfrichter.Codec.Encryption;
 using Scharfrichter.Codec.Sounds;
 
 using System;
@@ -85,6 +89,48 @@ namespace Scharfrichter.Codec.Archives
 				reader = new BinaryReader(decodedData);
 				File.WriteAllBytes(@"D:\BMS\2dxout.dat", decodedData.ToArray());
 			}
+
+			// header length is at 0x10
+			// sample count is at 0x14
+			// offset list starts at 0x48
+
+			reader.BaseStream.Position = 0x10;
+
+			int headerLength = reader.ReadInt32();
+			int sampleCount = reader.ReadInt32();
+			long[] sampleOffset = new long[sampleCount];
+
+			reader.BaseStream.Position = 0x48;
+
+			for (int i = 0; i < sampleCount; i++)
+			{
+				sampleOffset[i] = reader.ReadInt32();
+			}
+
+			// we use the NAudio library to convert to plain PCM
+			for (int i = 0; i < sampleCount; i++)
+			{
+				reader.BaseStream.Position = sampleOffset[i];
+				if (new string(reader.ReadChars(4)) == "2DX9")
+				{
+					int infoLength = reader.ReadInt32();
+					int dataLength = reader.ReadInt32();
+					reader.BaseStream.Position = sampleOffset[i] + infoLength;
+					byte[] wavData = reader.ReadBytes(dataLength);
+					using (MemoryStream wavDataMem = new MemoryStream(wavData))
+					{
+						using (WaveStream wavStream = new WaveFileReader(wavDataMem))
+						{
+							using (WaveStream wavConvertStream = WaveFormatConversionStream.CreatePcmStream(wavStream))
+							{
+								byte[] rawWaveData = new byte[wavConvertStream.Length];
+								wavConvertStream.Read(rawWaveData, 0, (int)wavConvertStream.Length);
+							}
+						}
+					}
+				}
+			}
+			
 
 			return result;
 		}
