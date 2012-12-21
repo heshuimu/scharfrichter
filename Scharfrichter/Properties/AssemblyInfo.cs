@@ -5,11 +5,11 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("Scharfrichter")]
+[assembly: AssemblyTitle("Scharfrichter.Codec")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("Scharfrichter")]
+[assembly: AssemblyProduct("Scharfrichter.Codec")]
 [assembly: AssemblyCopyright("Pegasystem")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
@@ -20,7 +20,7 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("ea01b58f-7138-43b5-b5d7-98a001a38454")]
+[assembly: Guid("6f03dd1c-ef1d-4d13-94b4-e062831dbba0")]
 
 // Version information for an assembly consists of the following four values:
 //

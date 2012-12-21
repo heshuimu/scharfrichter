@@ -41,7 +41,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Scharfrichter\Scharfrichter.Codec\Scharfrichter.Codec.csproj">
+    <ProjectReference Include="..\Scharfrichter\Scharfrichter.Codec.csproj">
       <Project>{DB34F6AF-C522-4149-A6D3-37A36D2D9590}</Project>
       <Name>Scharfrichter.Codec</Name>
     </ProjectReference>
