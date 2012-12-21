@@ -26,7 +26,7 @@ namespace Scharfrichter
 
 		private void button1_Click(object sender, EventArgs e)
 		{
-			string sourceFileName = "0952";
+			string sourceFileName = "0927";
 			string targetPath = @"D:\BMS\" + sourceFileName + @"\";
 			Directory.CreateDirectory(targetPath);
 
@@ -42,7 +42,7 @@ namespace Scharfrichter
 					if (test.Charts[i] != null)
 					{
 						BMS bms = new BMS();
-						test.Charts[i].QuantizeMeasureLengths(32);
+						test.Charts[i].QuantizeMeasureLengths(16);
 						test.Charts[i].QuantizeNoteOffsets(192);
 						bms.Charts[0] = test.Charts[i];
 						using (MemoryStream mem = new MemoryStream())

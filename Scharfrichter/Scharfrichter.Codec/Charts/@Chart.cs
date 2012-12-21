@@ -384,10 +384,11 @@ namespace Scharfrichter.Codec.Charts
 				}
 			}
 
+#if (true)
+			// since we adjusted measure lengths, we also need to adjust BPMs
 			Fraction lengthAfter = Fraction.Rationalize(TotalMeasureLength);
 			Fraction ratio = lengthAfter / lengthBefore;
 
-			// since we adjusted measure lengths, we also need to adjust BPMs
 			foreach (Entry entry in entries)
 			{
 				if (entry.Type == EntryType.Tempo)
@@ -400,6 +401,7 @@ namespace Scharfrichter.Codec.Charts
 
 			// we also need to regenerate linear offsets
 			CalculateLinearOffsets();
+#endif
 		}
 
 		public void QuantizeNoteOffsets(int quantizeValue)
