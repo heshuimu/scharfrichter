@@ -16,15 +16,31 @@ namespace ConvertHelper
 			"[1P Hyper]",
 			"[1P Light]",
 			"[1P Another]",
-			"[1P 3]",
+			"[1P Beginner]",
 			"[1P 4]",
 			"[1P 5]",
 			"[2P Hyper]",
 			"[2P Light]",
 			"[2P Another]",
-			"[2P 3]",
+			"[2P Beginner]",
 			"[2P 4]",
 			"[2P 5]"
+		};
+
+		static int[] difficultyTags = new int[]
+		{
+			3,
+			2,
+			4,
+			1,
+			0,
+			0,
+			3,
+			2,
+			4,
+			1,
+			0,
+			0
 		};
 
 		static public void BemaniToBMS(string[] args, long unitNumerator, long unitDenominator, int quantizeMeasure)
@@ -52,10 +68,20 @@ namespace ConvertHelper
 											BMS bms = new BMS();
 											bms.Charts = new Chart[] { archive.Charts[j] };
 
-											string output = Path.GetFileNameWithoutExtension(args[i]) + " " + chartTitles[j] + ".bms";
-											string name = Path.GetFileNameWithoutExtension(Path.GetFileName(output));
+											string name = Path.GetFileNameWithoutExtension(Path.GetFileName(args[i])) + " " + chartTitles[j]; //ex: "1204 [1P Another]"
+											string output = Path.Combine(Path.GetDirectoryName(args[i]), @"@" + name + ".bms");
 
-											bms.Charts[0].Tags["TITLE"] = name;
+											// write some tags
+											bms.Charts[0].Tags["TITLE"] = Path.GetFileNameWithoutExtension(Path.GetFileName(args[i]));
+
+											if (difficultyTags[j] > 0)
+												bms.Charts[0].Tags["DIFFICULTY"] = difficultyTags[j].ToString();
+
+											if (bms.Charts[0].Players > 1)
+												bms.Charts[0].Tags["PLAYER"] = "3";
+											else
+												bms.Charts[0].Tags["PLAYER"] = "1";
+
 											bms.GenerateSampleTags();
 											bms.Write(mem);
 
