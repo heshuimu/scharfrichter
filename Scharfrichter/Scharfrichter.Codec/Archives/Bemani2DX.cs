@@ -1,8 +1,4 @@
-﻿using NAudio;
-using NAudio.Codecs;
-using NAudio.Wave;
-
-using Scharfrichter.Codec.Encryption;
+﻿using Scharfrichter.Codec.Encryption;
 using Scharfrichter.Codec.Sounds;
 
 using System;
@@ -26,6 +22,7 @@ namespace Scharfrichter.Codec.Archives
 
 	public class Bemani2DX : Archive
 	{
+		private List<Sound> sounds = new List<Sound>();
 		public Bemani2DXType Type;
 
 		static public Bemani2DX Read(Stream source)
@@ -87,7 +84,6 @@ namespace Scharfrichter.Codec.Archives
 				}
 				decodedData.Position = 0;
 				reader = new BinaryReader(decodedData);
-				File.WriteAllBytes(@"D:\BMS\2dxout.dat", decodedData.ToArray());
 			}
 
 			// header length is at 0x10
@@ -107,32 +103,34 @@ namespace Scharfrichter.Codec.Archives
 				sampleOffset[i] = reader.ReadInt32();
 			}
 
-			// we use the NAudio library to convert to plain PCM
 			for (int i = 0; i < sampleCount; i++)
 			{
 				reader.BaseStream.Position = sampleOffset[i];
-				if (new string(reader.ReadChars(4)) == "2DX9")
-				{
-					int infoLength = reader.ReadInt32();
-					int dataLength = reader.ReadInt32();
-					reader.BaseStream.Position = sampleOffset[i] + infoLength;
-					byte[] wavData = reader.ReadBytes(dataLength);
-					using (MemoryStream wavDataMem = new MemoryStream(wavData))
-					{
-						using (WaveStream wavStream = new WaveFileReader(wavDataMem))
-						{
-							using (WaveStream wavConvertStream = WaveFormatConversionStream.CreatePcmStream(wavStream))
-							{
-								byte[] rawWaveData = new byte[wavConvertStream.Length];
-								wavConvertStream.Read(rawWaveData, 0, (int)wavConvertStream.Length);
-							}
-						}
-					}
-				}
+				result.sounds.Add(Bemani2DXSound.Read(reader.BaseStream));
 			}
 			
-
 			return result;
+		}
+
+		public override Sound[] Sounds
+		{
+			get
+			{
+				return sounds.ToArray();
+			}
+			set
+			{
+				sounds.Clear();
+				sounds.AddRange(value);
+			}
+		}
+
+		public override int SoundCount
+		{
+			get
+			{
+				return sounds.Count;
+			}
 		}
 	}
 }

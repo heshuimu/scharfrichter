@@ -231,15 +231,8 @@ namespace Scharfrichter.Codec.Charts
 
 					foreach (Entry tempoEntry in entryList)
 					{
-						tempoEntry.MetricOffset = measureLength + ((tempoEntry.LinearOffset - lastTempoOffset) / (entry.LinearOffset - lastTempoOffset));
+						tempoEntry.MetricOffset = measureLength + (((tempoEntry.LinearOffset - lastTempoOffset) / (entry.LinearOffset - lastTempoOffset)) * measureDistance);
 						tempoEntry.MetricMeasure = measure;
-						while ((double)tempoEntry.MetricOffset >= 1)
-						{
-							Fraction offs = tempoEntry.MetricOffset;
-							tempoEntry.MetricMeasure++;
-							offs.Numerator -= offs.Denominator;
-							tempoEntry.MetricOffset = offs;
-						}
 						measureEntryList.Add(tempoEntry);
 					}
 
@@ -262,12 +255,12 @@ namespace Scharfrichter.Codec.Charts
 									measureEntry.MetricOffset = offs;
 								}
 							}
+							measureEntryList.Clear();
 							MeasureLengths[measure] = measureLength;
 							measure++;
 							lastMeasureOffset = entry.LinearOffset;
 							measureLength = new Fraction(0, 1);
 						}
-						measureEntryList.Clear();
 						entry.MetricOffset = new Fraction(0, 1);
 						entry.MetricMeasure = measure;
 					}
@@ -486,6 +479,28 @@ namespace Scharfrichter.Codec.Charts
 				return result;
 			}
 		}
+
+		public int[] UsedSamples()
+		{
+			List<int> result = new List<int>();
+			foreach (Entry entry in entries)
+			{
+				if (entry.Type == EntryType.Marker || entry.Type == EntryType.Sample)
+				{
+					int val = (int)((double)entry.Value);
+					if (val > 0)
+					{
+						if (!result.Contains(val))
+						{
+							result.Add(val);
+						}
+					}
+				}
+			}
+
+			result.Sort();
+			return result.ToArray();
+		}
 	}
 
 	public class Entry : IComparable<Entry>
@@ -591,7 +606,7 @@ namespace Scharfrichter.Codec.Charts
 		public override string ToString()
 		{
 			// for debug purposes only
-			return (Type.ToString() + ": P" + Player.ToString() + ", C" + Column.ToString());
+			return ("[M" + metricOffset.ToString() + ", L" + linearOffset.ToString() + "] " + Type.ToString() + ": P" + Player.ToString() + ", C" + Column.ToString());
 		}
 
 		public Fraction LinearOffset

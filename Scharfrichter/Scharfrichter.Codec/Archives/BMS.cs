@@ -47,6 +47,20 @@ namespace Scharfrichter.Codec.Archives
 			}
 		}
 
+		public void GenerateSampleTags()
+		{
+			int[] sampleList = charts[0].UsedSamples();
+			int listCount = sampleList.Length;
+			Chart chart = charts[0];
+
+			for (int i = 0; i < listCount; i++)
+			{
+				string sampleName = alphabetBME.Substring(sampleList[i] / 36, 1);
+				sampleName += alphabetBME.Substring(sampleList[i] % 36, 1);
+				chart.Tags["WAV" + sampleName] = sampleName + ".wav";
+			}
+		}
+
 		static public BMS Read(Stream source)
 		{
 			List<KeyValuePair<string, string>> noteTags = new List<KeyValuePair<string, string>>();
@@ -311,13 +325,19 @@ namespace Scharfrichter.Codec.Archives
 					headerWriter.WriteLine("#" + tag.Key);
 			}
 
+			chart.ClearUsed();
+
 			// iterate through all events
 			int currentMeasure = 0;
 			int currentOperation = 0;
 			int measureCount = chart.Measures;
 			int bpmCount = 0;
+			bool repeat;
+
 			while (currentMeasure < measureCount)
 			{
+				repeat = false;
+
 				string measureString = currentMeasure.ToString();
 
 				while (measureString.Length < 3)
@@ -384,7 +404,8 @@ namespace Scharfrichter.Codec.Archives
 					if (entry.MetricMeasure == currentMeasure &&
 						entry.Player == currentPlayer &&
 						entry.Type == currentType &&
-						entry.Column == currentColumn)
+						entry.Column == currentColumn &&
+						!entry.Used)
 					{
 						entries.Add(entry);
 					}
@@ -397,8 +418,6 @@ namespace Scharfrichter.Codec.Archives
 				// build a line if necessary
 				if (entries.Count > 0)
 				{
-					Fraction temp;
-
 					// get common denominator
 					long common = 1;
 					for (int i = 0; i < 2; i++)
@@ -413,8 +432,9 @@ namespace Scharfrichter.Codec.Archives
 					// build line
 					int[] values = new int[common];
 
-					if (currentType == EntryType.Marker)
+					if (currentType == EntryType.Marker && currentPlayer != 0)
 					{
+						// player key
 						foreach (Entry entry in entries)
 						{
 							long multiplier = common / entry.MetricOffset.Denominator;
@@ -423,6 +443,31 @@ namespace Scharfrichter.Codec.Archives
 
 							if (offset >= 0 && offset < count)
 								values[offset] = (int)(double)entry.Value;
+
+							entry.Used = true;
+						}
+					}
+					else if (currentType == EntryType.Marker && currentPlayer == 0)
+					{
+						// bgm
+						foreach (Entry entry in entries)
+						{
+							long multiplier = common / entry.MetricOffset.Denominator;
+							long offset = entry.MetricOffset.Numerator * multiplier;
+							int count = values.Length;
+
+							if (offset >= 0 && offset < count)
+							{
+								if (values[offset] == 0)
+								{
+									values[offset] = (int)(double)entry.Value;
+									entry.Used = true;
+								}
+								else
+								{
+									repeat = true;
+								}
+							}
 						}
 					}
 					else if (currentType == EntryType.Tempo)
@@ -443,6 +488,7 @@ namespace Scharfrichter.Codec.Archives
 								values[offset] = bpmCount;
 								headerWriter.WriteLine("#BPM" + alphabetBME.Substring(bpmCount / 36, 1) + alphabetBME.Substring(bpmCount % 36, 1) + " " + (Math.Round((double)(entry.Value), 3)).ToString());
 							}
+							entry.Used = true;
 						}
 					}
 					else
@@ -454,6 +500,8 @@ namespace Scharfrichter.Codec.Archives
 
 							if (offset >= 0 && offset < count)
 								values[offset] = (int)(entry.Value.Numerator / entry.Value.Denominator);
+
+							entry.Used = true;
 						}
 					}
 
@@ -473,7 +521,8 @@ namespace Scharfrichter.Codec.Archives
 					}
 				}
 
-				currentOperation++;
+				if (!repeat)
+					currentOperation++;
 			}
 
 			// write measure lengths

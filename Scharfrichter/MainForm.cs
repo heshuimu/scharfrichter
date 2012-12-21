@@ -26,8 +26,15 @@ namespace Scharfrichter
 
 		private void button1_Click(object sender, EventArgs e)
 		{
+			string sourceFileName = "0952";
+			string targetPath = @"D:\BMS\" + sourceFileName + @"\";
+			Directory.CreateDirectory(targetPath);
+
+			string sourcePath = @"D:\Torrent Seeds\Happy Sky\ECO\data\sd_data\" + sourceFileName + @"\";
+
+#if (true)
 			// bemani1 to BMS test with quantization
-			using (FileStream fs = new FileStream(@"D:\BMS\1204\1204.1", FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+			using (FileStream fs = new FileStream(sourcePath + sourceFileName + ".1", FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
 			{
 				Bemani1 test = Bemani1.Read(fs, 100, 5994);
 				for (int i = 0; i < 12; i++)
@@ -45,16 +52,35 @@ namespace Scharfrichter
 							{
 								bmsString = "0" + bmsString;
 							}
+							bms.GenerateSampleTags();
 							bms.Write(mem);
-							File.WriteAllBytes(@"D:\BMS\1204\1204-" + bmsString + ".bms", mem.ToArray());
+							File.WriteAllBytes(targetPath + "@" + bmsString + ".bms", mem.ToArray());
 						}
 					}
 				}
 			}
-			using (FileStream fs = new FileStream(@"D:\BMS\1204\1204.2dx", FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+#endif
+
+#if (true)
+			string alphabet = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+			int alphabetLength = alphabet.Length;
+
+			using (FileStream fs = new FileStream(sourcePath + sourceFileName + ".2dx", FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
 			{
 				Bemani2DX archive = Bemani2DX.Read(fs);
+				Sound[] soundList = archive.Sounds;
+				int count = soundList.Length;
+
+				for (int i = 0; i < count; i++)
+				{
+					int sampleIndex = i + 1;
+					using (FileStream outfile = new FileStream(targetPath + alphabet[sampleIndex / alphabetLength] + alphabet[sampleIndex % alphabetLength] + @".wav", FileMode.Create, FileAccess.ReadWrite, FileShare.ReadWrite))
+					{
+						soundList[i].Write(outfile);
+					}
+				}
 			}
+#endif
 
 			MessageBox.Show("Finished.");
 		}
