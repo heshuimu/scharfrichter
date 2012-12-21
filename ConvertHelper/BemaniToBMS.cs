@@ -45,10 +45,16 @@ namespace ConvertHelper
 
 		static public void BemaniToBMS(string[] args, long unitNumerator, long unitDenominator, int quantizeMeasure)
 		{
+			Console.WriteLine("BemaniToBMS");
+			Console.WriteLine("Timing: " + unitNumerator.ToString() + "/" + unitDenominator.ToString());
+			Console.WriteLine("Measure Quantize: " + quantizeMeasure.ToString());
+
 			for (int i = 0; i < args.Length; i++)
 			{
 				if (File.Exists(args[i]))
 				{
+					Console.WriteLine("Processing File: " + args[i]);
+
 					byte[] data = File.ReadAllBytes(args[i]);
 					switch (Path.GetExtension(args[i]).ToUpper())
 					{
@@ -60,6 +66,7 @@ namespace ConvertHelper
 								{
 									if (archive.Charts[j] != null)
 									{
+										Console.WriteLine("Converting Chart " + j.ToString());
 										if (quantizeMeasure > 0)
 											archive.Charts[j].QuantizeMeasureLengths(quantizeMeasure);
 
@@ -94,6 +101,7 @@ namespace ConvertHelper
 						case @".2DX":
 							using (MemoryStream source = new MemoryStream(data))
 							{
+								Console.WriteLine("Converting Samples");
 								string alphabet = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 								int alphabetLength = alphabet.Length;
 
