@@ -8,8 +8,8 @@
     <ProjectGuid>{105B10AD-6C8C-4E17-BA36-BC7734BD80DE}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Convert1toBMS</RootNamespace>
-    <AssemblyName>Convert1toBMS</AssemblyName>
+    <RootNamespace>BemaniToBMS</RootNamespace>
+    <AssemblyName>BemaniToBMS</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile>Client</TargetFrameworkProfile>
@@ -46,6 +46,10 @@
     <None Include="app.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\ConvertHelper\ConvertHelper.csproj">
+      <Project>{3F103FC7-6016-4E8B-B6F4-E2EEB8AD6087}</Project>
+      <Name>ConvertHelper</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Scharfrichter\Scharfrichter.Codec\Scharfrichter.Codec.csproj">
       <Project>{DB34F6AF-C522-4149-A6D3-37A36D2D9590}</Project>
       <Name>Scharfrichter.Codec</Name>

@@ -5,12 +5,12 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("Convert1toBMS")]
+[assembly: AssemblyTitle("BemaniToBMS")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("Convert1toBMS")]
-[assembly: AssemblyCopyright("Copyright ©  2012")]
+[assembly: AssemblyProduct("BemaniToBMS")]
+[assembly: AssemblyCopyright("Pegasystem")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

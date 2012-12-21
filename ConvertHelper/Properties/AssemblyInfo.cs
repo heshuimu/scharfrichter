@@ -5,11 +5,11 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("LZDecompress")]
+[assembly: AssemblyTitle("ConvertHelper")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("LZDecompress")]
+[assembly: AssemblyProduct("ConvertHelper")]
 [assembly: AssemblyCopyright("Pegasystem")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
@@ -20,7 +20,7 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("9a456b20-30d4-45a7-ab82-c2c5e5195895")]
+[assembly: Guid("2ccc648f-7011-41dc-a0d4-96179bdda86c")]
 
 // Version information for an assembly consists of the following four values:
 //
