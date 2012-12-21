@@ -14,9 +14,11 @@ namespace Scharfrichter.Codec.Charts
 		public Fraction DefaultBPM = new Fraction(0, 1);
 		public Fraction TickRate = new Fraction(0, 1);
 
+
+		// Add judgement entries to the list. It's unsure if these are needed, but
+		// it can be used if there are compatibility issues with converted arcade data.
 		// IIDX: F0, FA, FF, 03, 08, 12
 		// 5key: F4, FC, FF, 03, 06, 0E
-
 		public void AddJudgements()
 		{
 			int[] judgementValues = new int[] { 0xF0, 0xFA, 0xFF, 0x03, 0x08, 0x12 };
@@ -41,6 +43,8 @@ namespace Scharfrichter.Codec.Charts
 			}
 		}
 
+		// Add measure line entries to the list. Can only be used when
+		// metric data is present.
 		public void AddMeasureLines()
 		{
 			int measureCount = -1;
@@ -94,6 +98,7 @@ namespace Scharfrichter.Codec.Charts
 			}
 		}
 
+		// Convert Metric offsets to Linear offsets for the entry list.
 		public void CalculateLinearOffsets()
 		{
 			// verify all required metric info is present
@@ -118,6 +123,7 @@ namespace Scharfrichter.Codec.Charts
 
 			foreach (Entry entry in entries)
 			{
+				// on measures, update rate information
 				if (entry.Type == EntryType.Measure)
 				{
 					baseLinear += rate;
@@ -136,12 +142,14 @@ namespace Scharfrichter.Codec.Charts
 					lastMetric = entry.MetricOffset;
 				}
 
+				// calculate linear offset
 				Fraction entryOffset = entry.MetricOffset;
 				entryOffset -= lastMetric;
 				entryOffset *= rate;
 				entryOffset += baseLinear;
 				entry.LinearOffset = entryOffset;
 
+				// on tempo change, update rate information
 				if (entry.Type == EntryType.Tempo)
 				{
 					measureRate = Util.CalculateMeasureRate(bpm);
@@ -151,6 +159,7 @@ namespace Scharfrichter.Codec.Charts
 			}
 		}
 
+		// Convert Linear offsets into Metric offsets for the entry list.
 		public void CalculateMetricOffsets()
 		{
 			// verify all required linear info is present
@@ -163,15 +172,6 @@ namespace Scharfrichter.Codec.Charts
 			// make sure everything is sorted before we begin
 			entries.Sort();
 
-			// we keep going through the list until we hit a measure line. when we do,
-			// we take a look at how long the measure is, how long a measure should be,
-			// and determine its length from there.
-			// if we encounter a tempo change mid-measure, that's where things get tricky.
-			// in order to convert losslessly, we have to multiply both the pre-change and
-			// post-change granularities, and the number will get exponentially larger as
-			// more tempo changes are included (however with the built-in fraction reduction
-			// this effect should be minimized).
-
 			// initialization
 			Fraction bpm = DefaultBPM;
 			Fraction lastMeasureOffset = new Fraction(0, 1);
@@ -183,6 +183,8 @@ namespace Scharfrichter.Codec.Charts
 			Fraction metricBase = new Fraction(0, 1);
 			Fraction rate = Util.CalculateMeasureRate(bpm);
 			bool tempoChanged = false;
+
+			// discard length list since it will be generated later
 			lengths.Clear();
 
 			// get measure lengths for non-tempo-changing measures
@@ -210,6 +212,7 @@ namespace Scharfrichter.Codec.Charts
 				}
 			}
 
+			// initialization for the calculation phase
 			measure = 0;
 			lastMeasureOffset = new Fraction(0, 1);
 
@@ -222,13 +225,15 @@ namespace Scharfrichter.Codec.Charts
 			List<Entry> entryList = new List<Entry>();
 			List<Entry> measureEntryList = new List<Entry>();
 
-			// process
+			// calculate metric offsets
 			foreach (Entry entry in entries)
 			{
+				// on any measure, end of song or tempo events, update the metric rate information
 				if (entry.Type == EntryType.Measure || entry.Type == EntryType.Tempo || entry.Type == EntryType.EndOfSong)
 				{
 					Fraction measureDistance = ((entry.LinearOffset - lastTempoOffset) * TickRate) / rate;
 
+					// calculate metric offset for entries in tempo-changing measures
 					foreach (Entry tempoEntry in entryList)
 					{
 						tempoEntry.MetricOffset = measureLength + (((tempoEntry.LinearOffset - lastTempoOffset) / (entry.LinearOffset - lastTempoOffset)) * measureDistance);
@@ -242,6 +247,8 @@ namespace Scharfrichter.Codec.Charts
 					{
 						if (entry.LinearOffset != lastMeasureOffset)
 						{
+							// apply measure length to all entries in a tempo-changing measure
+							// so it's actually using the proper scale
 							foreach (Entry measureEntry in measureEntryList)
 							{
 								Fraction temp = measureEntry.MetricOffset;
@@ -266,11 +273,14 @@ namespace Scharfrichter.Codec.Charts
 					}
 					else if (entry.Type == EntryType.Tempo)
 					{
+						// on tempo change, update rate
 						bpm = entry.Value;
 						rate = Util.CalculateMeasureRate(bpm);
 					}
 					lastTempoOffset = entry.LinearOffset;
 
+					// some measures have a defined length, use this on non-tempo-changing measures
+					// for best accuracy
 					if (lengthList.ContainsKey(measure))
 						tickMeasureLength = lengthList[measure];
 					else
@@ -279,6 +289,7 @@ namespace Scharfrichter.Codec.Charts
 					entryList.Clear();
 				}
 
+				// calculate metric offset
 				if (tickMeasureLength.Numerator > 0)
 				{
 					entry.MetricOffset = (entry.LinearOffset - lastTempoOffset) / tickMeasureLength;
@@ -295,17 +306,17 @@ namespace Scharfrichter.Codec.Charts
 				{
 					entryList.Add(entry);
 				}
-
-				
 			}
 		}
 
+		// clear the Used flag on all entries
 		public void ClearUsed()
 		{
 			foreach (Entry entry in entries)
 				entry.Used = false;
 		}
 
+		// Entries property
 		public List<Entry> Entries
 		{
 			get
@@ -314,11 +325,13 @@ namespace Scharfrichter.Codec.Charts
 			}
 		}
 
+		// Measures property
 		public int Measures
 		{
 			get
 			{
 				int measureCount = -1;
+
 				// find the highest measure index
 				foreach (Entry entry in entries)
 				{
@@ -329,6 +342,7 @@ namespace Scharfrichter.Codec.Charts
 			}
 		}
 
+		// MeasureLengths property
 		public Dictionary<int, Fraction> MeasureLengths
 		{
 			get
@@ -337,6 +351,7 @@ namespace Scharfrichter.Codec.Charts
 			}
 		}
 
+		// determine the number of notes a player must play
 		public int NoteCount(int player)
 		{
 			int result = 0;
@@ -348,6 +363,7 @@ namespace Scharfrichter.Codec.Charts
 			return result;
 		}
 
+		// determine the number of players
 		public int Players
 		{
 			get
@@ -362,8 +378,9 @@ namespace Scharfrichter.Codec.Charts
 			}
 		}
 
-		// Because so many people use BMSE and BMSE doesn't like measure lengths that are not a multiple of 1/64,
-		// this is here to please the people that still use it. (I hate you guys.)
+		// quantize measure lengths so that they are easier to decipher.
+		// many people use BMSE, and BMSE doesn't like measure lengths that are not a multiple of 1/64,
+		// so this is here to please the people that still use it. (I hate you guys.)
 		public void QuantizeMeasureLengths(int quantizeValue)
 		{
 			// verify all required metric info is present
@@ -375,6 +392,7 @@ namespace Scharfrichter.Codec.Charts
 			int measureCount = Measures;
 			Fraction lengthBefore = Fraction.Rationalize(TotalMeasureLength);
 
+			// quantize the measure lengths
 			for (int i = 0; i < measureCount; i++)
 			{
 				if (lengths.ContainsKey(i))
@@ -399,11 +417,13 @@ namespace Scharfrichter.Codec.Charts
 
 			DefaultBPM *= ratio;
 
-			// we also need to regenerate linear offsets
+			// regenerate linear offsets because the values could have changed
 			CalculateLinearOffsets();
 #endif
 		}
 
+		// quantize Metric note offsets. This is useful for reducing the size of a
+		// converted BMS file.
 		public void QuantizeNoteOffsets(int quantizeValue)
 		{
 			// verify all required metric info is present
@@ -415,6 +435,7 @@ namespace Scharfrichter.Codec.Charts
 			Fraction lastMeasure = new Fraction(0, 1);
 			long quantize = quantizeValue;
 
+			// quantize each event
 			foreach (Entry entry in entries)
 			{
 				if (entry.Type == EntryType.Measure)
@@ -431,10 +452,12 @@ namespace Scharfrichter.Codec.Charts
 				if (quantize == 0)
 					quantize = 192;
 
-				entry.MetricOffset = Fraction.Quantize(entry.MetricOffset, quantize);
+				if (entry.Type == EntryType.Marker)
+					entry.MetricOffset = Fraction.Quantize(entry.MetricOffset, quantize);
 			}
 		}
 
+		// remove all judgement information from the chart.
 		public void RemoveJudgements()
 		{
 			foreach (Entry entry in entries)
@@ -444,6 +467,7 @@ namespace Scharfrichter.Codec.Charts
 			}
 		}
 
+		// remove all measure lines from the chart.
 		public void RemoveMeasureLines()
 		{
 			foreach (Entry entry in entries)
@@ -453,6 +477,7 @@ namespace Scharfrichter.Codec.Charts
 			}
 		}
 
+		// Tags property
 		public Dictionary<string, string> Tags
 		{
 			get
@@ -461,6 +486,7 @@ namespace Scharfrichter.Codec.Charts
 			}
 		}
 
+		// get the sum of all measure lengths.
 		public double TotalMeasureLength
 		{
 			get
@@ -482,6 +508,7 @@ namespace Scharfrichter.Codec.Charts
 			}
 		}
 
+		// get a list of samples used in the chart.
 		public int[] UsedSamples()
 		{
 			List<int> result = new List<int>();
