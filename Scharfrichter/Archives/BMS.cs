@@ -312,6 +312,7 @@ namespace Scharfrichter.Codec.Archives
 			chart.Tags["BPM"] = Math.Round((double)(chart.DefaultBPM), 3).ToString();
 
 			// write all metadata
+			chart.Tags["LNOBJ"] = "ZZ";
 			foreach (KeyValuePair<string, string> tag in chart.Tags)
 			{
 				if (tag.Value != null && tag.Value.Length > 0)
@@ -374,22 +375,6 @@ namespace Scharfrichter.Codec.Archives
 					case 25: currentType = EntryType.Marker; currentPlayer = 2; currentColumn = 6; laneString = "29"; break;
 					case 26: currentType = EntryType.Marker; currentPlayer = 2; currentColumn = 7; laneString = "26"; break;
 					case 27: currentType = EntryType.Marker; currentPlayer = 2; currentColumn = 8; laneString = "27"; break;
-					case 28: currentType = EntryType.Freeze; currentPlayer = 1; currentColumn = 0; laneString = "51"; break;
-					case 29: currentType = EntryType.Freeze; currentPlayer = 1; currentColumn = 1; laneString = "52"; break;
-					case 30: currentType = EntryType.Freeze; currentPlayer = 1; currentColumn = 2; laneString = "53"; break;
-					case 31: currentType = EntryType.Freeze; currentPlayer = 1; currentColumn = 3; laneString = "54"; break;
-					case 32: currentType = EntryType.Freeze; currentPlayer = 1; currentColumn = 4; laneString = "55"; break;
-					case 33: currentType = EntryType.Freeze; currentPlayer = 1; currentColumn = 5; laneString = "58"; break;
-					case 34: currentType = EntryType.Freeze; currentPlayer = 1; currentColumn = 6; laneString = "59"; break;
-					case 35: currentType = EntryType.Freeze; currentPlayer = 1; currentColumn = 7; laneString = "56"; break;
-					case 36: currentType = EntryType.Freeze; currentPlayer = 2; currentColumn = 0; laneString = "61"; break;
-					case 37: currentType = EntryType.Freeze; currentPlayer = 2; currentColumn = 1; laneString = "62"; break;
-					case 38: currentType = EntryType.Freeze; currentPlayer = 2; currentColumn = 2; laneString = "63"; break;
-					case 39: currentType = EntryType.Freeze; currentPlayer = 2; currentColumn = 3; laneString = "64"; break;
-					case 40: currentType = EntryType.Freeze; currentPlayer = 2; currentColumn = 4; laneString = "65"; break;
-					case 41: currentType = EntryType.Freeze; currentPlayer = 2; currentColumn = 5; laneString = "68"; break;
-					case 42: currentType = EntryType.Freeze; currentPlayer = 2; currentColumn = 6; laneString = "69"; break;
-					case 43: currentType = EntryType.Freeze; currentPlayer = 2; currentColumn = 7; laneString = "66"; break;
 					default: currentOperation = 0; currentMeasure++; continue;
 				}
 
@@ -437,7 +422,12 @@ namespace Scharfrichter.Codec.Archives
 							int count = values.Length;
 
 							if (offset >= 0 && offset < count)
-								values[offset] = (int)(double)entry.Value;
+							{
+								if (entry.Freeze)
+									values[offset] = 1295;
+								else
+									values[offset] = (int)(double)entry.Value;
+							}
 
 							entry.Used = true;
 						}

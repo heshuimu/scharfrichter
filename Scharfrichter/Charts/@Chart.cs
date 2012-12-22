@@ -544,6 +544,7 @@ namespace Scharfrichter.Codec.Charts
 		public bool ValueInitialized;
 
 		public int Column;
+		public bool Freeze;
 		public int Parameter;
 		public int Player;
 		public EntryType Type;
@@ -689,7 +690,6 @@ namespace Scharfrichter.Codec.Charts
 		Invalid,
 		Marker,
 		Sample,
-		Freeze,
 		Tempo,
 		Measure,
 		Mine,

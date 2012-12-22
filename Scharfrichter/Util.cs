@@ -209,7 +209,7 @@ namespace Scharfrichter.Codec
 		public long Numerator;
 	}
 
-	static class Util
+	static public class Util
 	{
 		public static long[] Primes = new long[]
 		{

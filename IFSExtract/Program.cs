@@ -1,4 +1,5 @@
-﻿using Scharfrichter.Codec.Archives;
+﻿using Scharfrichter.Codec;
+using Scharfrichter.Codec.Archives;
 
 using System;
 using System.Collections.Generic;
@@ -28,12 +29,8 @@ namespace IFSExtract
 
 						for (int j = 0; j < count; j++)
 						{
-							string outputNumber = j.ToString();
-							while (outputNumber.Length < 3)
-							{
-								outputNumber = "0" + outputNumber;
-							}
-							string outputFile = outputFileBase + "-" + outputNumber;
+							string outputNumber = Util.ConvertToDecimalString(j, 3);
+							string outputFile = outputFileBase + "." + outputNumber;
 							byte[] data = archive.RawData[j];
 
 							File.WriteAllBytes(outputFile, archive.RawData[j]);

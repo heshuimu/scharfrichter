@@ -49,6 +49,19 @@ namespace Scharfrichter.Codec.Charts
 
 				if (entry.Type != EntryType.Invalid)
 					chart.Entries.Add(entry);
+
+				// if there is a value in a marker, it is a freeze
+				if (entry.Type == EntryType.Marker && entry.Player > 0 && eventValue > 0)
+				{
+					Entry freezeEntry = new Entry();
+					freezeEntry.Type = EntryType.Marker;
+					freezeEntry.Freeze = true;
+					freezeEntry.Player = entry.Player;
+					freezeEntry.LinearOffset = entry.LinearOffset + new Fraction(eventValue, 1);
+					freezeEntry.Column = entry.Column;
+					freezeEntry.Value = new Fraction(0, 1);
+					chart.Entries.Add(freezeEntry);
+				}
 			}
 			
 			// sort entries
