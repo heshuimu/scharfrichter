@@ -33,7 +33,8 @@ namespace IFSExtract
 							{
 								outputNumber = "0" + outputNumber;
 							}
-							string outputFile = outputFileBase + "-" + outputNumber + ".dat";
+							string outputFile = outputFileBase + "-" + outputNumber;
+							byte[] data = archive.RawData[j];
 
 							File.WriteAllBytes(outputFile, archive.RawData[j]);
 						}
