@@ -12,100 +12,214 @@ namespace Scharfrichter.Codec
 
 		public static Fraction operator +(Fraction a, Fraction b)
 		{
-			Fraction result = new Fraction();
-			Fraction commonA;
-			Fraction commonB;
+			checked
+			{
+				Fraction result = new Fraction();
+				Fraction commonA;
+				Fraction commonB;
 
-			Commonize(a, b, out commonA, out commonB);
-			a = Shrink(a);
-			b = Shrink(b);
-			result.Numerator = (commonA.Numerator + commonB.Numerator);
-			result.Denominator = commonA.Denominator;
+				Commonize(a, b, out commonA, out commonB);
+				a = Shrink(a);
+				b = Shrink(b);
+				result.Numerator = (commonA.Numerator + commonB.Numerator);
+				result.Denominator = commonA.Denominator;
 
-			return Reduce(result);
+				return Reduce(result);
+			}
 		}
 
 		public static Fraction operator -(Fraction a, Fraction b)
 		{
-			Fraction result = new Fraction();
-			Fraction commonA;
-			Fraction commonB;
+			checked
+			{
+				Fraction result = new Fraction();
+				Fraction commonA;
+				Fraction commonB;
 
-			Commonize(a, b, out commonA, out commonB);
-			a = Shrink(a);
-			b = Shrink(b);
-			result.Numerator = (commonA.Numerator - commonB.Numerator);
-			result.Denominator = commonA.Denominator;
+				Commonize(a, b, out commonA, out commonB);
+				a = Shrink(a);
+				b = Shrink(b);
+				result.Numerator = (commonA.Numerator - commonB.Numerator);
+				result.Denominator = commonA.Denominator;
 
-			return Reduce(result);
+				return Reduce(result);
+			}
 		}
 
 		public static Fraction operator *(Fraction a, Fraction b)
 		{
-			Fraction result = new Fraction();
+			checked
+			{
+				Fraction result = new Fraction();
 
-			a = Shrink(a);
-			b = Shrink(b);
-			result.Numerator = (a.Numerator * b.Numerator);
-			result.Denominator = (a.Denominator * b.Denominator);
+				a = Shrink(a);
+				b = Shrink(b);
+				result.Numerator = (a.Numerator * b.Numerator);
+				result.Denominator = (a.Denominator * b.Denominator);
 
-			return Reduce(result);
+				return Reduce(result);
+			}
 		}
 
 		public static Fraction operator /(Fraction a, Fraction b)
 		{
-			Fraction result = new Fraction();
+			checked
+			{
+				Fraction result = new Fraction();
 
-			a = Shrink(a);
-			b = Shrink(b);
-			result.Numerator = (a.Numerator * b.Denominator);
-			result.Denominator = (a.Denominator * b.Numerator);
+				a = Shrink(a);
+				b = Shrink(b);
+				result.Numerator = (a.Numerator * b.Denominator);
+				result.Denominator = (a.Denominator * b.Numerator);
 
-			return Reduce(result);
+				return Reduce(result);
+			}
 		}
 
 		public static bool operator ==(Fraction a, Fraction b)
 		{
-			Commonize(a, b, out a, out b);
-			return (a.Numerator == b.Numerator);
+			checked
+			{
+				Commonize(a, b, out a, out b);
+				return (a.Numerator == b.Numerator);
+			}
 		}
 
 		public static bool operator !=(Fraction a, Fraction b)
 		{
-			Commonize(a, b, out a, out b);
-			return (a.Numerator != b.Numerator);
+			checked
+			{
+				Commonize(a, b, out a, out b);
+				return (a.Numerator != b.Numerator);
+			}
 		}
 
 		public static explicit operator Fraction(double d)
 		{
-			return Rationalize(d);
+			checked
+			{
+				return Rationalize(d);
+			}
 		}
 
 		public static explicit operator double(Fraction f)
 		{
-			return ((double)f.Numerator / (double)f.Denominator);
+			checked
+			{
+				return ((double)f.Numerator / (double)f.Denominator);
+			}
 		}
 
 		public override string ToString()
 		{
-			return Numerator.ToString() + "/" + Denominator.ToString() + ":" + (Denominator == 0 ? "undef" : ((double)Numerator / (double)Denominator).ToString());
+			checked
+			{
+				return Numerator.ToString() + "/" + Denominator.ToString() + ":" + (Denominator == 0 ? "undef" : ((double)Numerator / (double)Denominator).ToString());
+			}
 		}
 
 		public static void Commonize(Fraction a, Fraction b, out Fraction outputA, out Fraction outputB)
 		{
-			long[] Primes = Util.Primes;
-			int PrimeCount = Util.PrimeCount;
-
-			a = Shrink(a);
-			b = Shrink(b);
-
-			long newNumeratorA = a.Numerator * b.Denominator;
-			long newDenominator = a.Denominator * b.Denominator;
-			long newNumeratorB = b.Numerator * a.Denominator;
-			bool finished = false;
-
-			if (a.Denominator != b.Denominator)
+			checked
 			{
+				long[] Primes = Util.Primes;
+				int PrimeCount = Util.PrimeCount;
+
+				a = Shrink(a);
+				b = Shrink(b);
+
+				long newNumeratorA = a.Numerator * b.Denominator;
+				long newDenominator = a.Denominator * b.Denominator;
+				long newNumeratorB = b.Numerator * a.Denominator;
+				bool finished = false;
+
+				if (a.Denominator != b.Denominator)
+				{
+					while (!finished)
+					{
+						finished = true;
+						for (int i = 0; i < PrimeCount; i++)
+						{
+							long thisPrime = Primes[i];
+
+							if (thisPrime > newDenominator)
+								break;
+
+							if ((newDenominator % thisPrime == 0) && (newNumeratorA % thisPrime == 0) && (newNumeratorB % thisPrime == 0))
+							{
+								newDenominator /= thisPrime;
+								newNumeratorA /= thisPrime;
+								newNumeratorB /= thisPrime;
+								//finished = false; break;
+								i--;
+							}
+						}
+					}
+					outputA = new Fraction(newNumeratorA, newDenominator);
+					outputB = new Fraction(newNumeratorB, newDenominator);
+				}
+				else
+				{
+					outputA = a;
+					outputB = b;
+				}
+			}
+		}
+
+		public static Fraction Compound(Fraction f, long val)
+		{
+			checked
+			{
+				return new Fraction(f.Numerator * val, f.Denominator * val);
+			}
+		}
+
+		public static Fraction Quantize(Fraction f, long val)
+		{
+			checked
+			{
+				return new Fraction((f.Numerator * val) / f.Denominator, val);
+			}
+		}
+
+		public static Fraction Rationalize(double input)
+		{
+			checked
+			{
+				Fraction result = new Fraction();
+				result.Denominator = 1;
+				while (input != Math.Round(input))
+				{
+					input *= 10;
+					result.Denominator *= 10;
+				}
+				result.Numerator = (long)input;
+				return Reduce(result);
+			}
+		}
+
+		public Fraction Reciprocate()
+		{
+			checked
+			{
+				return new Fraction(Denominator, Numerator);
+			}
+		}
+
+		public static Fraction Reduce(Fraction input)
+		{
+			checked
+			{
+				long[] Primes = Util.Primes;
+				int PrimeCount = Util.PrimeCount;
+				bool finished = false;
+
+				if (input.Numerator == 0)
+				{
+					input.Denominator = 1;
+					return input;
+				}
+
 				while (!finished)
 				{
 					finished = true;
@@ -113,109 +227,74 @@ namespace Scharfrichter.Codec
 					{
 						long thisPrime = Primes[i];
 
-						if (thisPrime > newDenominator)
+						if (thisPrime > input.Denominator)
 							break;
 
-						if ((newDenominator % thisPrime == 0) && (newNumeratorA % thisPrime == 0) && (newNumeratorB % thisPrime == 0))
+						if ((input.Denominator % thisPrime == 0) && (input.Numerator % thisPrime == 0))
 						{
-							newDenominator /= thisPrime;
-							newNumeratorA /= thisPrime;
-							newNumeratorB /= thisPrime;
+							input.Denominator /= thisPrime;
+							input.Numerator /= thisPrime;
 							//finished = false; break;
 							i--;
 						}
 					}
 				}
-				outputA = new Fraction(newNumeratorA, newDenominator);
-				outputB = new Fraction(newNumeratorB, newDenominator);
-			}
-			else
-			{
-				outputA = a;
-				outputB = b;
-			}
-		}
-
-		public static Fraction Compound(Fraction f, long val)
-		{
-			return new Fraction(f.Numerator * val, f.Denominator * val);
-		}
-
-		public static Fraction Quantize(Fraction f, long val)
-		{
-			return new Fraction((f.Numerator * val) / f.Denominator, val);
-		}
-
-		public static Fraction Rationalize(double input)
-		{
-			Fraction result = new Fraction();
-			result.Denominator = 1;
-			while (input != Math.Round(input))
-			{
-				input *= 10;
-				result.Denominator *= 10;
-			}
-			result.Numerator = (long)input;
-			return Reduce(result);
-		}
-
-		public Fraction Reciprocate()
-		{
-			return new Fraction(Denominator, Numerator);
-		}
-
-		public static Fraction Reduce(Fraction input)
-		{
-			long[] Primes = Util.Primes;
-			int PrimeCount = Util.PrimeCount;
-			bool finished = false;
-
-			if (input.Numerator == 0)
-			{
-				input.Denominator = 1;
 				return input;
 			}
-
-			while (!finished)
-			{
-				finished = true;
-				for (int i = 0; i < PrimeCount; i++)
-				{
-					long thisPrime = Primes[i];
-
-					if (thisPrime > input.Denominator)
-						break;
-
-					if ((input.Denominator % thisPrime == 0) && (input.Numerator % thisPrime == 0))
-					{
-						input.Denominator /= thisPrime;
-						input.Numerator /= thisPrime;
-						//finished = false; break;
-						i--;
-					}
-				}
-			}
-			return input;
 		}
 
 		public static Fraction  Shrink(Fraction f)
 		{
-			while ((f.Numerator > maxVal) || (f.Numerator < minVal) || (f.Denominator > maxVal) || (f.Denominator < minVal))
+			checked
 			{
-				f.Numerator /= 2;
-				f.Denominator /= 2;
+				while ((f.Numerator > maxVal) || (f.Numerator < minVal) || (f.Denominator > maxVal) || (f.Denominator < minVal))
+				{
+					f.Numerator /= 2;
+					f.Denominator /= 2;
+				}
+				return f;
 			}
-			return f;
 		}
 
 		public Fraction(long newNum, long newDen)
 		{
-			Denominator = newDen;
-			Numerator = newNum;
+			checked
+			{
+				denominator = newDen;
+				numerator = newNum;
+			}
 		}
 
-		public long Denominator;
-		public long Numerator;
+		//public long Denominator;
+		//public long Numerator;
+		private long denominator;
+		private long numerator;
+
+		public long Denominator
+		{
+			get
+			{
+				return denominator;
+			}
+			set
+			{
+				denominator = value;
+				System.Diagnostics.Debug.Assert(numerator >= 0);
+			}
+		}
+
+		public long Numerator
+		{
+			get
+			{
+				return numerator;
+			}
+			set
+			{
+				numerator = value;
+				System.Diagnostics.Debug.Assert(numerator >= 0);
+			}
+		}
 	}
 
 	static public class Util

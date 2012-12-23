@@ -49,10 +49,18 @@ namespace ConvertHelper
 			Console.WriteLine("Timing: " + unitNumerator.ToString() + "/" + unitDenominator.ToString());
 			Console.WriteLine("Measure Quantize: " + quantizeMeasure.ToString());
 
+			if (System.Diagnostics.Debugger.IsAttached && args.Length == 0)
+			{
+				Console.WriteLine();
+				Console.WriteLine("Debugger attached. Input file name:");
+				args = new string[] { Console.ReadLine() };
+			}
+
 			for (int i = 0; i < args.Length; i++)
 			{
 				if (File.Exists(args[i]))
 				{
+					Console.WriteLine();
 					Console.WriteLine("Processing File: " + args[i]);
 
 					byte[] data = File.ReadAllBytes(args[i]);
@@ -128,6 +136,7 @@ namespace ConvertHelper
 					}
 				}
 			}
+			Console.WriteLine("BemaniToBMS finished.");
 		}
 	}
 }

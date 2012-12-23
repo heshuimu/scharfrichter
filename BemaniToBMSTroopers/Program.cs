@@ -15,11 +15,6 @@ namespace BemaniToBMSTroopers
 
 		static void Main(string[] args)
 		{
-			if (System.Diagnostics.Debugger.IsAttached && args.Length == 0)
-			{
-				Console.WriteLine("Debugger attached. Input file name:");
-				args = new string[] { Console.ReadLine() };
-			}
 			ConvertFunctions.BemaniToBMS(args, unitNumerator, unitDenominator, quantizeMeasure);
 		}
 	}
