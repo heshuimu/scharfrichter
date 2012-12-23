@@ -142,7 +142,7 @@ namespace Scharfrichter.Codec.Charts
 						length = new Fraction(1, 1);
 						rate = measureRate;
 					}
-					lastMetric = entry.MetricOffset;
+					lastMetric = new Fraction(0, 1);
 				}
 
 				// calculate linear offset
@@ -444,7 +444,9 @@ namespace Scharfrichter.Codec.Charts
 			}
 
 			DefaultBPM *= ratio;
-
+#endif
+			
+#if (false) // disabled for now because it is a little buggy and we need to get a release out
 			// regenerate linear offsets because the values could have changed
 			CalculateLinearOffsets();
 #endif

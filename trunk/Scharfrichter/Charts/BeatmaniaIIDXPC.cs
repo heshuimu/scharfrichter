@@ -27,7 +27,7 @@ namespace Scharfrichter.Codec.Charts
 
 				int eventType = memReader.ReadByte();
 				int eventParameter = memReader.ReadByte();
-				int eventValue = memReader.ReadInt16();
+				int eventValue = memReader.ReadUInt16();
 
 				// unhandled parameter types:
 				//  0x05: measure length
