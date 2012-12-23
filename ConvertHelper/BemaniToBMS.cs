@@ -70,9 +70,6 @@ namespace ConvertHelper
 										if (quantizeMeasure > 0)
 											archive.Charts[j].QuantizeMeasureLengths(quantizeMeasure);
 
-										// this prevents crashes later
-										archive.Charts[j].QuantizeNoteOffsets(768);
-
 										using (MemoryStream mem = new MemoryStream())
 										{
 											BMS bms = new BMS();
