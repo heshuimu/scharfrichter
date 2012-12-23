@@ -400,17 +400,29 @@ namespace Scharfrichter.Codec.Archives
 				{
 					// get common denominator
 					long common = 1;
+
 					for (int i = 0; i < 2; i++)
 					{
 						foreach (Entry entry in entries)
 						{
-							if (common % entry.MetricOffset.Denominator != 0)
+							if (common % entry.MetricOffset.Denominator != 0 && common <= int.MaxValue)
+							{
 								common *= entry.MetricOffset.Denominator;
+							}
 						}
 					}
 
+					// prevent outrageous common denominator values here
+					long commonDivisor = 1;
+					while (true)
+					{
+						if ((common / commonDivisor) < 7680)
+							break;
+						commonDivisor *= 2;
+					}
+
 					// build line
-					int[] values = new int[common];
+					int[] values = new int[common / commonDivisor];
 
 					if (currentType == EntryType.Marker && currentPlayer != 0)
 					{
@@ -418,7 +430,7 @@ namespace Scharfrichter.Codec.Archives
 						foreach (Entry entry in entries)
 						{
 							long multiplier = common / entry.MetricOffset.Denominator;
-							long offset = entry.MetricOffset.Numerator * multiplier;
+							long offset = (entry.MetricOffset.Numerator * multiplier) / commonDivisor;
 							int count = values.Length;
 
 							if (offset >= 0 && offset < count)
@@ -438,7 +450,7 @@ namespace Scharfrichter.Codec.Archives
 						foreach (Entry entry in entries)
 						{
 							long multiplier = common / entry.MetricOffset.Denominator;
-							long offset = entry.MetricOffset.Numerator * multiplier;
+							long offset = (entry.MetricOffset.Numerator * multiplier) / commonDivisor;
 							int count = values.Length;
 
 							if (offset >= 0 && offset < count)
@@ -459,7 +471,9 @@ namespace Scharfrichter.Codec.Archives
 					{
 						foreach (Entry entry in entries)
 						{
-							long offset = (entry.MetricOffset.Numerator * common) / entry.MetricOffset.Denominator;
+							long multiplier = common / entry.MetricOffset.Denominator;
+							long offset = (entry.MetricOffset.Numerator * multiplier) / commonDivisor;
+							//long offset = (entry.MetricOffset.Numerator * common) / entry.MetricOffset.Denominator;
 							int count = values.Length;
 
 							if (offset >= 0 && offset < count)
@@ -480,7 +494,9 @@ namespace Scharfrichter.Codec.Archives
 					{
 						foreach (Entry entry in entries)
 						{
-							long offset = (entry.MetricOffset.Numerator * common) / entry.MetricOffset.Denominator;
+							long multiplier = common / entry.MetricOffset.Denominator;
+							long offset = (entry.MetricOffset.Numerator * multiplier) / commonDivisor;
+							//long offset = (entry.MetricOffset.Numerator * common) / entry.MetricOffset.Denominator;
 							int count = values.Length;
 
 							if (offset >= 0 && offset < count)

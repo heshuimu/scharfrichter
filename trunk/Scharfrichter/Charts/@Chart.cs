@@ -106,6 +106,9 @@ namespace Scharfrichter.Codec.Charts
 				if (!entry.MetricOffsetInitialized)
 					throw new Exception("Linear offsets can't be calculated because at least one entry is missing Metric offset information.");
 
+			// delete all linear offset data
+			ClearLinearOffsets();
+
 			// make sure everything is sorted before we begin
 			entries.Sort();
 
@@ -169,6 +172,9 @@ namespace Scharfrichter.Codec.Charts
 					throw new Exception("Metric offsets can't be calculated because at least one entry is missing Linear offset information.");
 			}
 
+			// delete all metric offset data
+			ClearMetricOffsets();
+
 			// make sure everything is sorted before we begin
 			entries.Sort();
 
@@ -196,7 +202,10 @@ namespace Scharfrichter.Codec.Charts
 					{
 						if (!tempoChanged)
 						{
-							lengthList.Add(measure, entry.LinearOffset - lastMeasureOffset);
+							Fraction distance = entry.LinearOffset - lastMeasureOffset;
+							if ((double)distance < 0)
+								throw new Exception("INTERNAL ERROR DAMMIT.");
+							lengthList.Add(measure, distance);
 						}
 						lastMeasureOffset = entry.LinearOffset;
 						measure++;
@@ -236,7 +245,7 @@ namespace Scharfrichter.Codec.Charts
 					// calculate metric offset for entries in tempo-changing measures
 					foreach (Entry tempoEntry in entryList)
 					{
-						tempoEntry.MetricOffset = measureLength + (((tempoEntry.LinearOffset - lastTempoOffset) / (entry.LinearOffset - lastTempoOffset)) * measureDistance);
+						tempoEntry.MetricOffset = Fraction.Shrink(measureLength + (((tempoEntry.LinearOffset - lastTempoOffset) / (entry.LinearOffset - lastTempoOffset)) * measureDistance));
 						tempoEntry.MetricMeasure = measure;
 						measureEntryList.Add(tempoEntry);
 					}
@@ -253,7 +262,7 @@ namespace Scharfrichter.Codec.Charts
 							{
 								Fraction temp = measureEntry.MetricOffset;
 								temp /= measureLength;
-								measureEntry.MetricOffset = temp;
+								measureEntry.MetricOffset = Fraction.Shrink(temp);
 								while ((double)measureEntry.MetricOffset >= 1)
 								{
 									Fraction offs = measureEntry.MetricOffset;
@@ -265,7 +274,7 @@ namespace Scharfrichter.Codec.Charts
 							measureEntryList.Clear();
 							MeasureLengths[measure] = measureLength;
 							measure++;
-							lastMeasureOffset = entry.LinearOffset;
+							lastMeasureOffset = Fraction.Shrink(entry.LinearOffset);
 							measureLength = new Fraction(0, 1);
 						}
 						entry.MetricOffset = new Fraction(0, 1);
@@ -292,20 +301,39 @@ namespace Scharfrichter.Codec.Charts
 				// calculate metric offset
 				if (tickMeasureLength.Numerator > 0)
 				{
-					entry.MetricOffset = (entry.LinearOffset - lastTempoOffset) / tickMeasureLength;
+					entry.MetricOffset = Fraction.Shrink((entry.LinearOffset - lastTempoOffset) / tickMeasureLength);
 					entry.MetricMeasure = measure;
 					while ((double)entry.MetricOffset >= 1)
 					{
 						Fraction offs = entry.MetricOffset;
 						entry.MetricMeasure++;
 						offs.Numerator -= offs.Denominator;
-						entry.MetricOffset = offs;
+						entry.MetricOffset = Fraction.Shrink(offs);
 					}
 				}
 				else
 				{
 					entryList.Add(entry);
 				}
+			}
+		}
+
+		public void ClearLinearOffsets()
+		{
+			foreach (Entry entry in entries)
+			{
+				entry.LinearOffset = new Fraction(0, 1);
+				entry.LinearOffsetInitialized = false;
+			}
+		}
+
+		public void ClearMetricOffsets()
+		{
+			foreach (Entry entry in entries)
+			{
+				entry.MetricOffset = new Fraction(0, 1);
+				entry.MetricMeasure = 0;
+				entry.MetricOffsetInitialized = false;
 			}
 		}
 
@@ -398,7 +426,7 @@ namespace Scharfrichter.Codec.Charts
 				if (lengths.ContainsKey(i))
 				{
 					if (lengths[i].Denominator != quantizeValue)
-						lengths[i] = new Fraction((long)(Math.Round((double)lengths[i] * quantizationFloat)), quantizeValue);
+						lengths[i] = new Fraction((long)(Math.Round((double)Fraction.Shrink(lengths[i]) * quantizationFloat)), quantizeValue);
 				}
 			}
 

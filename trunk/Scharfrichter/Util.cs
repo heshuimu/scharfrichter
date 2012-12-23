@@ -7,6 +7,9 @@ namespace Scharfrichter.Codec
 {
 	public struct Fraction
 	{
+		static private long minVal = int.MinValue / 2;
+		static private long maxVal = int.MaxValue / 2;
+
 		public static Fraction operator +(Fraction a, Fraction b)
 		{
 			Fraction result = new Fraction();
@@ -14,6 +17,8 @@ namespace Scharfrichter.Codec
 			Fraction commonB;
 
 			Commonize(a, b, out commonA, out commonB);
+			a = Shrink(a);
+			b = Shrink(b);
 			result.Numerator = (commonA.Numerator + commonB.Numerator);
 			result.Denominator = commonA.Denominator;
 
@@ -27,6 +32,8 @@ namespace Scharfrichter.Codec
 			Fraction commonB;
 
 			Commonize(a, b, out commonA, out commonB);
+			a = Shrink(a);
+			b = Shrink(b);
 			result.Numerator = (commonA.Numerator - commonB.Numerator);
 			result.Denominator = commonA.Denominator;
 
@@ -49,6 +56,8 @@ namespace Scharfrichter.Codec
 		{
 			Fraction result = new Fraction();
 
+			a = Shrink(a);
+			b = Shrink(b);
 			result.Numerator = (a.Numerator * b.Denominator);
 			result.Denominator = (a.Denominator * b.Numerator);
 
@@ -189,9 +198,9 @@ namespace Scharfrichter.Codec
 			return input;
 		}
 
-		public static Fraction Shrink(Fraction f)
+		public static Fraction  Shrink(Fraction f)
 		{
-			while (f.Numerator > int.MaxValue || f.Numerator < int.MinValue || f.Denominator > int.MaxValue || f.Denominator < int.MinValue)
+			while ((f.Numerator > maxVal) || (f.Numerator < minVal) || (f.Denominator > maxVal) || (f.Denominator < minVal))
 			{
 				f.Numerator /= 2;
 				f.Denominator /= 2;

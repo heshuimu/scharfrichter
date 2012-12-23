@@ -27,10 +27,35 @@ namespace IFSExtract
 						BemaniIFS archive = BemaniIFS.Read(fs);
 						int count = archive.RawDataCount;
 
+						bool standardLayout = false;
+
+						if (count > 1)
+						{
+							byte[] data = archive.RawData[count - 1];
+							if (data.Length > 0x60)
+							{
+								if (data[0] == 0x60 && data[1] == 0x00 && data[2] == 0x00 && data[3] == 0x00)
+								{
+									standardLayout = true;
+								}
+							}
+						}
+
 						for (int j = 0; j < count; j++)
 						{
 							string outputNumber = Util.ConvertToDecimalString(j, 3);
-							string outputFile = outputFileBase + "." + outputNumber;
+							string outputFile = outputFileBase;
+							if (!standardLayout)
+							{
+								 outputFile += "." + outputNumber;
+							}
+							else
+							{
+								if (j == count - 1)
+									outputFile += ".1";
+								else
+									outputFile += "-" + outputNumber + ".2dx";
+							}
 							byte[] data = archive.RawData[j];
 
 							File.WriteAllBytes(outputFile, archive.RawData[j]);
