@@ -329,7 +329,7 @@ namespace Scharfrichter.Codec.Archives
 
 		public void Write(Stream target)
 		{
-			List<Fraction> bpmMap = new List<Fraction>();
+			Dictionary<int, Fraction> bpmMap = new Dictionary<int, Fraction>();
 			BinaryWriter writer = new BinaryWriter(target);
 			Chart chart = charts[0];
 
@@ -531,14 +531,30 @@ namespace Scharfrichter.Codec.Archives
 
 							if (offset >= 0 && offset < count)
 							{
-								bpmCount++;
+								int entryIndex = -1;
 
-								// this is a hack to make the numbers decimal
-								if (bpmCount % 36 == 10)
-									bpmCount += 26;
+								foreach (KeyValuePair<int, Fraction> bpmEntry in bpmMap)
+								{
+									if (bpmEntry.Value == entry.Value)
+									{
+										entryIndex = bpmEntry.Key;
+										break;
+									}
+								}
 
-								values[offset] = bpmCount;
-								headerWriter.WriteLine("#BPM" + Util.ConvertToBMEString(bpmCount, 2) + " " + (Math.Round((double)(entry.Value), 3)).ToString());
+								if (entryIndex <= 0)
+								{
+									bpmCount++;
+
+									// this is a hack to make the numbers decimal
+									if (bpmCount % 36 == 10)
+										bpmCount += 26;
+
+									headerWriter.WriteLine("#BPM" + Util.ConvertToBMEString(bpmCount, 2) + " " + (Math.Round((double)(entry.Value), 3)).ToString());
+									entryIndex = bpmCount;
+									bpmMap[entryIndex] = entry.Value;
+								}
+								values[offset] = entryIndex;
 							}
 							entry.Used = true;
 						}
