@@ -21,6 +21,12 @@ namespace Scharfrichter.Codec.Archives
 		}
 
 		private Chart[] charts = new Chart[] { null };
+		private int[] sampleMap;
+
+		public BMS()
+		{
+			ResetSampleMap();
+		}
 
 		public override Chart[] Charts
 		{
@@ -43,22 +49,35 @@ namespace Scharfrichter.Codec.Archives
 			}
 		}
 
+		public void GenerateSampleMap()
+		{
+			int[] usedSamples = charts[0].UsedSamples();
+			int usedSampleCount = usedSamples.Length;
+
+			if (usedSampleCount > 1293)
+				usedSampleCount = 1293;
+
+			Array.Copy(usedSamples, 0, sampleMap, 1, usedSampleCount);
+			for (int i = usedSampleCount + 1; i < 1294; i++)
+			{
+				sampleMap[i] = 0;
+			}
+		}
+
 		public void GenerateSampleTags()
 		{
-			int[] sampleList = charts[0].UsedSamples();
-			int listCount = sampleList.Length;
 			Chart chart = charts[0];
 
-			if (listCount > 1293)
+			if (chart.UsedSamples().Length > 1293)
 			{
-				Console.WriteLine("WARNING: More than 1293 samples. The extras will use a blank sample.");
+				Console.WriteLine("WARNING: More than 1293 samples.");
 			}
 
-			for (int i = 0; i < listCount; i++)
+			for (int i = 0; i < 1294; i++)
 			{
-				if (i < 1294)
+				int index = sampleMap[i];
+				if (index != 0)
 				{
-					int index = sampleList[i];
 					chart.Tags["WAV" + Util.ConvertToBMEString(index, 2)] = Util.ConvertToBMEString(index, 4) + ".wav";
 				}
 			}
@@ -299,6 +318,15 @@ namespace Scharfrichter.Codec.Archives
 			return result;
 		}
 
+		public void ResetSampleMap()
+		{
+			sampleMap = new int[1295];
+			for (int i = 0; i < 1295; i++)
+			{
+				sampleMap[i] = i;
+			}
+		}
+
 		public void Write(Stream target)
 		{
 			List<Fraction> bpmMap = new List<Fraction>();
@@ -444,6 +472,12 @@ namespace Scharfrichter.Codec.Archives
 
 							if (entryMapIndex < 1 || entryMapIndex > 1293)
 								entryMapIndex = 1294;
+							else
+							{
+								entryMapIndex = Array.IndexOf<int>(sampleMap, entryMapIndex);
+								if (entryMapIndex < 1 || entryMapIndex > 1293)
+									entryMapIndex = 1294;
+							}
 
 							if (offset >= 0 && offset < count)
 							{
