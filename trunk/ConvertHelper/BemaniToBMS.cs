@@ -97,6 +97,7 @@ namespace ConvertHelper
 											else
 												bms.Charts[0].Tags["PLAYER"] = "1";
 
+											bms.GenerateSampleMap();
 											bms.GenerateSampleTags();
 											bms.Write(mem);
 
