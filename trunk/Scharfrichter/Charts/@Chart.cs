@@ -538,7 +538,7 @@ namespace Scharfrichter.Codec.Charts
 			}
 		}
 
-		// get a list of samples used in the chart.
+		// get a list of samples used in the chart. It can be used as a sample map.
 		public int[] UsedSamples()
 		{
 			List<int> result = new List<int>();

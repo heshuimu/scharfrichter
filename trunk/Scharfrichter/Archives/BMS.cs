@@ -49,10 +49,18 @@ namespace Scharfrichter.Codec.Archives
 			int listCount = sampleList.Length;
 			Chart chart = charts[0];
 
+			if (listCount > 1293)
+			{
+				Console.WriteLine("WARNING: More than 1293 samples. The extras will use a blank sample.");
+			}
+
 			for (int i = 0; i < listCount; i++)
 			{
-				string sampleName = Util.ConvertToBMEString(sampleList[i], 2);
-				chart.Tags["WAV" + sampleName] = sampleName + ".wav";
+				if (i < 1294)
+				{
+					int index = sampleList[i];
+					chart.Tags["WAV" + Util.ConvertToBMEString(index, 2)] = Util.ConvertToBMEString(index, 4) + ".wav";
+				}
 			}
 		}
 
@@ -432,13 +440,24 @@ namespace Scharfrichter.Codec.Archives
 							long multiplier = common / entry.MetricOffset.Denominator;
 							long offset = (entry.MetricOffset.Numerator * multiplier) / commonDivisor;
 							int count = values.Length;
+							int entryMapIndex = (int)(double)entry.Value;
+
+							if (entryMapIndex < 1 || entryMapIndex > 1293)
+								entryMapIndex = 1294;
 
 							if (offset >= 0 && offset < count)
 							{
-								if (entry.Freeze)
-									values[offset] = 1295;
+								if (values[offset] != 0)
+								{
+									repeat = true;
+								}
 								else
-									values[offset] = (int)(double)entry.Value;
+								{
+									if (entry.Freeze)
+										values[offset] = 1295;
+									else
+										values[offset] = entryMapIndex;
+								}
 							}
 
 							entry.Used = true;
