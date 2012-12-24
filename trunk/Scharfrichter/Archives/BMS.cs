@@ -78,7 +78,7 @@ namespace Scharfrichter.Codec.Archives
 				int index = sampleMap[i];
 				if (index != 0)
 				{
-					chart.Tags["WAV" + Util.ConvertToBMEString(index, 2)] = Util.ConvertToBMEString(index, 4) + ".wav";
+					chart.Tags["WAV" + Util.ConvertToBMEString(i, 2)] = Util.ConvertToBMEString(index, 4) + ".wav";
 				}
 			}
 		}
