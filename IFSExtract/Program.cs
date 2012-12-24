@@ -13,6 +13,13 @@ namespace IFSExtract
 	{
 		static void Main(string[] args)
 		{
+			if (System.Diagnostics.Debugger.IsAttached && args.Length == 0)
+			{
+				Console.WriteLine();
+				Console.WriteLine("Debugger attached. Input file name:");
+				args = new string[] { Console.ReadLine() };
+			}
+
 			if (args != null && args.Length > 0)
 			{
 				for (int i = 0; i < args.Length; i++)
