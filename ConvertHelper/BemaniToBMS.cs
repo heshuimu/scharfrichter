@@ -126,7 +126,7 @@ namespace ConvertHelper
 								for (int j = 0; j < count; j++)
 								{
 									int sampleIndex = j + 1;
-									using (FileStream outfile = new FileStream(Path.Combine(targetPath, alphabet.Substring(sampleIndex / alphabetLength, 1) + alphabet.Substring(sampleIndex % alphabetLength, 1) + @".wav"), FileMode.Create, FileAccess.ReadWrite, FileShare.ReadWrite))
+									using (FileStream outfile = new FileStream(Path.Combine(targetPath, Scharfrichter.Codec.Util.ConvertToBMEString(sampleIndex, 4) + @".wav"), FileMode.Create, FileAccess.ReadWrite, FileShare.ReadWrite))
 									{
 										soundList[j].Write(outfile);
 									}
