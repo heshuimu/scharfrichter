@@ -117,6 +117,21 @@ namespace Scharfrichter.Codec
 		public static string alphabetDec = "0123456789";
 		public static string alphabetHex = "0123456789ABCDEF";
 
+		public static void ByteSwap(byte[] target, int width)
+		{
+			int count = target.Length;
+			byte[] prev = new byte[width];
+			for (int i = 0; i < count;)
+			{
+				Array.Copy(target, i, prev, 0, width);
+				for (int j = width - 1; j >= 0; j--)
+				{
+					target[i] = prev[j];
+					i++;
+				}
+			}
+		}
+
 		public static Fraction CalculateMeasureRate(Fraction bpm)
 		{
 			Fraction result = new Fraction();
