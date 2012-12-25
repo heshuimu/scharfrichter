@@ -79,13 +79,19 @@ namespace Scharfrichter.Codec.Archives
 				tableReader.ReadInt32();
 				Int32 tableCount = (tableBLength - (4 + metaDataLength + 8)) / 0xC;
 				Console.WriteLine("Table B entries: " + tableCount.ToString());
+				Entry lastEntry = new Entry();
 				for (int i = 0; i < tableCount; i++)
 				{
 					Entry entry = new Entry();
 					entry.Offset = SwapEndian(tableReader.ReadInt32());
 					entry.Length = SwapEndian(tableReader.ReadInt32());
 					entry.Meta = SwapEndian(tableReader.ReadInt32());
+					if (entry.Offset < lastEntry.Offset || entry.Offset < 0 || entry.Length < 0 || (entry.Offset + entry.Length) > totalDataLength)
+					{
+						break;
+					}
 					entries.Add(entry);
+					lastEntry = entry;
 				}
 			}
 
