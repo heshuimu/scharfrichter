@@ -26,46 +26,49 @@ namespace IFSExtract
 				{
 					string filename = args[i];
 
-					using (FileStream fs = new FileStream(filename, FileMode.Open, FileAccess.ReadWrite, FileShare.ReadWrite))
+					if (File.Exists(filename))
 					{
-						string outputPath = Path.GetDirectoryName(filename);
-						string outputFileBase = Path.Combine(outputPath, Path.GetFileNameWithoutExtension(Path.GetFileName(filename)));
-
-						BemaniIFS archive = BemaniIFS.Read(fs);
-						int count = archive.RawDataCount;
-
-						bool standardLayout = false;
-
-						if (count > 1)
+						using (FileStream fs = new FileStream(filename, FileMode.Open, FileAccess.ReadWrite, FileShare.ReadWrite))
 						{
-							byte[] data = archive.RawData[count - 1];
-							if (data.Length > 0x60)
+							string outputPath = Path.GetDirectoryName(filename);
+							string outputFileBase = Path.Combine(outputPath, Path.GetFileNameWithoutExtension(Path.GetFileName(filename)));
+
+							BemaniIFS archive = BemaniIFS.Read(fs);
+							int count = archive.RawDataCount;
+
+							bool standardLayout = false;
+
+							if (count > 1)
 							{
-								if (data[0] == 0x60 && data[1] == 0x00 && data[2] == 0x00 && data[3] == 0x00)
+								byte[] data = archive.RawData[count - 1];
+								if (data.Length > 0x60)
 								{
-									standardLayout = true;
+									if (data[0] == 0x60 && data[1] == 0x00 && data[2] == 0x00 && data[3] == 0x00)
+									{
+										standardLayout = true;
+									}
 								}
 							}
-						}
 
-						for (int j = 0; j < count; j++)
-						{
-							string outputNumber = Util.ConvertToDecimalString(j, 3);
-							string outputFile = outputFileBase;
-							if (!standardLayout)
+							for (int j = 0; j < count; j++)
 							{
-								 outputFile += "." + outputNumber;
-							}
-							else
-							{
-								if (j == count - 1)
-									outputFile += ".1";
+								string outputNumber = Util.ConvertToDecimalString(j, 3);
+								string outputFile = outputFileBase;
+								if (!standardLayout)
+								{
+									outputFile += "." + outputNumber;
+								}
 								else
-									outputFile += "-" + outputNumber + ".2dx";
-							}
-							byte[] data = archive.RawData[j];
+								{
+									if (j == count - 1)
+										outputFile += ".1";
+									else
+										outputFile += "-" + outputNumber + ".2dx";
+								}
+								byte[] data = archive.RawData[j];
 
-							File.WriteAllBytes(outputFile, archive.RawData[j]);
+								File.WriteAllBytes(outputFile, archive.RawData[j]);
+							}
 						}
 					}
 				}
