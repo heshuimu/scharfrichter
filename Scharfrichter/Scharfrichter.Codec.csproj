@@ -56,6 +56,7 @@
     <Compile Include="Compression\BemaniLZ.cs" />
     <Compile Include="Compression\BemaniLZSS.cs" />
     <Compile Include="Encryption\BemaniPCAudio.cs" />
+    <Compile Include="Fraction.cs" />
     <Compile Include="Graphics\%40Graphic.cs" />
     <Compile Include="Media\CHD.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
