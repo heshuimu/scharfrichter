@@ -13,6 +13,15 @@ namespace Scharfrichter.Codec
 		{
 		}
 
+		public byte[] ReadBytesS(int count)
+		{
+			byte[] input = ReadBytes(count);
+			byte[] result = new byte[count];
+			for (int i = 0, j = count - 1; i < count; i++)
+				result[i] = input[j--];
+			return result;
+		}
+
 		public Int16 ReadInt16S()
 		{
 			byte[] input = ReadBytes(2);
@@ -63,11 +72,7 @@ namespace Scharfrichter.Codec
 
 		public byte[] ReadMD5S()
 		{
-			byte[] input = ReadBytes(16);
-			byte[] result = new byte[16];
-			for (int i = 0, j = 15; i < 16; i++)
-				result[i] = input[j--];
-			return result;
+			return ReadBytesS(16);
 		}
 
 		public byte[] ReadSHA1()
@@ -77,11 +82,7 @@ namespace Scharfrichter.Codec
 
 		public byte[] ReadSHA1S()
 		{
-			byte[] input = ReadBytes(20);
-			byte[] result = new byte[20];
-			for (int i = 0, j = 19; i < 20; i++)
-				result[i] = input[j--];
-			return result;
+			return ReadBytesS(20);
 		}
 
 		public UInt16 ReadUInt16S()
