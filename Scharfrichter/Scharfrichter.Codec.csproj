@@ -59,6 +59,7 @@
     <Compile Include="Fraction.cs" />
     <Compile Include="Graphics\%40Graphic.cs" />
     <Compile Include="Media\CHD.cs" />
+    <Compile Include="Media\CHD.Stream.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Sounds\%40Sound.cs" />
     <Compile Include="Sounds\Bemani2DXSound.cs" />
