@@ -6,7 +6,7 @@ using System.Text;
 
 namespace Scharfrichter.Codec.Charts
 {
-	public static class BeatmaniaIIDXCSOld
+	public static class BeatmaniaIIDXCSNew
 	{
 		static public Chart Read(Stream source)
 		{
