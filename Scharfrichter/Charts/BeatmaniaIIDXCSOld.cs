@@ -6,15 +6,12 @@ using System.Text;
 
 namespace Scharfrichter.Codec.Charts
 {
-	static public class BeatmaniaIIDXCSNew
+	static public class BeatmaniaIIDXCSOld
 	{
 		static public Chart Read(Stream source)
 		{
 			BinaryReader reader = new BinaryReader(source);
 			Chart chart = new Chart();
-
-			if (reader.ReadInt32() != 0x00000008)
-				throw new Exception("Can't load this file: invalid signature.");
 
 			long granularity = reader.ReadInt32();
 
