@@ -11,7 +11,7 @@ namespace ConvertHelper
 {
 	static public class ConvertFunctions
 	{
-		static string[] chartTitles = new string[]
+		static string[] chartTitlesIIDX1 = new string[]
 		{
 			"[1P Hyper]",
 			"[1P Light]",
@@ -27,7 +27,7 @@ namespace ConvertHelper
 			"[2P 5]"
 		};
 
-		static int[] difficultyTags = new int[]
+		static int[] difficultyTagsIIDX1 = new int[]
 		{
 			3,
 			2,
@@ -68,44 +68,7 @@ namespace ConvertHelper
 					{
 						case @".1":
 							using (MemoryStream source = new MemoryStream(data))
-							{
-								Bemani1 archive = Bemani1.Read(source, unitNumerator, unitDenominator);
-								for (int j = 0; j < archive.ChartCount; j++)
-								{
-									if (archive.Charts[j] != null)
-									{
-										Console.WriteLine("Converting Chart " + j.ToString());
-										if (quantizeMeasure > 0)
-											archive.Charts[j].QuantizeMeasureLengths(quantizeMeasure);
-
-										using (MemoryStream mem = new MemoryStream())
-										{
-											BMS bms = new BMS();
-											bms.Charts = new Chart[] { archive.Charts[j] };
-
-											string name = Path.GetFileNameWithoutExtension(Path.GetFileName(args[i])) + " " + chartTitles[j]; //ex: "1204 [1P Another]"
-											string output = Path.Combine(Path.GetDirectoryName(args[i]), @"@" + name + ".bms");
-
-											// write some tags
-											bms.Charts[0].Tags["TITLE"] = Path.GetFileNameWithoutExtension(Path.GetFileName(args[i]));
-
-											if (difficultyTags[j] > 0)
-												bms.Charts[0].Tags["DIFFICULTY"] = difficultyTags[j].ToString();
-
-											if (bms.Charts[0].Players > 1)
-												bms.Charts[0].Tags["PLAYER"] = "3";
-											else
-												bms.Charts[0].Tags["PLAYER"] = "1";
-
-											bms.GenerateSampleMap();
-											bms.GenerateSampleTags();
-											bms.Write(mem);
-
-											File.WriteAllBytes(output, mem.ToArray());
-										}
-									}
-								}
-							}
+								BemaniToBMSConvertArchive(Bemani1.Read(source, unitNumerator, unitDenominator), quantizeMeasure, args[i], chartTitlesIIDX1, difficultyTagsIIDX1);
 							break;
 						case @".2DX":
 							using (MemoryStream source = new MemoryStream(data))
@@ -134,10 +97,70 @@ namespace ConvertHelper
 								}
 							}
 							break;
+						case @".CS":
+							using (MemoryStream source = new MemoryStream(data))
+								BemaniToBMSConvertChart(BeatmaniaIIDXCSOld.Read(source), quantizeMeasure, args[i], "", 0);
+							break;
+						case @".CS2":
+							break;
+						case @".CS5":
+							break;
+						case @".CS9":
+							break;
 					}
 				}
 			}
 			Console.WriteLine("BemaniToBMS finished.");
 		}
+
+		static private void BemaniToBMSConvertArchive(Archive archive, int quantizeMeasure, string filename, string[] chartTitles, int[] difficultyTags)
+		{
+			for (int j = 0; j < archive.ChartCount; j++)
+			{
+				if (archive.Charts[j] != null)
+				{
+					Console.WriteLine("Converting Chart " + j.ToString());
+					BemaniToBMSConvertChart(archive.Charts[j], quantizeMeasure, filename, chartTitles[j], difficultyTags[j]);
+				}
+			}
+		}
+
+		static private void BemaniToBMSConvertChart(Chart chart, int quantizeMeasure, string filename, string title, int difficulty)
+		{
+			if (quantizeMeasure > 0)
+				chart.QuantizeMeasureLengths(quantizeMeasure);
+
+			using (MemoryStream mem = new MemoryStream())
+			{
+				BMS bms = new BMS();
+				bms.Charts = new Chart[] { chart };
+
+				string name = Path.GetFileNameWithoutExtension(Path.GetFileName(filename)); //ex: "1204 [1P Another]"
+				if (title != null && title.Length > 0)
+				{
+					name += " " + title;
+				}
+
+				string output = Path.Combine(Path.GetDirectoryName(filename), @"@" + name + ".bms");
+
+				// write some tags
+				bms.Charts[0].Tags["TITLE"] = Path.GetFileNameWithoutExtension(Path.GetFileName(filename));
+
+				if (difficulty > 0)
+					bms.Charts[0].Tags["DIFFICULTY"] = difficulty.ToString();
+
+				if (bms.Charts[0].Players > 1)
+					bms.Charts[0].Tags["PLAYER"] = "3";
+				else
+					bms.Charts[0].Tags["PLAYER"] = "1";
+
+				bms.GenerateSampleMap();
+				bms.GenerateSampleTags();
+				bms.Write(mem);
+
+				File.WriteAllBytes(output, mem.ToArray());
+			}
+		}
+
 	}
 }
