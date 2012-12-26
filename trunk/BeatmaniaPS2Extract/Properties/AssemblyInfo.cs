@@ -5,11 +5,11 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("DJMainExtract")]
+[assembly: AssemblyTitle("BeatmaniaPS2Extract")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("DJMainExtract")]
+[assembly: AssemblyProduct("BeatmaniaPS2Extract")]
 [assembly: AssemblyCopyright("Pegasystem")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
@@ -20,7 +20,7 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("c5d6b2c4-df2a-4d6b-b285-daf12029f9a2")]
+[assembly: Guid("d0123613-6d69-4576-b656-1ceb0852adbc")]
 
 // Version information for an assembly consists of the following four values:
 //
