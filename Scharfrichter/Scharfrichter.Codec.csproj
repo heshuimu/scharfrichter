@@ -51,7 +51,7 @@
     <Compile Include="Archives\BMS.cs" />
     <Compile Include="BinaryIO.cs" />
     <Compile Include="Charts\%40Chart.cs" />
-    <Compile Include="Charts\BeatmaniaIIDXCSOld.cs" />
+    <Compile Include="Charts\BeatmaniaIIDXCSNew.cs" />
     <Compile Include="Charts\BeatmaniaIIDXPC.cs" />
     <Compile Include="Compression\BemaniLZ.cs" />
     <Compile Include="Compression\BemaniLZSS.cs" />
