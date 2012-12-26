@@ -8,7 +8,7 @@ namespace Scharfrichter.Codec.Charts
 {
 	public static class BeatmaniaIIDXCSOld
 	{
-		static public Chart Load(Stream source)
+		static public Chart Read(Stream source)
 		{
 			BinaryReader reader = new BinaryReader(source);
 			Chart chart = new Chart();
