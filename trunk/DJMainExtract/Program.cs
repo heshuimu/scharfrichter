@@ -46,8 +46,7 @@ namespace DJMainExtract
 						BinaryReader reader = new BinaryReader(chd);
 						chd.Position = 0x4000000;
 						byte[] data = reader.ReadBytes(0x1000000);
-						Util.ByteSwap(data, 2);						
-						File.WriteAllBytes(Path.Combine(targetPath, "temp"), data);
+						File.WriteAllBytes(Path.Combine(targetPath, "temp"), Util.ByteSwap(data, 2));
 					}
 				}
 			}
