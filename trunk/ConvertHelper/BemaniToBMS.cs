@@ -92,7 +92,7 @@ namespace ConvertHelper
 									int sampleIndex = j + 1;
 									using (FileStream outfile = new FileStream(Path.Combine(targetPath, Scharfrichter.Codec.Util.ConvertToBMEString(sampleIndex, 4) + @".wav"), FileMode.Create, FileAccess.ReadWrite, FileShare.ReadWrite))
 									{
-										soundList[j].Write(outfile);
+										soundList[j].Write(outfile, 1.0f);
 									}
 								}
 							}

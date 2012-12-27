@@ -17,18 +17,20 @@ namespace Scharfrichter.Codec.Sounds
 		public float Panning = 0.5f;
 		public float Volume = 0.5f;
 
-		public void Write(Stream target)
+		public void Write(Stream target, float masterVolume)
 		{
 			if (Data != null && Data.Length > 0)
 			{
 				using (MemoryStream mem = new MemoryStream())
 				{
-					MemoryStream source = new MemoryStream(Data);
-					RawSourceWaveStream wave = new RawSourceWaveStream(source, Format);
+					MemoryStream sourceLeft = new MemoryStream(Data);
+					MemoryStream sourceRight = new MemoryStream(Data);
+					RawSourceWaveStream waveLeft = new RawSourceWaveStream(sourceLeft, Format);
+					RawSourceWaveStream waveRight = new RawSourceWaveStream(sourceRight, Format);
 
 					// step 1: separate the stereo stream
-					MultiplexingWaveProvider demuxLeft = new MultiplexingWaveProvider(new IWaveProvider[] { wave }, 1);
-					MultiplexingWaveProvider demuxRight = new MultiplexingWaveProvider(new IWaveProvider[] { wave }, 1);
+					MultiplexingWaveProvider demuxLeft = new MultiplexingWaveProvider(new IWaveProvider[] { waveLeft }, 1);
+					MultiplexingWaveProvider demuxRight = new MultiplexingWaveProvider(new IWaveProvider[] { waveRight }, 1);
 					demuxLeft.ConnectInputToOutput(0, 0);
 					demuxRight.ConnectInputToOutput(1, 0);
 
@@ -56,11 +58,13 @@ namespace Scharfrichter.Codec.Sounds
 					volumeValueLeft = Math.Min(Math.Max(volumeValueLeft, 0.0f), 1.0f);
 					volumeValueRight = Math.Min(Math.Max(volumeValueRight, 0.0f), 1.0f);
 #endif
-					volLeft.Volume = volumeValueLeft;
-					volRight.Volume = volumeValueRight;
+					// use linear scale for master volume
+					volLeft.Volume = volumeValueLeft * masterVolume;
+					volRight.Volume = volumeValueRight * masterVolume;
 
 					// step 3: combine them again
-					MultiplexingWaveProvider mux = new MultiplexingWaveProvider(new IWaveProvider[] { volLeft, volRight }, 2);
+					IWaveProvider[] tracks = new IWaveProvider[] { volLeft, volRight };
+					MultiplexingWaveProvider mux = new MultiplexingWaveProvider(tracks, 2);
 
 					// step 4: export them to a byte array
 					byte[] finalData = new byte[Data.Length];
