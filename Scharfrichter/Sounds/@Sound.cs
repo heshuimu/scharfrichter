@@ -14,6 +14,8 @@ namespace Scharfrichter.Codec.Sounds
 	{
 		public byte[] Data;
 		public WaveFormat Format;
+		public float Panning = 0.5f;
+		public float Volume = 0.5f;
 
 		public void Write(Stream target)
 		{
@@ -23,13 +25,49 @@ namespace Scharfrichter.Codec.Sounds
 				{
 					MemoryStream source = new MemoryStream(Data);
 					RawSourceWaveStream wave = new RawSourceWaveStream(source, Format);
-					VolumeWaveProvider16 vol = new VolumeWaveProvider16(wave);
-					vol.Volume = 0.5f;
+
+					// step 1: separate the stereo stream
+					MultiplexingWaveProvider demuxLeft = new MultiplexingWaveProvider(new IWaveProvider[] { wave }, 1);
+					MultiplexingWaveProvider demuxRight = new MultiplexingWaveProvider(new IWaveProvider[] { wave }, 1);
+					demuxLeft.ConnectInputToOutput(0, 0);
+					demuxRight.ConnectInputToOutput(1, 0);
+
+					// step 2: adjust the volume of a stereo stream
+					VolumeWaveProvider16 volLeft = new VolumeWaveProvider16(demuxLeft);
+					VolumeWaveProvider16 volRight = new VolumeWaveProvider16(demuxRight);
+
+					// note: use logarithmic scale
+#if (true)
+					// log scale is applied to each operation
+					float volumeValueLeft = (float)Math.Pow(1.0f - Panning, 0.5f);
+					float volumeValueRight = (float)Math.Pow(Panning, 0.5f);
+					volumeValueLeft *= (float)Math.Pow(Volume, 0.5f);
+					volumeValueRight *= (float)Math.Pow(Volume, 0.5f);
+					volumeValueLeft = Math.Min(Math.Max(volumeValueLeft, 0.0f), 1.0f);
+					volumeValueRight = Math.Min(Math.Max(volumeValueRight, 0.0f), 1.0f);
+#else
+					// log scale is applied to the result of the operations
+					float volumeValueLeft = (float)Math.Pow(1.0f - Panning, 0.5f);
+					float volumeValueRight = (float)Math.Pow(Panning, 0.5f);
+					volumeValueLeft *= Volume;
+					volumeValueRight *= Volume;
+					volumeValueLeft = (float)Math.Pow(volumeValueLeft, 0.5f);
+					volumeValueRight = (float)Math.Pow(volumeValueRight, 0.5f);
+					volumeValueLeft = Math.Min(Math.Max(volumeValueLeft, 0.0f), 1.0f);
+					volumeValueRight = Math.Min(Math.Max(volumeValueRight, 0.0f), 1.0f);
+#endif
+					volLeft.Volume = volumeValueLeft;
+					volRight.Volume = volumeValueRight;
+
+					// step 3: combine them again
+					MultiplexingWaveProvider mux = new MultiplexingWaveProvider(new IWaveProvider[] { volLeft, volRight }, 2);
+
+					// step 4: export them to a byte array
+					byte[] finalData = new byte[Data.Length];
+					mux.Read(finalData, 0, finalData.Length);
 
 					using (WaveWriter writer = new WaveWriter(mem, Format))
 					{
-						byte[] finalData = new byte[Data.Length];
-						vol.Read(finalData, 0, finalData.Length);
 						writer.Write(finalData, 0, finalData.Length);
 						writer.Update();
 						target.Write(mem.ToArray(), 0, (int)mem.Length);

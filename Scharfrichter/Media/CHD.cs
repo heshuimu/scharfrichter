@@ -207,13 +207,14 @@ namespace Scharfrichter.Codec.Media
 			MapInfo entry = map[index];
 			byte[] result;
 
-			baseStream.Position = (long)entry.offset;
 			switch (entry.flags & 0xF)
 			{
 				case 0x1:
+					baseStream.Position = (long)entry.offset;
 					result = DecompressZlib((UInt32)entry.length, header.hunkBytes);
 					break;
 				case 0x2:
+					baseStream.Position = (long)entry.offset;
 					result = new byte[header.hunkBytes];
 					baseStream.Read(result, 0, (int)header.hunkBytes);
 					break;
