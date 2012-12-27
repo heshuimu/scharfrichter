@@ -44,9 +44,16 @@ namespace DJMainExtract
 					{
 						CHD chd = CHD.Load(fs);
 						BinaryReader reader = new BinaryReader(chd);
-						chd.Position = 0x4000000;
-						byte[] data = reader.ReadBytes(0x1000000);
-						File.WriteAllBytes(Path.Combine(targetPath, "temp"), Util.ByteSwap(data, 2));
+
+						long totalChunks = (int)(chd.Length / 0x1000000L);
+
+						for (int j = 0; j < totalChunks; j++)
+						{
+							chd.Position = (long)j * 0x1000000;
+							byte[] data = reader.ReadBytes(0x1000000);
+							File.WriteAllBytes(Path.Combine(targetPath, Util.ConvertToHexString(j, 4) + ".bin"), Util.ByteSwap(data, 2));
+						}
+
 					}
 				}
 			}
