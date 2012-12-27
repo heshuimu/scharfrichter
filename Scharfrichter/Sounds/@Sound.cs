@@ -15,7 +15,27 @@ namespace Scharfrichter.Codec.Sounds
 		public byte[] Data;
 		public WaveFormat Format;
 		public float Panning = 0.5f;
-		public float Volume = 0.5f;
+		public float Volume = 1.0f;
+
+		static public Sound Read(Stream source)
+		{
+			Sound result = new Sound();
+			WaveFileReader reader = new WaveFileReader(source);
+			if (reader.Length > 0)
+			{
+				result.Data = new byte[reader.Length];
+				reader.Read(result.Data, 0, result.Data.Length);
+				result.Format = reader.WaveFormat;
+			}
+			else
+			{
+				result.Data = new byte[] { };
+				result.Format = WaveFormat.CreateCustomFormat(WaveFormatEncoding.Pcm, 44100, 2, 44100 * 4, 4, 16);
+			}
+			result.Panning = 0.5f;
+			result.Volume = 1.0f;
+			return result;
+		}
 
 		public void Write(Stream target, float masterVolume)
 		{
@@ -23,6 +43,13 @@ namespace Scharfrichter.Codec.Sounds
 			{
 				using (MemoryStream mem = new MemoryStream())
 				{
+					// due to the way NAudio works, the source files must be provided twice.
+					// this is because all channels are kept in sync by the mux, and the unused
+					// channel data is discarded. If we tried to use the same source for both
+					// muxes, it would try to read 2x the data present in the buffer!
+					// If only we had a way to create separate WaveProviders from within the
+					// MultiplexingWaveProvider..
+
 					MemoryStream sourceLeft = new MemoryStream(Data);
 					MemoryStream sourceRight = new MemoryStream(Data);
 					RawSourceWaveStream waveLeft = new RawSourceWaveStream(sourceLeft, Format);
@@ -43,18 +70,29 @@ namespace Scharfrichter.Codec.Sounds
 					// log scale is applied to each operation
 					float volumeValueLeft = (float)Math.Pow(1.0f - Panning, 0.5f);
 					float volumeValueRight = (float)Math.Pow(Panning, 0.5f);
+					// ensure 1:1 conversion
+					volumeValueLeft /= (float)Math.Sqrt(0.5);
+					volumeValueRight /= (float)Math.Sqrt(0.5);
+					// apply volume
 					volumeValueLeft *= (float)Math.Pow(Volume, 0.5f);
 					volumeValueRight *= (float)Math.Pow(Volume, 0.5f);
+					// clamp
 					volumeValueLeft = Math.Min(Math.Max(volumeValueLeft, 0.0f), 1.0f);
 					volumeValueRight = Math.Min(Math.Max(volumeValueRight, 0.0f), 1.0f);
 #else
 					// log scale is applied to the result of the operations
 					float volumeValueLeft = (float)Math.Pow(1.0f - Panning, 0.5f);
 					float volumeValueRight = (float)Math.Pow(Panning, 0.5f);
+					// ensure 1:1 conversion
+					volumeValueLeft /= (float)Math.Sqrt(0.5);
+					volumeValueRight /= (float)Math.Sqrt(0.5);
+					// apply volume
 					volumeValueLeft *= Volume;
 					volumeValueRight *= Volume;
+					// apply log scale
 					volumeValueLeft = (float)Math.Pow(volumeValueLeft, 0.5f);
 					volumeValueRight = (float)Math.Pow(volumeValueRight, 0.5f);
+					// clamp
 					volumeValueLeft = Math.Min(Math.Max(volumeValueLeft, 0.0f), 1.0f);
 					volumeValueRight = Math.Min(Math.Max(volumeValueRight, 0.0f), 1.0f);
 #endif
