@@ -52,16 +52,7 @@ namespace Scharfrichter.Codec.Archives
 		public void GenerateSampleMap()
 		{
 			int[] usedSamples = charts[0].UsedSamples();
-			int usedSampleCount = usedSamples.Length;
-
-			if (usedSampleCount > 1293)
-				usedSampleCount = 1293;
-
-			Array.Copy(usedSamples, 0, sampleMap, 1, usedSampleCount);
-			for (int i = usedSampleCount + 1; i < 1294; i++)
-			{
-				sampleMap[i] = 0;
-			}
+			SampleMap = usedSamples;
 		}
 
 		public void GenerateSampleTags()
@@ -324,6 +315,27 @@ namespace Scharfrichter.Codec.Archives
 			for (int i = 0; i < 1295; i++)
 			{
 				sampleMap[i] = i;
+			}
+		}
+
+		public int[] SampleMap
+		{
+			get
+			{
+				return sampleMap;
+			}
+			set
+			{
+				int usedSampleCount = value.Length;
+
+				if (usedSampleCount > 1293)
+					usedSampleCount = 1293;
+
+				Array.Copy(value, 0, sampleMap, 1, usedSampleCount);
+				for (int i = usedSampleCount + 1; i < 1294; i++)
+				{
+					sampleMap[i] = 0;
+				}
 			}
 		}
 

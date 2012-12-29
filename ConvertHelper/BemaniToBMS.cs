@@ -74,36 +74,21 @@ namespace ConvertHelper
 							using (MemoryStream source = new MemoryStream(data))
 							{
 								Console.WriteLine("Converting Samples");
-								string alphabet = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-								int alphabetLength = alphabet.Length;
-
-								string name = Path.GetFileNameWithoutExtension(Path.GetFileName(args[i]));
-								string targetPath = Path.Combine(Path.GetDirectoryName(args[i]), name);
-
-								if (!Directory.Exists(targetPath))
-									Directory.CreateDirectory(targetPath);
-
 								Bemani2DX archive = Bemani2DX.Read(source);
-								Sound[] soundList = archive.Sounds;
-								int count = soundList.Length;
-
-								for (int j = 0; j < count; j++)
-								{
-									int sampleIndex = j + 1;
-									using (FileStream outfile = new FileStream(Path.Combine(targetPath, Scharfrichter.Codec.Util.ConvertToBMEString(sampleIndex, 4) + @".wav"), FileMode.Create, FileAccess.ReadWrite, FileShare.ReadWrite))
-									{
-										soundList[j].Write(outfile, 1.0f);
-									}
-								}
+								BemaniToBMSConvertSounds(archive.Sounds, args[i]);
 							}
 							break;
 						case @".CS":
 							using (MemoryStream source = new MemoryStream(data))
-								BemaniToBMSConvertChart(BeatmaniaIIDXCSOld.Read(source), quantizeMeasure, args[i], "", 0);
+								BemaniToBMSConvertChart(BeatmaniaIIDXCSNew.Read(source), quantizeMeasure, args[i], "", 0, null);
 							break;
 						case @".CS2":
+							using (MemoryStream source = new MemoryStream(data))
+								BemaniToBMSConvertChart(BeatmaniaIIDXCSOld.Read(source), quantizeMeasure, args[i], "", 0, null);
 							break;
 						case @".CS5":
+							using (MemoryStream source = new MemoryStream(data))
+								BemaniToBMSConvertChart(Beatmania5Key.Read(source), quantizeMeasure, args[i], "", 0, null);
 							break;
 						case @".CS9":
 							break;
@@ -113,19 +98,19 @@ namespace ConvertHelper
 			Console.WriteLine("BemaniToBMS finished.");
 		}
 
-		static private void BemaniToBMSConvertArchive(Archive archive, int quantizeMeasure, string filename, string[] chartTitles, int[] difficultyTags)
+		static public void BemaniToBMSConvertArchive(Archive archive, int quantizeMeasure, string filename, string[] chartTitles, int[] difficultyTags)
 		{
 			for (int j = 0; j < archive.ChartCount; j++)
 			{
 				if (archive.Charts[j] != null)
 				{
 					Console.WriteLine("Converting Chart " + j.ToString());
-					BemaniToBMSConvertChart(archive.Charts[j], quantizeMeasure, filename, chartTitles[j], difficultyTags[j]);
+					BemaniToBMSConvertChart(archive.Charts[j], quantizeMeasure, filename, chartTitles[j], difficultyTags[j], null);
 				}
 			}
 		}
 
-		static private void BemaniToBMSConvertChart(Chart chart, int quantizeMeasure, string filename, string title, int difficulty)
+		static public void BemaniToBMSConvertChart(Chart chart, int quantizeMeasure, string filename, string title, int difficulty, int[] map)
 		{
 			if (quantizeMeasure > 0)
 				chart.QuantizeMeasureLengths(quantizeMeasure);
@@ -154,7 +139,10 @@ namespace ConvertHelper
 				else
 					bms.Charts[0].Tags["PLAYER"] = "1";
 
-				bms.GenerateSampleMap();
+				if (map == null)
+					bms.GenerateSampleMap();
+				else
+					bms.SampleMap = map;
 				bms.GenerateSampleTags();
 				bms.Write(mem);
 
@@ -162,5 +150,24 @@ namespace ConvertHelper
 			}
 		}
 
+		static public void BemaniToBMSConvertSounds(Sound[] sounds, string filename)
+		{
+			string name = Path.GetFileNameWithoutExtension(Path.GetFileName(filename));
+			string targetPath = Path.Combine(Path.GetDirectoryName(filename), name);
+
+			if (!Directory.Exists(targetPath))
+				Directory.CreateDirectory(targetPath);
+
+			int count = sounds.Length;
+
+			for (int j = 0; j < count; j++)
+			{
+				int sampleIndex = j + 1;
+				using (FileStream outfile = new FileStream(Path.Combine(targetPath, Scharfrichter.Codec.Util.ConvertToBMEString(sampleIndex, 4) + @".wav"), FileMode.Create, FileAccess.ReadWrite, FileShare.ReadWrite))
+				{
+					sounds[j].Write(outfile, 1.0f);
+				}
+			}
+		}
 	}
 }
