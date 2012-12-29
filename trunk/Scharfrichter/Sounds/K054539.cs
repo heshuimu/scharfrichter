@@ -12,12 +12,12 @@ namespace Scharfrichter.Codec.Sounds
 	static public class K054539
 	{
 		// tail markers used for determining the end of a sample
-		private const byte[] tailMarker4Bit = { 0x88, 0x88, 0x88, 0x88 };
-		private const byte[] tailMarker8Bit = { 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80 };
-		private const byte[] tailMarker16Bit = { 0x00, 0x80, 0x00, 0x80, 0x00, 0x80, 0x00, 0x80, 0x00, 0x80, 0x00, 0x80, 0x00, 0x80, 0x00, 0x80 };
+		static private byte[] tailMarker4Bit = { 0x88, 0x88, 0x88, 0x88 };
+		static private byte[] tailMarker8Bit = { 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80 };
+		static private byte[] tailMarker16Bit = { 0x00, 0x80, 0x00, 0x80, 0x00, 0x80, 0x00, 0x80, 0x00, 0x80, 0x00, 0x80, 0x00, 0x80, 0x00, 0x80 };
 
 		// amplitude table for 4-bit DPCM
-		private const byte[] ampTable4Bit = { 0x00, 0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x00, 0xC0, 0xE0, 0xF0, 0xF8, 0xFC, 0xFE, 0xFF };
+		static private byte[] ampTable4Bit = { 0x00, 0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x00, 0xC0, 0xE0, 0xF0, 0xF8, 0xFC, 0xFE, 0xFF };
 
 		// sample volume table
 		static private float[] volTab;
@@ -46,6 +46,33 @@ namespace Scharfrichter.Codec.Sounds
 			public byte ReverbVolume;
 			public byte SampleType;
 			public byte Volume;
+			/*
+			public static bool operator ==(Properties a, Properties b)
+			{
+				return (a.Channel == b.Channel &&
+					a.Flags == b.Flags &&
+					a.Frequency == b.Frequency &&
+					a.Offset == b.Offset &&
+					a.Panning == b.Panning &&
+					a.ReverbVolume == b.ReverbVolume &&
+					a.SampleType == b.SampleType &&
+					a.Volume == b.Volume
+					);
+			}
+
+			public static bool operator !=(Properties a, Properties b)
+			{
+				return (a.Channel != b.Channel ||
+					a.Flags != b.Flags ||
+					a.Frequency != b.Frequency ||
+					a.Offset != b.Offset ||
+					a.Panning != b.Panning ||
+					a.ReverbVolume != b.ReverbVolume ||
+					a.SampleType != b.SampleType ||
+					a.Volume != b.Volume
+					);
+			}
+			*/
 
 			static public Properties Read(Stream source)
 			{
@@ -130,8 +157,10 @@ namespace Scharfrichter.Codec.Sounds
 				int length = source.Length - 1; // - 1 ensures we use an even number
 				for (int i = 0; i < length;)
 				{
-					byte low = source[i++];
-					byte high = source[i++];
+					byte low = source[i];
+					i++;
+					byte high = source[i];
+					i++;
 					mem.WriteByte(low);
 					mem.WriteByte(high);
 					mem.WriteByte(low);
@@ -188,10 +217,11 @@ namespace Scharfrichter.Codec.Sounds
 			byte[] data = ReadRaw(source, prop);
 
 			// get the true sample rate
-			int sampleRate = ((int)prop.Frequency * 44100) / 60126;
+			int sampleRate = prop.Frequency;
+			sampleRate = (int)((sampleRate * 44100L) / 60216L);
 
 			// decode the sound and quantize to 16 bits stereo
-			switch (prop.Flags & 0xC)
+			switch (prop.SampleType & 0xC)
 			{
 				case 0x0:
 					data = Decode8(data);
@@ -217,7 +247,7 @@ namespace Scharfrichter.Codec.Sounds
 				panValue = 8;
 			if (panValue > 15) 
 				panValue = 8;
-			result.Panning = (float)(panValue - 1) / 15f;
+			result.Panning = (float)(panValue - 1) / 14f;
 			
 			// return the final result
 			return result;
@@ -229,7 +259,7 @@ namespace Scharfrichter.Codec.Sounds
 			byte[] tailMarker = { };
 			int bytesPerSample = 1;
 
-			switch (prop.Flags & 0xC)
+			switch (prop.SampleType & 0xC)
 			{
 				case 0x0:
 					tailMarker = tailMarker8Bit;
@@ -250,7 +280,7 @@ namespace Scharfrichter.Codec.Sounds
 				int tailMarkerLength = tailMarker.Length;
 				byte[] buffer = new byte[tailMarkerLength];
 				bool finished = false;
-				int bufferPad = tailMarkerLength - 1;
+				int bufferPad = tailMarkerLength;
 
 				while (!finished)
 				{
@@ -267,7 +297,7 @@ namespace Scharfrichter.Codec.Sounds
 
 						int inByte = source.ReadByte();
 						if (inByte < 0 || inByte > 255)
-							break;
+							return new byte[] { };
 
 						buffer[tailMarkerLength - 1] = (byte)inByte;
 					}

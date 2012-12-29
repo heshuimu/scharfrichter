@@ -1,4 +1,5 @@
 ﻿using Scharfrichter.Codec;
+using Scharfrichter.Codec.Archives;
 using Scharfrichter.Codec.Charts;
 using Scharfrichter.Codec.Media;
 using Scharfrichter.Codec.Sounds;
@@ -50,8 +51,15 @@ namespace DJMainExtract
 						for (int j = 0; j < totalChunks; j++)
 						{
 							chd.Position = (long)j * 0x1000000;
-							byte[] data = reader.ReadBytes(0x1000000);
-							File.WriteAllBytes(Path.Combine(targetPath, Util.ConvertToHexString(j, 4) + ".bin"), Util.ByteSwap(data, 2));
+							DJMainChunk chunk = DJMainChunk.Read(chd, new int[] { 0x000400 }, new int[] { 0x000000, 0x000200 }, 0x002000);
+
+							if (chunk.ChartCount > 0)
+							{
+								Console.WriteLine("Exporting set " + j.ToString());
+								string fname = Path.Combine(Path.GetDirectoryName(args[i]), Util.ConvertToDecimalString(j, 3));
+								ConvertHelper.ConvertFunctions.BemaniToBMSConvertChart(chunk.Charts[0], 32, fname, "", 0, chunk.SampleMaps[0]);
+								ConvertHelper.ConvertFunctions.BemaniToBMSConvertSounds(chunk.Sounds, fname);
+							}
 						}
 
 					}
