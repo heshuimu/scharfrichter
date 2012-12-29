@@ -31,6 +31,28 @@ namespace Scharfrichter.Codec
 			return result;
 		}
 
+		public Int32 ReadInt24()
+		{
+			byte[] input = ReadBytes(3);
+			Int32 result = input[2];
+			result <<= 8;
+			result |= (Int32)input[1];
+			result <<= 8;
+			result |= (Int32)input[0];
+			return result;
+		}
+
+		public Int32 ReadInt24S()
+		{
+			byte[] input = ReadBytes(3);
+			Int32 result = input[0];
+			result <<= 8;
+			result |= (Int32)input[1];
+			result <<= 8;
+			result |= (Int32)input[2];
+			return result;
+		}
+
 		public Int32 ReadInt32S()
 		{
 			byte[] input = ReadBytes(4);
@@ -94,6 +116,28 @@ namespace Scharfrichter.Codec
 			return result;
 		}
 
+		public UInt32 ReadUInt24()
+		{
+			byte[] input = ReadBytes(3);
+			UInt32 result = input[2];
+			result <<= 8;
+			result |= (UInt32)input[1];
+			result <<= 8;
+			result |= (UInt32)input[0];
+			return result;
+		}
+
+		public UInt32 ReadUInt24S()
+		{
+			byte[] input = ReadBytes(3);
+			UInt32 result = input[0];
+			result <<= 8;
+			result |= (UInt32)input[1];
+			result <<= 8;
+			result |= (UInt32)input[2];
+			return result;
+		}
+
 		public UInt32 ReadUInt32S()
 		{
 			byte[] input = ReadBytes(4);
@@ -134,6 +178,34 @@ namespace Scharfrichter.Codec
 		public BinaryWriterEx(Stream target)
 			: base(target)
 		{
+		}
+
+		public void Write24(Int32 value)
+		{
+			Write((byte)((value) & 0xFF));
+			Write((byte)((value >> 8) & 0xFF));
+			Write((byte)((value >> 16) & 0xFF));
+		}
+
+		public void Write24(UInt32 value)
+		{
+			Write((byte)((value) & 0xFF));
+			Write((byte)((value >> 8) & 0xFF));
+			Write((byte)((value >> 16) & 0xFF));
+		}
+
+		public void Write24S(Int32 value)
+		{
+			Write((byte)((value >> 16) & 0xFF));
+			Write((byte)((value >> 8) & 0xFF));
+			Write((byte)((value) & 0xFF));
+		}
+
+		public void Write24S(UInt32 value)
+		{
+			Write((byte)((value >> 16) & 0xFF));
+			Write((byte)((value >> 8) & 0xFF));
+			Write((byte)((value) & 0xFF));
 		}
 
 		public void WriteS(Int16 value)
