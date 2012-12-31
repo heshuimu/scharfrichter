@@ -58,6 +58,7 @@
     <Compile Include="Charts\BeatmaniaIIDXPC.cs" />
     <Compile Include="Compression\BemaniLZ.cs" />
     <Compile Include="Compression\BemaniLZSS.cs" />
+    <Compile Include="Compression\Huffman.Decoder.cs" />
     <Compile Include="Encryption\BemaniPCAudio.cs" />
     <Compile Include="Fraction.cs" />
     <Compile Include="Graphics\%40Graphic.cs" />
