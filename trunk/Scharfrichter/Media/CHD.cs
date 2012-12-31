@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Scharfrichter.Codec.Compression;
+
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -40,6 +42,9 @@ namespace Scharfrichter.Codec.Media
 			public UInt64 length;
 			public UInt64 offset;
 		}
+
+		private const int CompressionRLESmall = 7;
+		private const int CompressionRLELarge = 8;
 
 		private HeaderInfo header;
 		private List<MapInfo> map;
@@ -169,7 +174,6 @@ namespace Scharfrichter.Codec.Media
 		private void ReadHeaderV5()
 		{
 			header = new HeaderInfo();
-			header.flags = reader.ReadUInt32S();
 			header.compressors = new UInt32[] { reader.ReadUInt32S(), reader.ReadUInt32S(), reader.ReadUInt32S(), reader.ReadUInt32S() };
 			header.logicalBytes = reader.ReadUInt64S();
 			header.mapOffset = reader.ReadUInt64S();
@@ -181,6 +185,7 @@ namespace Scharfrichter.Codec.Media
 			header.parentsha1 = reader.ReadSHA1S();
 			dataLength = header.logicalBytes;
 			hunkSize = header.hunkBytes;
+			header.totalHunks = (uint)((header.logicalBytes + header.hunkBytes - 1) / header.hunkBytes);
 		}
 
 		private byte[] ReadHunkV1(int index)
@@ -273,7 +278,34 @@ namespace Scharfrichter.Codec.Media
 		private void ReadMapV5()
 		{
 			map = new List<MapInfo>();
-			throw new Exception("V5 map not implemented (yet)");
+			reader.BaseStream.Position = (long)header.mapOffset;
+
+			bool compressed = (header.compressors[0] != 0);
+
+			if (compressed)
+			{
+				// compressed map header
+				UInt32 mapBytes = reader.ReadUInt32S();
+				UInt64 firstOffs = reader.ReadUValueS(6);
+				UInt16 mapCrc = reader.ReadUInt16S();
+				byte lengthBits = reader.ReadByte();
+				byte selfBits = reader.ReadByte();
+				byte parentBits = reader.ReadByte();
+
+				// decompress the map
+				Huffman huffmanDecoder = new Huffman(16, 8, null, null, null);
+				huffmanDecoder.ImportTreeRLE(reader);
+				byte lastComp = 0;
+				int repCount = 0;
+
+				using (MemoryStream mem = new MemoryStream())
+				{
+					for (int hunkNum = 0; hunkNum < header.totalHunks; hunkNum++)
+					{
+
+					}
+				}
+			}
 		}
 	}
 }

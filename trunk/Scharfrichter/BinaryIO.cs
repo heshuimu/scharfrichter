@@ -13,12 +13,36 @@ namespace Scharfrichter.Codec
 		{
 		}
 
+		private int bitsLeft;
+		private int currentValue;
+
+		public UInt64 ReadBits(int count)
+		{
+			UInt64 result = 0;
+
+			while (count > 0)
+			{
+				count--;
+				if (bitsLeft <= 0)
+				{
+					bitsLeft = 8;
+					currentValue = ReadByte();
+				}
+				bitsLeft--;
+				result <<= 1;
+				result |= ((currentValue & 1) != 0) ? 1UL : 0UL;
+			}
+
+			return result;
+		}
+
 		public byte[] ReadBytesS(int count)
 		{
 			byte[] input = ReadBytes(count);
 			byte[] result = new byte[count];
 			for (int i = 0, j = count - 1; i < count; i++)
 				result[i] = input[j--];
+			bitsLeft = 0;
 			return result;
 		}
 
@@ -28,6 +52,7 @@ namespace Scharfrichter.Codec
 			Int16 result = input[0];
 			result <<= 8;
 			result |= (Int16)input[1];
+			bitsLeft = 0;
 			return result;
 		}
 
@@ -39,6 +64,7 @@ namespace Scharfrichter.Codec
 			result |= (Int32)input[1];
 			result <<= 8;
 			result |= (Int32)input[0];
+			bitsLeft = 0;
 			return result;
 		}
 
@@ -50,6 +76,7 @@ namespace Scharfrichter.Codec
 			result |= (Int32)input[1];
 			result <<= 8;
 			result |= (Int32)input[2];
+			bitsLeft = 0;
 			return result;
 		}
 
@@ -63,6 +90,7 @@ namespace Scharfrichter.Codec
 			result |= (Int32)input[2];
 			result <<= 8;
 			result |= (Int32)input[3];
+			bitsLeft = 0;
 			return result;
 		}
 
@@ -84,27 +112,64 @@ namespace Scharfrichter.Codec
 			result |= (Int64)input[6];
 			result <<= 8;
 			result |= (Int64)input[7];
+			bitsLeft = 0;
 			return result;
 		}
 
 		public byte[] ReadMD5()
 		{
+			bitsLeft = 0;
 			return ReadBytes(16);
 		}
 
 		public byte[] ReadMD5S()
 		{
+			bitsLeft = 0;
 			return ReadBytesS(16);
 		}
 
 		public byte[] ReadSHA1()
 		{
+			bitsLeft = 0;
 			return ReadBytes(20);
 		}
 
 		public byte[] ReadSHA1S()
 		{
+			bitsLeft = 0;
 			return ReadBytesS(20);
+		}
+
+		public Int64 ReadValue(int bytes)
+		{
+			byte[] buffer = ReadBytes(bytes);
+			Int64 result = 0;
+
+			while (bytes > 0)
+			{
+				bytes--;
+				result <<= 8;
+				result |= buffer[bytes];
+			}
+
+			bitsLeft = 0;
+			return result;
+		}
+
+		public Int64 ReadValueS(int bytes)
+		{
+			byte[] buffer = ReadBytesS(bytes);
+			Int64 result = 0;
+
+			while (bytes > 0)
+			{
+				bytes--;
+				result <<= 8;
+				result |= buffer[bytes];
+			}
+
+			bitsLeft = 0;
+			return result;
 		}
 
 		public UInt16 ReadUInt16S()
@@ -113,6 +178,7 @@ namespace Scharfrichter.Codec
 			UInt16 result = input[0];
 			result <<= 8;
 			result |= input[1];
+			bitsLeft = 0;
 			return result;
 		}
 
@@ -124,6 +190,7 @@ namespace Scharfrichter.Codec
 			result |= (UInt32)input[1];
 			result <<= 8;
 			result |= (UInt32)input[0];
+			bitsLeft = 0;
 			return result;
 		}
 
@@ -135,6 +202,7 @@ namespace Scharfrichter.Codec
 			result |= (UInt32)input[1];
 			result <<= 8;
 			result |= (UInt32)input[2];
+			bitsLeft = 0;
 			return result;
 		}
 
@@ -148,6 +216,7 @@ namespace Scharfrichter.Codec
 			result |= input[2];
 			result <<= 8;
 			result |= input[3];
+			bitsLeft = 0;
 			return result;
 		}
 
@@ -169,8 +238,42 @@ namespace Scharfrichter.Codec
 			result |= input[6];
 			result <<= 8;
 			result |= input[7];
+			bitsLeft = 0;
 			return result;
 		}
+
+		public UInt64 ReadUValue(int bytes)
+		{
+			byte[] buffer = ReadBytes(bytes);
+			UInt64 result = 0;
+
+			while (bytes > 0)
+			{
+				bytes--;
+				result <<= 8;
+				result |= buffer[bytes];
+			}
+
+			bitsLeft = 0;
+			return result;
+		}
+
+		public UInt64 ReadUValueS(int bytes)
+		{
+			byte[] buffer = ReadBytesS(bytes);
+			UInt64 result = 0;
+
+			while (bytes > 0)
+			{
+				bytes--;
+				result <<= 8;
+				result |= buffer[bytes];
+			}
+
+			bitsLeft = 0;
+			return result;
+		}
+
 	}
 
 	public class BinaryWriterEx : BinaryWriter
