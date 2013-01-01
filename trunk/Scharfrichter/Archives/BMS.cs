@@ -339,7 +339,7 @@ namespace Scharfrichter.Codec.Archives
 			}
 		}
 
-		public void Write(Stream target)
+		public void Write(Stream target, bool enableBackspinScratch)
 		{
 			Dictionary<int, Fraction> bpmMap = new Dictionary<int, Fraction>();
 			BinaryWriter writer = new BinaryWriter(target);
@@ -376,72 +376,100 @@ namespace Scharfrichter.Codec.Archives
 			int currentOperation = 0;
 			int measureCount = chart.Measures;
 			int bpmCount = 0;
-			bool repeat;
+			bool repeat = false;
+			List<Entry> entries = new List<Entry>();
+			EntryType currentType = EntryType.Invalid;
+			int currentColumn = -1;
+			int currentPlayer = -1;
+			string laneString = "";
+			string measureString = "";
 
 			while (currentMeasure < measureCount)
 			{
-				repeat = false;
+				bool write = false;
 
-				string measureString = currentMeasure.ToString();
-
-				while (measureString.Length < 3)
-					measureString = "0" + measureString;
-
-				List<Entry> entries = new List<Entry>();
-				EntryType currentType = EntryType.Invalid;
-				int currentColumn = 0;
-				int currentPlayer = 0;
-				string laneString = "00";
-
-				switch (currentOperation)
+				if (!repeat)
 				{
-					case 00: currentType = EntryType.Tempo; currentPlayer = 0; currentColumn = 0; laneString = "08"; break;
-					case 01: currentType = EntryType.BGA; currentPlayer = 0; currentColumn = 0; laneString = "04"; break;
-					case 02: currentType = EntryType.BGA; currentPlayer = 0; currentColumn = 1; laneString = "05"; break;
-					case 03: currentType = EntryType.BGA; currentPlayer = 0; currentColumn = 2; laneString = "06"; break;
-					case 04: currentType = EntryType.BGA; currentPlayer = 0; currentColumn = 3; laneString = "07"; break;
-					case 05: currentType = EntryType.Marker; currentPlayer = 0; currentColumn = 0; laneString = "01"; break;
-					case 06: currentOperation++; continue; // placeholders
-					case 07: currentOperation++; continue;
-					case 08: currentOperation++; continue;
-					case 09: currentOperation++; continue;
-					case 10: currentType = EntryType.Marker; currentPlayer = 1; currentColumn = 0; laneString = "11"; break;
-					case 11: currentType = EntryType.Marker; currentPlayer = 1; currentColumn = 1; laneString = "12"; break;
-					case 12: currentType = EntryType.Marker; currentPlayer = 1; currentColumn = 2; laneString = "13"; break;
-					case 13: currentType = EntryType.Marker; currentPlayer = 1; currentColumn = 3; laneString = "14"; break;
-					case 14: currentType = EntryType.Marker; currentPlayer = 1; currentColumn = 4; laneString = "15"; break;
-					case 15: currentType = EntryType.Marker; currentPlayer = 1; currentColumn = 5; laneString = "18"; break;
-					case 16: currentType = EntryType.Marker; currentPlayer = 1; currentColumn = 6; laneString = "19"; break;
-					case 17: currentType = EntryType.Marker; currentPlayer = 1; currentColumn = 7; laneString = "16"; break;
-					case 18: currentType = EntryType.Marker; currentPlayer = 1; currentColumn = 8; laneString = "17"; break;
-					case 19: currentType = EntryType.Marker; currentPlayer = 2; currentColumn = 0; laneString = "21"; break;
-					case 20: currentType = EntryType.Marker; currentPlayer = 2; currentColumn = 1; laneString = "22"; break;
-					case 21: currentType = EntryType.Marker; currentPlayer = 2; currentColumn = 2; laneString = "23"; break;
-					case 22: currentType = EntryType.Marker; currentPlayer = 2; currentColumn = 3; laneString = "24"; break;
-					case 23: currentType = EntryType.Marker; currentPlayer = 2; currentColumn = 4; laneString = "25"; break;
-					case 24: currentType = EntryType.Marker; currentPlayer = 2; currentColumn = 5; laneString = "28"; break;
-					case 25: currentType = EntryType.Marker; currentPlayer = 2; currentColumn = 6; laneString = "29"; break;
-					case 26: currentType = EntryType.Marker; currentPlayer = 2; currentColumn = 7; laneString = "26"; break;
-					case 27: currentType = EntryType.Marker; currentPlayer = 2; currentColumn = 8; laneString = "27"; break;
-					default: currentOperation = 0; currentMeasure++; continue;
-				}
+					measureString = currentMeasure.ToString();
 
-				// separate events we'll use
-				foreach (Entry entry in chart.Entries)
-				{
-					if (entry.MetricMeasure == currentMeasure &&
-						entry.Player == currentPlayer &&
-						entry.Type == currentType &&
-						entry.Column == currentColumn &&
-						!entry.Used)
+					while (measureString.Length < 3)
+						measureString = "0" + measureString;
+
+					currentType = EntryType.Invalid;
+					currentColumn = 0;
+					currentPlayer = 0;
+					laneString = "00";
+
+					switch (currentOperation)
 					{
-						entries.Add(entry);
+						case 00: currentType = EntryType.Tempo; currentPlayer = 0; currentColumn = 0; laneString = "08"; break;
+						case 01: currentType = EntryType.BGA; currentPlayer = 0; currentColumn = 0; laneString = "04"; break;
+						case 02: currentType = EntryType.BGA; currentPlayer = 0; currentColumn = 1; laneString = "05"; break;
+						case 03: currentType = EntryType.BGA; currentPlayer = 0; currentColumn = 2; laneString = "06"; break;
+						case 04: currentType = EntryType.BGA; currentPlayer = 0; currentColumn = 3; laneString = "07"; break;
+						case 05: currentType = EntryType.Marker; currentPlayer = 0; currentColumn = 0; laneString = "01"; break;
+						case 06: currentOperation++; continue; // placeholders
+						case 07: currentOperation++; continue;
+						case 08: currentOperation++; continue;
+						case 09: currentOperation++; continue;
+						case 10: currentType = EntryType.Marker; currentPlayer = 1; currentColumn = 0; laneString = "11"; break;
+						case 11: currentType = EntryType.Marker; currentPlayer = 1; currentColumn = 1; laneString = "12"; break;
+						case 12: currentType = EntryType.Marker; currentPlayer = 1; currentColumn = 2; laneString = "13"; break;
+						case 13: currentType = EntryType.Marker; currentPlayer = 1; currentColumn = 3; laneString = "14"; break;
+						case 14: currentType = EntryType.Marker; currentPlayer = 1; currentColumn = 4; laneString = "15"; break;
+						case 15: currentType = EntryType.Marker; currentPlayer = 1; currentColumn = 5; laneString = "18"; break;
+						case 16: currentType = EntryType.Marker; currentPlayer = 1; currentColumn = 6; laneString = "19"; break;
+						case 17: currentType = EntryType.Marker; currentPlayer = 1; currentColumn = 7; laneString = "16"; break;
+						case 18: currentType = EntryType.Marker; currentPlayer = 1; currentColumn = 8; laneString = "17"; break;
+						case 19: currentType = EntryType.Marker; currentPlayer = 2; currentColumn = 0; laneString = "21"; break;
+						case 20: currentType = EntryType.Marker; currentPlayer = 2; currentColumn = 1; laneString = "22"; break;
+						case 21: currentType = EntryType.Marker; currentPlayer = 2; currentColumn = 2; laneString = "23"; break;
+						case 22: currentType = EntryType.Marker; currentPlayer = 2; currentColumn = 3; laneString = "24"; break;
+						case 23: currentType = EntryType.Marker; currentPlayer = 2; currentColumn = 4; laneString = "25"; break;
+						case 24: currentType = EntryType.Marker; currentPlayer = 2; currentColumn = 5; laneString = "28"; break;
+						case 25: currentType = EntryType.Marker; currentPlayer = 2; currentColumn = 6; laneString = "29"; break;
+						case 26: currentType = EntryType.Marker; currentPlayer = 2; currentColumn = 7; laneString = "26"; break;
+						case 27: currentType = EntryType.Marker; currentPlayer = 2; currentColumn = 8; laneString = "27"; break;
+						default: currentOperation = 0; currentMeasure++; continue;
 					}
-					
-					// slight optimization
-					if (entry.MetricMeasure > currentMeasure)
-						break;
+
+					// separate events we'll use
+					foreach (Entry entry in chart.Entries)
+					{
+						if (entry.MetricMeasure == currentMeasure &&
+							entry.Player == currentPlayer &&
+							entry.Type == currentType &&
+							entry.Column == currentColumn &&
+							!entry.Used)
+						{
+							entries.Add(entry);
+
+#if (false)
+							// a little hack for backspin scratches
+							if (enableBackspinScratch && entry.Column == 7 && entry.Type == EntryType.Marker && entry.Freeze == true)
+							{
+								Entry backspinEntry = new Entry();
+								backspinEntry.Column = entry.Column;
+								backspinEntry.Freeze = false;
+								backspinEntry.MetricMeasure = entry.MetricMeasure;
+								backspinEntry.MetricOffset = entry.MetricOffset;
+								backspinEntry.Parameter = 0;
+								backspinEntry.Player = entry.Player;
+								backspinEntry.Type = EntryType.Marker;
+								backspinEntry.Used = false;
+								backspinEntry.Value = new Fraction(1295, 1);
+								entries.Add(backspinEntry);
+							}
+#endif
+						}
+
+						// slight optimization
+						if (entry.MetricMeasure > currentMeasure)
+							break;
+					}
 				}
+
+				repeat = false;
 
 				// build a line if necessary
 				if (entries.Count > 0)
@@ -491,7 +519,7 @@ namespace Scharfrichter.Codec.Archives
 									entryMapIndex = 1294;
 							}
 
-							if (offset >= 0 && offset < count)
+							if (offset >= 0 && offset < count && !entry.Used)
 							{
 								if (values[offset] != 0)
 								{
@@ -503,10 +531,10 @@ namespace Scharfrichter.Codec.Archives
 										values[offset] = 1295;
 									else
 										values[offset] = entryMapIndex;
+									write = true;
+									entry.Used = true;
 								}
 							}
-
-							entry.Used = true;
 						}
 					}
 					else if (currentType == EntryType.Marker && currentPlayer == 0)
@@ -518,12 +546,13 @@ namespace Scharfrichter.Codec.Archives
 							long offset = (entry.MetricOffset.Numerator * multiplier) / commonDivisor;
 							int count = values.Length;
 
-							if (offset >= 0 && offset < count)
+							if (offset >= 0 && offset < count && !entry.Used)
 							{
 								if (values[offset] == 0)
 								{
 									values[offset] = (int)(double)entry.Value;
 									entry.Used = true;
+									write = true;
 								}
 								else
 								{
@@ -541,34 +570,42 @@ namespace Scharfrichter.Codec.Archives
 							//long offset = (entry.MetricOffset.Numerator * common) / entry.MetricOffset.Denominator;
 							int count = values.Length;
 
-							if (offset >= 0 && offset < count)
+							if (offset >= 0 && offset < count && !entry.Used)
 							{
-								int entryIndex = -1;
-
-								foreach (KeyValuePair<int, Fraction> bpmEntry in bpmMap)
+								if (values[offset] == 0)
 								{
-									if (bpmEntry.Value == entry.Value)
+									int entryIndex = -1;
+
+									foreach (KeyValuePair<int, Fraction> bpmEntry in bpmMap)
 									{
-										entryIndex = bpmEntry.Key;
-										break;
+										if (bpmEntry.Value == entry.Value)
+										{
+											entryIndex = bpmEntry.Key;
+											break;
+										}
 									}
-								}
 
-								if (entryIndex <= 0)
+									if (entryIndex <= 0)
+									{
+										bpmCount++;
+
+										// this is a hack to make the numbers decimal
+										if (bpmCount % 36 == 10)
+											bpmCount += 26;
+
+										headerWriter.WriteLine("#BPM" + Util.ConvertToBMEString(bpmCount, 2) + " " + (Math.Round((double)(entry.Value), 3)).ToString());
+										entryIndex = bpmCount;
+										bpmMap[entryIndex] = entry.Value;
+									}
+									values[offset] = entryIndex;
+									entry.Used = true;
+									write = true;
+								}
+								else
 								{
-									bpmCount++;
-
-									// this is a hack to make the numbers decimal
-									if (bpmCount % 36 == 10)
-										bpmCount += 26;
-
-									headerWriter.WriteLine("#BPM" + Util.ConvertToBMEString(bpmCount, 2) + " " + (Math.Round((double)(entry.Value), 3)).ToString());
-									entryIndex = bpmCount;
-									bpmMap[entryIndex] = entry.Value;
+									repeat = true;
 								}
-								values[offset] = entryIndex;
 							}
-							entry.Used = true;
 						}
 					}
 					else
@@ -580,14 +617,23 @@ namespace Scharfrichter.Codec.Archives
 							//long offset = (entry.MetricOffset.Numerator * common) / entry.MetricOffset.Denominator;
 							int count = values.Length;
 
-							if (offset >= 0 && offset < count)
-								values[offset] = (int)(entry.Value.Numerator / entry.Value.Denominator);
-
-							entry.Used = true;
+							if (offset >= 0 && offset < count && !entry.Used)
+							{
+								if (values[offset] == 0)
+								{
+									values[offset] = (int)(entry.Value.Numerator / entry.Value.Denominator);
+									entry.Used = true;
+									write = true;
+								}
+								else
+								{
+									repeat = true;
+								}
+							}
 						}
 					}
 
-					if (values.Length > 0)
+					if (write)
 					{
 						StringBuilder builder = new StringBuilder();
 						values = Reduce(values);

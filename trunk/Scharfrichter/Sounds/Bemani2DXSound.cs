@@ -32,10 +32,17 @@ namespace Scharfrichter.Codec.Sounds
 					{
 						using (WaveStream wavConvertStream = WaveFormatConversionStream.CreatePcmStream(wavStream))
 						{
-							byte[] rawWaveData = new byte[wavConvertStream.Length];
-							wavConvertStream.Read(rawWaveData, 0, (int)wavConvertStream.Length);
-							result.Format = wavConvertStream.WaveFormat;
+							IWaveProvider sourceProvider;
+							int bytesToRead;
+
+							// using a mux, we force all sounds to be 2 channels
+							sourceProvider = new MultiplexingWaveProvider(new IWaveProvider[] { wavConvertStream }, 2);
+							bytesToRead = (int)((wavConvertStream.Length * 2) / wavConvertStream.WaveFormat.Channels);
+
+							byte[] rawWaveData = new byte[bytesToRead];
+							int bytesRead = sourceProvider.Read(rawWaveData, 0, bytesToRead);
 							result.Data = rawWaveData;
+							result.Format = sourceProvider.WaveFormat;
 						}
 					}
 				}

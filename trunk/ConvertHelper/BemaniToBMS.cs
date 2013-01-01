@@ -144,7 +144,7 @@ namespace ConvertHelper
 				else
 					bms.SampleMap = map;
 				bms.GenerateSampleTags();
-				bms.Write(mem);
+				bms.Write(mem, true);
 
 				File.WriteAllBytes(output, mem.ToArray());
 			}

@@ -265,8 +265,6 @@ namespace Scharfrichter.Codec
 			}
 		}
 
-		//public long Denominator;
-		//public long Numerator;
 		private long denominator;
 		private long numerator;
 
