@@ -13,6 +13,9 @@ namespace IFSExtract
 	{
 		static void Main(string[] args)
 		{
+			Console.WriteLine("IFSExtract");
+			args = Subfolder.Parse(args);
+
 			if (System.Diagnostics.Debugger.IsAttached && args.Length == 0)
 			{
 				Console.WriteLine();
@@ -28,6 +31,9 @@ namespace IFSExtract
 
 					if (File.Exists(filename))
 					{
+						Console.WriteLine();
+						Console.WriteLine("Processing file " + args[i]);
+
 						using (FileStream fs = new FileStream(filename, FileMode.Open, FileAccess.ReadWrite, FileShare.ReadWrite))
 						{
 							string outputPath = Path.GetDirectoryName(filename);
