@@ -18,6 +18,8 @@ namespace DJMainExtract
 		{
 			Console.WriteLine("DJMainExtract");
 
+			args = Subfolder.Parse(args);
+
 			if (System.Diagnostics.Debugger.IsAttached && args.Length == 0)
 			{
 				Console.WriteLine();

@@ -1,4 +1,5 @@
-﻿using Scharfrichter.Codec.Compression;
+﻿using Scharfrichter.Codec;
+using Scharfrichter.Codec.Compression;
 
 using System;
 using System.Collections.Generic;
@@ -12,6 +13,8 @@ namespace LZDecompress
 	{
 		static void Main(string[] args)
 		{
+			args = Subfolder.Parse(args);
+
 			if (args.Length > 0)
 			{
 				byte[] data = File.ReadAllBytes(args[0]);
