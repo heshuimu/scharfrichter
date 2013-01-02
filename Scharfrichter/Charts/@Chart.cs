@@ -482,8 +482,10 @@ namespace Scharfrichter.Codec.Charts
 				if (quantize == 0)
 					quantize = 192;
 
-				if (entry.Type == EntryType.Marker)
+				if (entry.Type == EntryType.Marker && entry.MetricOffset.Denominator > quantize)
 					entry.MetricOffset = Fraction.Quantize(entry.MetricOffset, quantize);
+				else
+					entry.MetricOffset = Fraction.Reduce(entry.MetricOffset);
 			}
 		}
 

@@ -557,15 +557,22 @@ namespace Scharfrichter.Codec.Archives
 							long multiplier = common / entry.MetricOffset.Denominator;
 							long offset = (entry.MetricOffset.Numerator * multiplier) / commonDivisor;
 							int count = values.Length;
+							int entryMapIndex = (int)(double)entry.Value;
+
+							if (entryMapIndex < 1 || entryMapIndex > 1293)
+								entryMapIndex = 1294;
+							else
+							{
+								entryMapIndex = Array.IndexOf<int>(sampleMap, entryMapIndex);
+								if (entryMapIndex < 1 || entryMapIndex > 1293)
+									entryMapIndex = 1294;
+							}
 
 							if (offset >= 0 && offset < count && !entry.Used)
 							{
 								if (values[offset] == 0)
 								{
-									int bgmVal = (int)(double)entry.Value;
-									if (bgmVal < 1 || bgmVal > 1293)
-										bgmVal = 1294; // to preserve notation
-									values[offset] = bgmVal;
+									values[offset] = entryMapIndex;
 									entry.Used = true;
 									write = true;
 								}

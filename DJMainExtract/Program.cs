@@ -27,7 +27,7 @@ namespace DJMainExtract
 				args = new string[] { Console.ReadLine() };
 				if (args[0] == "")
 				{
-					args[0] = @"D:\chds\c01jaa11.chd";
+					args[0] = @"D:\chds\753jaa11.chd";
 				}
 			}
 
@@ -53,7 +53,8 @@ namespace DJMainExtract
 						for (int j = 0; j < totalChunks; j++)
 						{
 							chd.Position = (long)j * 0x1000000;
-							DJMainChunk chunk = DJMainChunk.Read(chd, new int[] { 0x002000, 0x006000, 0x00A000, 0x00E000, 0x012000, 0x016000 }, new int[] { 0x000000, 0x000200 }, 0x020000);
+							//DJMainChunk chunk = DJMainChunk.Read(chd, new int[] { 0x002000, 0x006000, 0x00A000, 0x00E000, 0x012000, 0x016000 }, new int[] { 0x000000, 0x000200 }, 0x020000);
+							DJMainChunk chunk = DJMainChunk.Read(chd, new int[] { 0x000400 }, new int[] { 0x000000, 0x000200 }, 0x002000);
 
 							if (chunk.ChartCount > 0)
 							{

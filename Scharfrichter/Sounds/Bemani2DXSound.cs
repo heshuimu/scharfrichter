@@ -13,7 +13,7 @@ namespace Scharfrichter.Codec.Sounds
 	static public class Bemani2DXSound
 	{
 		// sample volume table
-		// TODO: determine correctness. I borrowed the formula from bmIII.
+		// TODO: determine correctness.
 		static private float[] volTab;
 		static private float[] VolumeTable
 		{
@@ -23,7 +23,7 @@ namespace Scharfrichter.Codec.Sounds
 				{
 					volTab = new float[256];
 					for (int i = 0; i < 256; i++)
-						volTab[i] = (float)Math.Pow(10.0f, (-36.0f * i / 144f) / 20.0f);
+						volTab[i] = (float)Math.Pow(10.0f, (-36.0f * i / 64f) / 20.0f);
 				}
 				return volTab;
 			}
