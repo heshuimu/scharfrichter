@@ -12,6 +12,23 @@ namespace Scharfrichter.Codec.Sounds
 {
 	static public class Bemani2DXSound
 	{
+		// sample volume table
+		// TODO: determine correctness. I borrowed the formula from bmIII.
+		static private float[] volTab;
+		static private float[] VolumeTable
+		{
+			get
+			{
+				if (volTab == null)
+				{
+					volTab = new float[256];
+					for (int i = 0; i < 256; i++)
+						volTab[i] = (float)Math.Pow(10.0f, (-36.0f * i / 144f) / 20.0f);
+				}
+				return volTab;
+			}
+		}
+
 		static public Sound Read(Stream source)
 		{
 			Sound result = new Sound();
@@ -43,6 +60,18 @@ namespace Scharfrichter.Codec.Sounds
 							int bytesRead = sourceProvider.Read(rawWaveData, 0, bytesToRead);
 							result.Data = rawWaveData;
 							result.Format = sourceProvider.WaveFormat;
+
+							// calculate output panning
+							if (panning > 0x7F || panning < 0x01)
+								panning = 0x40;
+							result.Panning = ((float)panning - 1.0f) / 126.0f;
+
+							// calculate output volume
+							if (volume < 0x01)
+								volume = 0x01;
+							else if (volume > 0xFF)
+								volume = 0xFF;
+							result.Volume = VolumeTable[volume];
 						}
 					}
 				}

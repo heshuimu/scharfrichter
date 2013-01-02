@@ -1,4 +1,5 @@
-﻿using Scharfrichter.Codec.Archives;
+﻿using Scharfrichter.Codec;
+using Scharfrichter.Codec.Archives;
 using Scharfrichter.Codec.Charts;
 using Scharfrichter.Codec.Sounds;
 
@@ -43,11 +44,18 @@ namespace ConvertHelper
 			0
 		};
 
-		static public void BemaniToBMS(string[] args, long unitNumerator, long unitDenominator, int quantizeMeasure)
+		static public void BemaniToBMS(string[] inArgs, long unitNumerator, long unitDenominator, int quantizeMeasure)
 		{
 			Console.WriteLine("BemaniToBMS");
 			Console.WriteLine("Timing: " + unitNumerator.ToString() + "/" + unitDenominator.ToString());
 			Console.WriteLine("Measure Quantize: " + quantizeMeasure.ToString());
+
+			string[] args;
+
+			if (inArgs.Length > 0)
+				args = Subfolder.Parse(inArgs);
+			else
+				args = inArgs;
 
 			if (System.Diagnostics.Debugger.IsAttached && args.Length == 0)
 			{
@@ -143,6 +151,8 @@ namespace ConvertHelper
 					bms.GenerateSampleMap();
 				else
 					bms.SampleMap = map;
+
+				bms.Charts[0].QuantizeNoteOffsets(192);
 				bms.GenerateSampleTags();
 				bms.Write(mem, true);
 
