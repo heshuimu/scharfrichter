@@ -377,6 +377,7 @@ namespace Scharfrichter.Codec.Archives
 			int measureCount = chart.Measures;
 			int bpmCount = 0;
 			bool repeat = false;
+			List<Entry> measureEntries = new List<Entry>();
 			List<Entry> entries = new List<Entry>();
 			EntryType currentType = EntryType.Invalid;
 			int currentColumn = -1;
@@ -390,11 +391,7 @@ namespace Scharfrichter.Codec.Archives
 
 				if (!repeat)
 				{
-					measureString = currentMeasure.ToString();
-
-					while (measureString.Length < 3)
-						measureString = "0" + measureString;
-
+					entries.Clear();
 					currentType = EntryType.Invalid;
 					currentColumn = 0;
 					currentPlayer = 0;
@@ -402,14 +399,28 @@ namespace Scharfrichter.Codec.Archives
 
 					switch (currentOperation)
 					{
-						case 00: currentType = EntryType.Tempo; currentPlayer = 0; currentColumn = 0; laneString = "08"; break;
-						case 01: currentType = EntryType.BGA; currentPlayer = 0; currentColumn = 0; laneString = "04"; break;
-						case 02: currentType = EntryType.BGA; currentPlayer = 0; currentColumn = 1; laneString = "05"; break;
-						case 03: currentType = EntryType.BGA; currentPlayer = 0; currentColumn = 2; laneString = "06"; break;
-						case 04: currentType = EntryType.BGA; currentPlayer = 0; currentColumn = 3; laneString = "07"; break;
-						case 05: currentType = EntryType.Marker; currentPlayer = 0; currentColumn = 0; laneString = "01"; break;
-						case 06: currentOperation++; continue; // placeholders
-						case 07: currentOperation++; continue;
+						case 00:
+							measureEntries.Clear();
+							measureString = currentMeasure.ToString();
+							while (measureString.Length < 3)
+								measureString = "0" + measureString;
+
+							foreach (Entry entry in chart.Entries)
+							{
+								if (entry.MetricMeasure == currentMeasure)
+									measureEntries.Add(entry);
+								else if (entry.MetricMeasure > currentMeasure)
+									break;
+							}
+
+							break;
+						case 01: currentType = EntryType.Tempo; currentPlayer = 0; currentColumn = 0; laneString = "08"; break;
+						case 02: currentType = EntryType.BGA; currentPlayer = 0; currentColumn = 0; laneString = "04"; break;
+						case 03: currentType = EntryType.BGA; currentPlayer = 0; currentColumn = 1; laneString = "05"; break;
+						case 04: currentType = EntryType.BGA; currentPlayer = 0; currentColumn = 2; laneString = "06"; break;
+						case 05: currentType = EntryType.BGA; currentPlayer = 0; currentColumn = 3; laneString = "07"; break;
+						case 06: currentType = EntryType.Marker; currentPlayer = 0; currentColumn = 0; laneString = "01"; break;
+						case 07: currentOperation++; continue; // placeholders
 						case 08: currentOperation++; continue;
 						case 09: currentOperation++; continue;
 						case 10: currentType = EntryType.Marker; currentPlayer = 1; currentColumn = 0; laneString = "11"; break;
@@ -434,7 +445,7 @@ namespace Scharfrichter.Codec.Archives
 					}
 
 					// separate events we'll use
-					foreach (Entry entry in chart.Entries)
+					foreach (Entry entry in measureEntries)
 					{
 						if (entry.MetricMeasure == currentMeasure &&
 							entry.Player == currentPlayer &&
@@ -462,10 +473,6 @@ namespace Scharfrichter.Codec.Archives
 							}
 #endif
 						}
-
-						// slight optimization
-						if (entry.MetricMeasure > currentMeasure)
-							break;
 					}
 				}
 
@@ -490,9 +497,14 @@ namespace Scharfrichter.Codec.Archives
 
 					// prevent outrageous common denominator values here
 					long commonDivisor = 1;
+					long divisorLimit;
+
+					// use reasonable quantization to prevent crazy values
+					divisorLimit = 7680;
+
 					while (true)
 					{
-						if ((common / commonDivisor) < 7680)
+						if ((common / commonDivisor) <= divisorLimit)
 							break;
 						commonDivisor *= 2;
 					}
@@ -550,7 +562,10 @@ namespace Scharfrichter.Codec.Archives
 							{
 								if (values[offset] == 0)
 								{
-									values[offset] = (int)(double)entry.Value;
+									int bgmVal = (int)(double)entry.Value;
+									if (bgmVal < 1 || bgmVal > 1293)
+										bgmVal = 1294; // to preserve notation
+									values[offset] = bgmVal;
 									entry.Used = true;
 									write = true;
 								}

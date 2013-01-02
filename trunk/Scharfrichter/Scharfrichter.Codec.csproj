@@ -70,6 +70,7 @@
     <Compile Include="Sounds\Bemani2DXSound.cs" />
     <Compile Include="Sounds\K054539.cs" />
     <Compile Include="Sounds\WaveWriter.cs" />
+    <Compile Include="Subfolder.cs" />
     <Compile Include="Util.cs" />
     <Compile Include="Videos\%40Video.cs" />
   </ItemGroup>
