@@ -83,7 +83,7 @@ namespace ConvertHelper
 							{
 								Console.WriteLine("Converting Samples");
 								Bemani2DX archive = Bemani2DX.Read(source);
-								BemaniToBMSConvertSounds(archive.Sounds, args[i]);
+								BemaniToBMSConvertSounds(archive.Sounds, args[i], 0.6f);
 							}
 							break;
 						case @".CS":
@@ -99,6 +99,19 @@ namespace ConvertHelper
 								BemaniToBMSConvertChart(Beatmania5Key.Read(source), quantizeMeasure, args[i], "", 0, null);
 							break;
 						case @".CS9":
+							break;
+						case @".SD9":
+							using (MemoryStream source = new MemoryStream(data))
+							{
+								Sound sound = BemaniSD9.Read(source);
+								string targetFile = Path.GetFileNameWithoutExtension(args[i]);
+								string targetPath = Path.Combine(Path.GetDirectoryName(args[i]), targetFile) + ".wav";
+								sound.WriteFile(targetPath, 1.0f);
+							}
+							break;
+						case @".SSP":
+							using (MemoryStream source = new MemoryStream(data))
+								BemaniToBMSConvertSounds(BemaniSSP.Read(source).Sounds, args[i], 1.0f);
 							break;
 					}
 				}
@@ -160,7 +173,7 @@ namespace ConvertHelper
 			}
 		}
 
-		static public void BemaniToBMSConvertSounds(Sound[] sounds, string filename)
+		static public void BemaniToBMSConvertSounds(Sound[] sounds, string filename, float volume)
 		{
 			string name = Path.GetFileNameWithoutExtension(Path.GetFileName(filename));
 			string targetPath = Path.Combine(Path.GetDirectoryName(filename), name);
@@ -173,10 +186,7 @@ namespace ConvertHelper
 			for (int j = 0; j < count; j++)
 			{
 				int sampleIndex = j + 1;
-				using (FileStream outfile = new FileStream(Path.Combine(targetPath, Scharfrichter.Codec.Util.ConvertToBMEString(sampleIndex, 4) + @".wav"), FileMode.Create, FileAccess.ReadWrite, FileShare.ReadWrite))
-				{
-					sounds[j].Write(outfile, 0.6f);
-				}
+				sounds[j].WriteFile(Path.Combine(targetPath, Scharfrichter.Codec.Util.ConvertToBMEString(sampleIndex, 4) + @".wav"), volume);
 			}
 		}
 	}

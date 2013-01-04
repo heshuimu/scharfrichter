@@ -47,32 +47,26 @@ namespace Scharfrichter.Codec.Sounds
 				{
 					using (WaveStream wavStream = new WaveFileReader(wavDataMem))
 					{
-						using (WaveStream wavConvertStream = WaveFormatConversionStream.CreatePcmStream(wavStream))
-						{
-							IWaveProvider sourceProvider;
-							int bytesToRead;
+						int bytesToRead;
 
-							// using a mux, we force all sounds to be 2 channels
-							sourceProvider = new MultiplexingWaveProvider(new IWaveProvider[] { wavConvertStream }, 2);
-							bytesToRead = (int)((wavConvertStream.Length * 2) / wavConvertStream.WaveFormat.Channels);
+						// using a mux, we force all sounds to be 2 channels
+						bytesToRead = (int)wavStream.Length;
 
-							byte[] rawWaveData = new byte[bytesToRead];
-							int bytesRead = sourceProvider.Read(rawWaveData, 0, bytesToRead);
-							result.Data = rawWaveData;
-							result.Format = sourceProvider.WaveFormat;
+						byte[] rawWaveData = new byte[bytesToRead];
+						int bytesRead = wavStream.Read(rawWaveData, 0, bytesToRead);
+						result.SetSound(rawWaveData, wavStream.WaveFormat);
 
-							// calculate output panning
-							if (panning > 0x7F || panning < 0x01)
-								panning = 0x40;
-							result.Panning = ((float)panning - 1.0f) / 126.0f;
+						// calculate output panning
+						if (panning > 0x7F || panning < 0x01)
+							panning = 0x40;
+						result.Panning = ((float)panning - 1.0f) / 126.0f;
 
-							// calculate output volume
-							if (volume < 0x01)
-								volume = 0x01;
-							else if (volume > 0xFF)
-								volume = 0xFF;
-							result.Volume = VolumeTable[volume];
-						}
+						// calculate output volume
+						if (volume < 0x01)
+							volume = 0x01;
+						else if (volume > 0xFF)
+							volume = 0xFF;
+						result.Volume = VolumeTable[volume];
 					}
 				}
 			}
