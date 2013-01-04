@@ -34,6 +34,7 @@ namespace Scharfrichter.Codec.Archives
 
 		static public BemaniIFS Read(Stream source)
 		{
+			List<byte[]> dataList = new List<byte[]>();
 			BinaryReader reader = new BinaryReader(source);
 			BemaniIFS result = new BemaniIFS();
 
@@ -73,49 +74,71 @@ namespace Scharfrichter.Codec.Archives
 			tableAReader.BaseStream.Position = 0x18;
 			tableBReader.BaseStream.Position = 0x14;
 			int dataLength = tableBReader.ReadInt32S();
+			MemoryStream dataChunk = new MemoryStream(reader.ReadBytes(dataLength));
+			BinaryReaderEx dataReader = new BinaryReaderEx(dataChunk);
 
 			// process tables
 			int chunkIndex = 0;
 			bool processTable = true;
+			bool firstChunk = true;
 			while (processTable)
 			{
+				Console.Write("A:" + Util.ConvertToHexString((int)tableAReader.BaseStream.Position, 8) + " B:" + Util.ConvertToHexString((int)tableBReader.BaseStream.Position, 8) + " ");
 				byte chunkType = tableAReader.ReadByte();
+				Console.Write("Op:" + Util.ConvertToHexString(chunkType, 2) + "  ");
 				switch (chunkType)
 				{
 					case 0x06: // directory
-						tableAReader.ReadByte();
-						tableBReader.ReadInt32S(); // modified date?
-						break;
+						{
+							byte subType = tableAReader.ReadByte();
+							switch (subType)
+							{
+								case 0x03:
+									tableAReader.ReadBytes(3);
+									break;
+								case 0x06:
+									break;
+								default:
+									break;
+							}
+							Int32 fileModified = tableBReader.ReadInt32S(); // modified date?
+							Console.WriteLine("*" + Util.ConvertToHexString(fileModified, 8));
+						}
+						continue;
 					case 0x1E: // file
 						tableAReader.ReadByte();
-						tableBReader.ReadInt32S(); // offset
-						tableBReader.ReadInt32S(); // length
-						tableBReader.ReadInt32S(); // modified date?
-						break;
-					case 0x3C: // unknown (music files)
-						tableAReader.ReadBytes(2);
-						break;
-					case 0x4F: // unknown (music files)
-						tableAReader.ReadByte();
-						break;
-					case 0x65: // unknown (music files)
-					case 0xA5:
-						tableAReader.ReadBytes(3);
+						{
+							Int32 fileOffset = tableBReader.ReadInt32S(); // offset
+							Int32 fileLength = tableBReader.ReadInt32S(); // length
+							Int32 fileModified = tableBReader.ReadInt32S(); // modified date?
+							Console.WriteLine(Util.ConvertToHexString(fileOffset, 8) + ":" + Util.ConvertToHexString(fileLength, 8) + ", *" + Util.ConvertToHexString(fileModified, 8));
+							dataReader.BaseStream.Position = fileOffset;
+							dataList.Add(dataReader.ReadBytes(fileLength));
+						}
 						break;
 					case 0x94: // filename
-						tableAReader.ReadInt32S();
-						break;
-					case 0xFE: // end of entry
-						chunkIndex++;
+						Console.WriteLine("FileID: " + Util.ConvertToHexString(tableAReader.ReadInt32S(), 8));
 						continue;
+					case 0xFE: // end of entry
+						Console.WriteLine("End of entry.");
+						break;
 					case 0xFF: // end of list
 						processTable = false;
-						break;
+						Console.WriteLine("End of list.");
+						continue;
 					default:
+						// for types we don't know, skip the whole line for now
+						Console.WriteLine("UNKNOWN.");
 						break;
 				}
+				while (chunkType != 0xFE)
+				{
+					chunkType = tableAReader.ReadByte();
+				}
+				chunkIndex++;
 			}
 
+			result.files = dataList;
 			return result;
 		}
 

@@ -24,7 +24,7 @@ namespace IFSExtract
 				if (args[0] == "")
 				{
 					args[0] = @"d:\bms\d_result.ifs";
-					args[0] = @"d:\bms\sound\[ifs]\01000.ifs";
+					//args[0] = @"d:\bms\sound\[ifs]\01000.ifs";
 				}
 			}
 
@@ -41,8 +41,10 @@ namespace IFSExtract
 
 						using (FileStream fs = new FileStream(filename, FileMode.Open, FileAccess.ReadWrite, FileShare.ReadWrite))
 						{
-							string outputPath = Path.GetDirectoryName(filename);
+							string outputPath = Path.Combine(Path.GetDirectoryName(filename), Path.GetFileNameWithoutExtension(filename));
 							string outputFileBase = Path.Combine(outputPath, Path.GetFileNameWithoutExtension(Path.GetFileName(filename)));
+
+							Directory.CreateDirectory(outputPath);
 
 							BemaniIFS archive = BemaniIFS.Read(fs);
 							int count = archive.RawDataCount;
@@ -60,6 +62,8 @@ namespace IFSExtract
 									}
 								}
 							}
+
+							Console.WriteLine("Exporting files.");
 
 							for (int j = 0; j < count; j++)
 							{
