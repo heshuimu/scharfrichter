@@ -32,7 +32,7 @@ namespace Scharfrichter.Codec.Graphics
 		public Bitmap ToBitmap()
 		{
 			Bitmap bitmap = new Bitmap(Width, Height, PixelFormat.Format32bppArgb);
-			BitmapData bdata = bitmap.LockBits(new Rectangle(0, 0, bitmap.Width, bitmap.Height), ImageLockMode.ReadOnly, PixelFormat.Format32bppArgb);
+			BitmapData bdata = bitmap.LockBits(new Rectangle(0, 0, bitmap.Width, bitmap.Height), ImageLockMode.WriteOnly, PixelFormat.Format32bppArgb);
 			Marshal.Copy(Data, 0, bdata.Scan0, Data.Length);
 			bitmap.UnlockBits(bdata);
 			return bitmap;
