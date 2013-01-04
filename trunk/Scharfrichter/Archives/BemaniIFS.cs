@@ -8,14 +8,8 @@ namespace Scharfrichter.Codec.Archives
 {
 	public class BemaniIFS : Archive
 	{
-		private List<byte[]> files = new List<byte[]>();
 
-		private struct Entry
-		{
-			public Int32 Offset;
-			public Int32 Length;
-			public Int32 Meta;
-		}
+		private List<byte[]> files = new List<byte[]>();
 
 		public override byte[][] RawData
 		{
@@ -40,7 +34,6 @@ namespace Scharfrichter.Codec.Archives
 
 		static public BemaniIFS Read(Stream source)
 		{
-			List<Entry> entries = new List<Entry>();
 			BinaryReader reader = new BinaryReader(source);
 			BemaniIFS result = new BemaniIFS();
 
@@ -61,56 +54,65 @@ namespace Scharfrichter.Codec.Archives
 			// read table A
 			Int32 tableALength = SwapEndian(reader.ReadInt32());
 			Console.WriteLine("Table A length: " + tableALength.ToString());
-			using (MemoryStream mem = new MemoryStream(reader.ReadBytes(tableALength)))
-			{
-				BinaryReader tableReader = new BinaryReader(mem);
-			}
+			MemoryStream tableAMem = new MemoryStream(reader.ReadBytes(tableALength));
 
 			// read table B
-			Int32 totalDataLength = 0;
 			Int32 tableBLength = SwapEndian(reader.ReadInt32());
 			Console.WriteLine("Table B length: " + tableBLength.ToString());
-			using (MemoryStream mem = new MemoryStream(reader.ReadBytes(tableBLength)))
-			{
-				BinaryReader tableReader = new BinaryReader(mem);
-				Int32 metaDataLength = SwapEndian(tableReader.ReadInt32());
-				byte[] metaData = tableReader.ReadBytes(metaDataLength);
-				totalDataLength = SwapEndian(tableReader.ReadInt32());
-				tableReader.ReadInt32();
-				Int32 tableCount = (tableBLength - (4 + metaDataLength + 8)) / 0xC;
-				Console.WriteLine("Table B entries: " + tableCount.ToString());
-				Entry lastEntry = new Entry();
-				for (int i = 0; i < tableCount; i++)
-				{
-					Entry entry = new Entry();
-					entry.Offset = SwapEndian(tableReader.ReadInt32());
-					entry.Length = SwapEndian(tableReader.ReadInt32());
-					entry.Meta = SwapEndian(tableReader.ReadInt32());
-					if (entry.Offset < lastEntry.Offset || entry.Offset < 0 || entry.Length < 0 || (entry.Offset + entry.Length) > totalDataLength)
-					{
-						break;
-					}
-					entries.Add(entry);
-					lastEntry = entry;
-				}
-			}
+			MemoryStream tableBMem = new MemoryStream(reader.ReadBytes(tableBLength));
 
+			// read padding
 			int headerPadding = headerLength - (0x28 + 4 + tableALength + 4 + tableBLength);
 			if (headerPadding > 0)
 				reader.ReadBytes(headerPadding);
 
-			// read data chunk
-			using (MemoryStream mem = new MemoryStream(reader.ReadBytes(totalDataLength)))
-			{
-				for (int i = 0; i < entries.Count; i++)
-				{
-					byte[] data;
-					Entry entry = entries[i];
+			// a bit of a hack to get the info we need (it's probably not accurate)
+			BinaryReaderEx tableAReader = new BinaryReaderEx(tableAMem);
+			BinaryReaderEx tableBReader = new BinaryReaderEx(tableBMem);
 
-					mem.Position = entry.Offset;
-					data = new byte[entry.Length];
-					mem.Read(data, 0, data.Length);
-					result.files.Add(data);
+			tableAReader.BaseStream.Position = 0x18;
+			tableBReader.BaseStream.Position = 0x14;
+			int dataLength = tableBReader.ReadInt32S();
+
+			// process tables
+			int chunkIndex = 0;
+			bool processTable = true;
+			while (processTable)
+			{
+				byte chunkType = tableAReader.ReadByte();
+				switch (chunkType)
+				{
+					case 0x06: // directory
+						tableAReader.ReadByte();
+						tableBReader.ReadInt32S(); // modified date?
+						break;
+					case 0x1E: // file
+						tableAReader.ReadByte();
+						tableBReader.ReadInt32S(); // offset
+						tableBReader.ReadInt32S(); // length
+						tableBReader.ReadInt32S(); // modified date?
+						break;
+					case 0x3C: // unknown (music files)
+						tableAReader.ReadBytes(2);
+						break;
+					case 0x4F: // unknown (music files)
+						tableAReader.ReadByte();
+						break;
+					case 0x65: // unknown (music files)
+					case 0xA5:
+						tableAReader.ReadBytes(3);
+						break;
+					case 0x94: // filename
+						tableAReader.ReadInt32S();
+						break;
+					case 0xFE: // end of entry
+						chunkIndex++;
+						continue;
+					case 0xFF: // end of list
+						processTable = false;
+						break;
+					default:
+						break;
 				}
 			}
 
