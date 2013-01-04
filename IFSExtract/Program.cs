@@ -21,6 +21,11 @@ namespace IFSExtract
 				Console.WriteLine();
 				Console.WriteLine("Debugger attached. Input file name:");
 				args = new string[] { Console.ReadLine() };
+				if (args[0] == "")
+				{
+					args[0] = @"d:\bms\d_result.ifs";
+					args[0] = @"d:\bms\sound\[ifs]\01000.ifs";
+				}
 			}
 
 			if (args != null && args.Length > 0)
