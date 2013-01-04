@@ -17,6 +17,17 @@ namespace Scharfrichter.Codec.Sounds
 		public float Panning = 0.5f;
 		public float Volume = 1.0f;
 
+		public Sound()
+		{
+			Data = new byte[] { };
+			Format = null;
+		}
+
+		public Sound(byte[] newData, WaveFormat newFormat)
+		{
+			SetSound(newData, newFormat);
+		}
+
 		static public Sound Read(Stream source)
 		{
 			Sound result = new Sound();
@@ -35,6 +46,22 @@ namespace Scharfrichter.Codec.Sounds
 			result.Panning = 0.5f;
 			result.Volume = 1.0f;
 			return result;
+		}
+
+		public void SetSound(byte[] data, WaveFormat sourceFormat)
+		{
+			MemoryStream dataStream = new MemoryStream(data);
+			RawSourceWaveStream wavStream = new RawSourceWaveStream(dataStream, sourceFormat);
+			WaveStream wavConvertStream = WaveFormatConversionStream.CreatePcmStream(wavStream);
+
+			// using a mux, we force all sounds to be 2 channels
+			MultiplexingWaveProvider sourceProvider = new MultiplexingWaveProvider(new IWaveProvider[] { wavConvertStream }, 2);
+			int bytesToRead = (int)((wavConvertStream.Length * 2) / wavConvertStream.WaveFormat.Channels);
+			byte[] rawWaveData = new byte[bytesToRead];
+			int bytesRead = sourceProvider.Read(rawWaveData, 0, bytesToRead);
+
+			Data = rawWaveData;
+			Format = sourceProvider.WaveFormat;
 		}
 
 		public void Write(Stream target, float masterVolume)
@@ -115,6 +142,16 @@ namespace Scharfrichter.Codec.Sounds
 						target.Write(mem.ToArray(), 0, (int)mem.Length);
 					}
 				}
+			}
+		}
+
+		public void WriteFile(string targetFile, float masterVolume)
+		{
+			using (MemoryStream target = new MemoryStream())
+			{
+				Write(target, masterVolume);
+				target.Flush();
+				File.WriteAllBytes(targetFile, target.ToArray());
 			}
 		}
 	}

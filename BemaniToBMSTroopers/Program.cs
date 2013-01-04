@@ -18,7 +18,7 @@ namespace BemaniToBMSTroopers
 			if (System.Diagnostics.Debugger.IsAttached && (args == null || args.Length == 0))
 			{
 				Console.WriteLine("Debugger attached without commandline args. Inserting test file..");
-				args = new string[] { @"D:\BMS\sound\[TRICORO]" };
+				args = new string[] { @"D:\iidx-data\syssd_bgm_cardout.sd9" };
 			}
 			ConvertFunctions.BemaniToBMS(args, unitNumerator, unitDenominator, quantizeMeasure);
 		}
