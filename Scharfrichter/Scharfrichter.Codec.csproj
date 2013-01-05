@@ -95,9 +95,6 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Resources\DJS.png" />
-  </ItemGroup>
-  <ItemGroup>
     <Content Include="DJS.ico" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
