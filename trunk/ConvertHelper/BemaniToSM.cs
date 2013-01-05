@@ -63,7 +63,7 @@ namespace ConvertHelper
 								default: gameType = ""; break;
 							}
 							chart.Entries.Sort();
-							sm.CreateStepTag(chart.Entries.ToArray(), gameType, "", difficulty, "", "", System.Convert.ToInt32(chart.Tags["Panels"]), 16);
+							sm.CreateStepTag(chart.Entries.ToArray(), gameType, "", difficulty, "", "", System.Convert.ToInt32(chart.Tags["Panels"]), 192);
 						}
 
 						sm.WriteFile(outFile);
