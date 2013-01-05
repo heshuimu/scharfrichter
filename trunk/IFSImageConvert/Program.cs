@@ -33,7 +33,9 @@ namespace IFSImageConvert
 						using (MemoryStream mem = new MemoryStream())
 						{
 							string outfile = Path.Combine(Path.GetDirectoryName(filename), Path.GetFileNameWithoutExtension(filename) + ".export");
+							Console.Write("Input size: " + (fs.Length - 8).ToString() + " ");
 							IFSImage.Decompress(fs, mem);
+							Console.WriteLine("Output size: " + mem.Length.ToString());
 							File.WriteAllBytes(outfile, mem.ToArray());
 						}
 					}
