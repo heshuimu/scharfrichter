@@ -16,7 +16,7 @@ namespace DJMainExtract
 	{
 		static void Main(string[] args)
 		{
-			Console.WriteLine("DJMainExtract");
+			Console.WriteLine("DJSLACKERS - DJMainExtract");
 
 			args = Subfolder.Parse(args);
 

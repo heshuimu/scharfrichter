@@ -46,7 +46,7 @@ namespace ConvertHelper
 
 		static public void BemaniToBMS(string[] inArgs, long unitNumerator, long unitDenominator, int quantizeMeasure)
 		{
-			Console.WriteLine("BemaniToBMS");
+			Console.WriteLine("DJSLACKERS - BemaniToBMS");
 			Console.WriteLine("Timing: " + unitNumerator.ToString() + "/" + unitDenominator.ToString());
 			Console.WriteLine("Measure Quantize: " + quantizeMeasure.ToString());
 

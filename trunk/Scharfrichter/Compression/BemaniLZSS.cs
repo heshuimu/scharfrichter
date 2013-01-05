@@ -6,12 +6,19 @@ using System.Text;
 
 namespace Scharfrichter.Codec.Compression
 {
+	// this LZSS variant is used by beatmania 5-key
+	// for compression of append data
+
 	static public class BemaniLZSS
 	{
 		private static int bufferMask = 0x3FFF; // 14 bits window
 		private static int bufferSize = 0x4000;
 
-		static public void Decode(Stream source, Stream target)
+		static public void Compress(Stream source, Stream target, int length)
+		{
+		}
+
+		static public void Decompress(Stream source, Stream target)
 		{
 			using (MemoryStream mem = new MemoryStream())
 			{
@@ -111,10 +118,6 @@ namespace Scharfrichter.Codec.Compression
 					writer.Flush();
 				}
 			}
-		}
-
-		static public void Encode(Stream source, Stream target)
-		{
 		}
 	}
 }
