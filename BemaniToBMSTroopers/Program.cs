@@ -20,7 +20,7 @@ namespace BemaniToBMSTroopers
 				Console.WriteLine("Debugger attached without commandline args. Inserting test file..");
 				args = new string[] { @"D:\iidx-data\syssd_bgm_cardout.sd9" };
 			}
-			ConvertFunctions.BemaniToBMS(args, unitNumerator, unitDenominator, quantizeMeasure);
+			BemaniToBMS.Convert(args, unitNumerator, unitDenominator, quantizeMeasure);
 		}
 	}
 }

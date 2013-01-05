@@ -10,7 +10,7 @@ using System.Text;
 
 namespace ConvertHelper
 {
-	static public class ConvertFunctions
+	static public class BemaniToBMS
 	{
 		static string[] chartTitlesIIDX1 = new string[]
 		{
@@ -44,7 +44,7 @@ namespace ConvertHelper
 			0
 		};
 
-		static public void BemaniToBMS(string[] inArgs, long unitNumerator, long unitDenominator, int quantizeMeasure)
+		static public void Convert(string[] inArgs, long unitNumerator, long unitDenominator, int quantizeMeasure)
 		{
 			Console.WriteLine("DJSLACKERS - BemaniToBMS");
 			Console.WriteLine("Timing: " + unitNumerator.ToString() + "/" + unitDenominator.ToString());
@@ -76,27 +76,27 @@ namespace ConvertHelper
 					{
 						case @".1":
 							using (MemoryStream source = new MemoryStream(data))
-								BemaniToBMSConvertArchive(Bemani1.Read(source, unitNumerator, unitDenominator), quantizeMeasure, args[i], chartTitlesIIDX1, difficultyTagsIIDX1);
+								ConvertArchive(Bemani1.Read(source, unitNumerator, unitDenominator), quantizeMeasure, args[i], chartTitlesIIDX1, difficultyTagsIIDX1);
 							break;
 						case @".2DX":
 							using (MemoryStream source = new MemoryStream(data))
 							{
 								Console.WriteLine("Converting Samples");
 								Bemani2DX archive = Bemani2DX.Read(source);
-								BemaniToBMSConvertSounds(archive.Sounds, args[i], 0.6f);
+								ConvertSounds(archive.Sounds, args[i], 0.6f);
 							}
 							break;
 						case @".CS":
 							using (MemoryStream source = new MemoryStream(data))
-								BemaniToBMSConvertChart(BeatmaniaIIDXCSNew.Read(source), quantizeMeasure, args[i], "", 0, null);
+								ConvertChart(BeatmaniaIIDXCSNew.Read(source), quantizeMeasure, args[i], "", 0, null);
 							break;
 						case @".CS2":
 							using (MemoryStream source = new MemoryStream(data))
-								BemaniToBMSConvertChart(BeatmaniaIIDXCSOld.Read(source), quantizeMeasure, args[i], "", 0, null);
+								ConvertChart(BeatmaniaIIDXCSOld.Read(source), quantizeMeasure, args[i], "", 0, null);
 							break;
 						case @".CS5":
 							using (MemoryStream source = new MemoryStream(data))
-								BemaniToBMSConvertChart(Beatmania5Key.Read(source), quantizeMeasure, args[i], "", 0, null);
+								ConvertChart(Beatmania5Key.Read(source), quantizeMeasure, args[i], "", 0, null);
 							break;
 						case @".CS9":
 							break;
@@ -111,7 +111,7 @@ namespace ConvertHelper
 							break;
 						case @".SSP":
 							using (MemoryStream source = new MemoryStream(data))
-								BemaniToBMSConvertSounds(BemaniSSP.Read(source).Sounds, args[i], 1.0f);
+								ConvertSounds(BemaniSSP.Read(source).Sounds, args[i], 1.0f);
 							break;
 					}
 				}
@@ -119,19 +119,19 @@ namespace ConvertHelper
 			Console.WriteLine("BemaniToBMS finished.");
 		}
 
-		static public void BemaniToBMSConvertArchive(Archive archive, int quantizeMeasure, string filename, string[] chartTitles, int[] difficultyTags)
+		static public void ConvertArchive(Archive archive, int quantizeMeasure, string filename, string[] chartTitles, int[] difficultyTags)
 		{
 			for (int j = 0; j < archive.ChartCount; j++)
 			{
 				if (archive.Charts[j] != null)
 				{
 					Console.WriteLine("Converting Chart " + j.ToString());
-					BemaniToBMSConvertChart(archive.Charts[j], quantizeMeasure, filename, chartTitles[j], difficultyTags[j], null);
+					ConvertChart(archive.Charts[j], quantizeMeasure, filename, chartTitles[j], difficultyTags[j], null);
 				}
 			}
 		}
 
-		static public void BemaniToBMSConvertChart(Chart chart, int quantizeMeasure, string filename, string title, int difficulty, int[] map)
+		static public void ConvertChart(Chart chart, int quantizeMeasure, string filename, string title, int difficulty, int[] map)
 		{
 			if (quantizeMeasure > 0)
 				chart.QuantizeMeasureLengths(quantizeMeasure);
@@ -173,7 +173,7 @@ namespace ConvertHelper
 			}
 		}
 
-		static public void BemaniToBMSConvertSounds(Sound[] sounds, string filename, float volume)
+		static public void ConvertSounds(Sound[] sounds, string filename, float volume)
 		{
 			string name = Path.GetFileNameWithoutExtension(Path.GetFileName(filename));
 			string targetPath = Path.Combine(Path.GetDirectoryName(filename), name);
