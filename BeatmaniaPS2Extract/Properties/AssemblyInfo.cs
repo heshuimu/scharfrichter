@@ -8,9 +8,9 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyTitle("BeatmaniaPS2Extract")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("")]
+[assembly: AssemblyCompany("DJSLACKERS")]
 [assembly: AssemblyProduct("BeatmaniaPS2Extract")]
-[assembly: AssemblyCopyright("Pegasystem")]
+[assembly: AssemblyCopyright("DJSLACKERS")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
