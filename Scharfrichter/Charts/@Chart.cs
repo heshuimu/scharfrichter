@@ -668,7 +668,7 @@ namespace Scharfrichter.Codec.Charts
 		public override string ToString()
 		{
 			// for debug purposes only
-			return ("[M" + metricOffset.ToString() + ", L" + linearOffset.ToString() + "] " + Type.ToString() + ": P" + Player.ToString() + ", C" + Column.ToString());
+			return ("[M" + MetricMeasure.ToString() + ":" + metricOffset.ToString() + ", L" + linearOffset.ToString() + "] " + Type.ToString() + ": P" + Player.ToString() + ", C" + Column.ToString());
 		}
 
 		public Fraction LinearOffset
