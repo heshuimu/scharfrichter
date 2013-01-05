@@ -81,7 +81,6 @@ namespace Scharfrichter.Codec.Archives
 				byte[] step = reader.ReadBytes(count);
 				byte[] freeze = reader.ReadBytes((int)reader.BaseStream.Length - (4 + (5 * count)));
 				int freezeIndex = 0;
-				bool hasFreezeType = false;
 				int freezeCount = 0;
 
 				while (freezeIndex < freeze.Length && freeze[freezeIndex] == 0)
@@ -92,9 +91,6 @@ namespace Scharfrichter.Codec.Archives
 					if (step[i] == 0)
 						freezeCount++;
 				}
-
-				if ((freeze.Length - freezeIndex) >= (freezeCount * 2))
-					hasFreezeType = true;
 
 				for (int i = 0; i < count; i++)
 				{
@@ -108,8 +104,7 @@ namespace Scharfrichter.Codec.Archives
 						isFreeze = true;
 						stepData = freeze[freezeIndex];
 						freezeIndex++;
-						if (hasFreezeType)
-							freezeIndex++; // freeze type, ignored for now
+						freezeIndex++; // freeze type, ignored for now
 					}
 					else if ((stepData & 0xF) == 0xF)
 					{
