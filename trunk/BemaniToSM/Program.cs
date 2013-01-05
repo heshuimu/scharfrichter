@@ -10,6 +10,11 @@ namespace BemaniToSM
 	{
 		static void Main(string[] args)
 		{
+			if (System.Diagnostics.Debugger.IsAttached && args.Length == 0)
+			{
+				args = new string[] { @"D:\SSQ" };
+			}
+
 			ConvertHelper.BemaniToSM.Convert(args);
 		}
 	}
