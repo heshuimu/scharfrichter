@@ -60,8 +60,8 @@ namespace DJMainExtract
 							{
 								Console.WriteLine("Exporting set " + j.ToString());
 								string fname = Path.Combine(Path.GetDirectoryName(args[i]), Util.ConvertToDecimalString(j, 3));
-								ConvertHelper.ConvertFunctions.BemaniToBMSConvertChart(chunk.Charts[0], 32, fname, "", 0, chunk.SampleMaps[0]);
-								ConvertHelper.ConvertFunctions.BemaniToBMSConvertSounds(chunk.Sounds, fname, 0.6f);
+								ConvertHelper.BemaniToBMS.ConvertChart(chunk.Charts[0], 32, fname, "", 0, chunk.SampleMaps[0]);
+								ConvertHelper.BemaniToBMS.ConvertSounds(chunk.Sounds, fname, 0.6f);
 							}
 						}
 

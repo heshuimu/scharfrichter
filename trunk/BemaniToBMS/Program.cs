@@ -15,7 +15,7 @@ namespace BemaniToBMS
 
 		static void Main(string[] args)
 		{
-			ConvertFunctions.BemaniToBMS(args, unitNumerator, unitDenominator, quantizeMeasure);
+			ConvertHelper.BemaniToBMS.Convert(args, unitNumerator, unitDenominator, quantizeMeasure);
 		}
 	}
 }
