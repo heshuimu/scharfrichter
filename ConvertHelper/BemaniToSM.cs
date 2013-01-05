@@ -17,11 +17,6 @@ namespace ConvertHelper
 		{
 			Console.WriteLine("DJSLACKERS - BemaniToSM");
 
-			if (System.Diagnostics.Debugger.IsAttached && inArgs.Length == 0)
-			{
-				inArgs = new string[] { @"D:\BMS\damd2.ssq" };
-			}
-
 			string[] args;
 
 			if (inArgs.Length > 0)

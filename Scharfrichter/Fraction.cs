@@ -298,7 +298,6 @@ namespace Scharfrichter.Codec
 			set
 			{
 				denominator = value;
-				System.Diagnostics.Debug.Assert(numerator >= 0);
 			}
 		}
 
@@ -311,7 +310,6 @@ namespace Scharfrichter.Codec
 			set
 			{
 				numerator = value;
-				System.Diagnostics.Debug.Assert(numerator >= 0);
 			}
 		}
 	}

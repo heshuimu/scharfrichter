@@ -90,7 +90,7 @@ namespace Scharfrichter.Codec.Archives
 				}
 				else if (i < (bpmCount - 1))
 				{
-					double stopLength = Math.Round((double)(entries[i + 1].LinearOffset - entries[i].LinearOffset), 3);
+					double stopLength = Math.Abs(Math.Round((double)(entries[i + 1].LinearOffset - entries[i].LinearOffset), 3));
 					if (stopTag.Length > 0)
 						stopTag += ",";
 					stopTag += offset.ToString();
