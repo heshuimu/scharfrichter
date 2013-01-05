@@ -77,7 +77,7 @@ namespace Scharfrichter.Codec.Archives
 			for (int i = 0; i < bpmCount; i++)
 			{
 				Entry entry = entries[i];
-				double offset = Math.Round((double)entry.MetricOffset + (double)entry.MetricMeasure, 3);
+				double offset = Math.Round(((double)entry.MetricOffset + (double)entry.MetricMeasure) * 4f, 3);
 				double value = Math.Round((double)entry.Value, 3);
 
 				if (value > 0)

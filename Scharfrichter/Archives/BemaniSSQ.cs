@@ -161,7 +161,7 @@ namespace Scharfrichter.Codec.Archives
 					Fraction bpmValue = metricValue / linearValue;
 					entry.MetricMeasure = metric[i - 1] / measureUnit;
 					entry.MetricOffset = new Fraction(metric[i - 1] % measureUnit, measureUnit);
-					entry.LinearOffset = linearValue;
+					entry.LinearOffset = new Fraction(linear[i - 1], source.Parameter);
 					entry.Type = EntryType.Tempo;
 					entry.Value = bpmValue;
 					result[i - 1] = entry;
