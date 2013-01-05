@@ -13,7 +13,7 @@ namespace IFSExtract
 	{
 		static void Main(string[] args)
 		{
-			Console.WriteLine("IFSExtract");
+			Console.WriteLine("DJSLACKERS - IFSExtract");
 			args = Subfolder.Parse(args);
 
 			if (System.Diagnostics.Debugger.IsAttached && args.Length == 0)

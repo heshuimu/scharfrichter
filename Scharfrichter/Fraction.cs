@@ -110,6 +110,27 @@ namespace Scharfrichter.Codec
 			}
 		}
 
+		public override bool Equals(object obj)
+		{
+			Fraction other = (Fraction)obj;
+			Fraction a;
+			Fraction b;
+			Commonize(this, other, out a, out b);
+			return (a.Numerator == b.Numerator);
+		}
+
+		public override int GetHashCode()
+		{
+			// this is a poor way to do it, I know that, but VS wants it
+			long num = numerator;
+			long den = denominator;
+			num <<= 32;
+			num >>= 32;
+			den <<= 32;
+			den >>= 32;
+			return (int)num ^ (int)den;
+		}
+
 		public override string ToString()
 		{
 			checked

@@ -13,6 +13,7 @@ namespace LZDecompress
 	{
 		static void Main(string[] args)
 		{
+			Console.WriteLine("DJSLACKERS - LZDecompress");
 			args = Subfolder.Parse(args);
 
 			if (args.Length > 0)
@@ -22,7 +23,7 @@ namespace LZDecompress
 				{
 					using (MemoryStream output = new MemoryStream())
 					{
-						BemaniLZ.Decode(mem, output);
+						BemaniLZ.Decompress(mem, output);
 						File.WriteAllBytes(Path.GetFileNameWithoutExtension(args[0]) + ".out", output.ToArray()); 
 					}
 				}

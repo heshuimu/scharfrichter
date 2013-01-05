@@ -6,7 +6,7 @@ using System.Text;
 
 namespace Scharfrichter.Codec.Encryption
 {
-	// most of this was ported from crack2dx.c
+	// most of this was ported from crack2dx.c (thanks Tau)
 
 	public enum Bemani2DXEncryptionType
 	{

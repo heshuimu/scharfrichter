@@ -6,12 +6,19 @@ using System.Text;
 
 namespace Scharfrichter.Codec.Compression
 {
+	// this LZ variant is used for compressing many types of data, it seems to be
+	// a Konami standard format since at least 1994 if not back further
+
 	static public class BemaniLZ
 	{
 		private static int bufferMask = 0x3FF; // 10 bits window
 		private static int bufferSize = 0x400;
 
-		static public void Decode(Stream source, Stream target)
+		static public void Compress(Stream source, Stream target, int length)
+		{
+		}
+
+		static public void Decompress(Stream source, Stream target)
 		{
 			using (MemoryStream mem = new MemoryStream())
 			{
@@ -95,10 +102,6 @@ namespace Scharfrichter.Codec.Compression
 				writer.Flush();
 			}
 			target.Flush();
-		}
-
-		static public void Encode(Stream source, Stream target)
-		{
 		}
 	}
 }

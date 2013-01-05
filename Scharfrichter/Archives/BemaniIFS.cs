@@ -80,7 +80,6 @@ namespace Scharfrichter.Codec.Archives
 			// process tables
 			int chunkIndex = 0;
 			bool processTable = true;
-			bool firstChunk = true;
 			while (processTable)
 			{
 				Console.Write("A:" + Util.ConvertToHexString((int)tableAReader.BaseStream.Position, 8) + " B:" + Util.ConvertToHexString((int)tableBReader.BaseStream.Position, 8) + " ");
