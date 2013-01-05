@@ -19,7 +19,7 @@
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
+    <OutputPath>..\Output\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -45,6 +45,16 @@
   <ItemGroup>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\ConvertHelper\ConvertHelper.csproj">
+      <Project>{3F103FC7-6016-4E8B-B6F4-E2EEB8AD6087}</Project>
+      <Name>ConvertHelper</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Scharfrichter\Scharfrichter.Codec.csproj">
+      <Project>{DB34F6AF-C522-4149-A6D3-37A36D2D9590}</Project>
+      <Name>Scharfrichter.Codec</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
