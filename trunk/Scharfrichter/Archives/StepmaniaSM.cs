@@ -25,20 +25,23 @@ namespace Scharfrichter.Codec.Archives
 			foreach (Entry entry in entries)
 			{
 				int noteData = 1;
-				if (entry.Freeze)
+				if (entry.Column < panelCount)
 				{
-					noteData = 3;
-					int test = notes[lastNoteData[entry.Column, 0], lastNoteData[entry.Column, 1], entry.Column];
-					notes[lastNoteData[entry.Column, 0], lastNoteData[entry.Column, 1], entry.Column] = 2;
+					if (entry.Freeze)
+					{
+						noteData = 3;
+						int test = notes[lastNoteData[entry.Column, 0], lastNoteData[entry.Column, 1], entry.Column];
+						notes[lastNoteData[entry.Column, 0], lastNoteData[entry.Column, 1], entry.Column] = 2;
+					}
+					else if (entry.Type == EntryType.Mine)
+					{
+						noteData = -1;
+					}
+					int offset = (int)Math.Truncate(quantDouble * (double)entry.MetricOffset);
+					notes[entry.MetricMeasure, offset, entry.Column] = noteData;
+					lastNoteData[entry.Column, 0] = entry.MetricMeasure;
+					lastNoteData[entry.Column, 1] = offset;
 				}
-				else if (entry.Type == EntryType.Mine)
-				{
-					noteData = -1;
-				}
-				int offset = (int)Math.Truncate(quantDouble * (double)entry.MetricOffset);
-				notes[entry.MetricMeasure, offset, entry.Column] = noteData;
-				lastNoteData[entry.Column, 0] = entry.MetricMeasure;
-				lastNoteData[entry.Column, 1] = offset;
 			}
 
 			StringBuilder builder = new StringBuilder();
