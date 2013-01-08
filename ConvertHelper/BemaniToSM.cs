@@ -63,6 +63,21 @@ namespace ConvertHelper
 								default: gameType = ""; break;
 							}
 							chart.Entries.Sort();
+
+							// couples chart check
+							if (gameType == "dance-single")
+							{
+								foreach (Entry entry in chart.Entries)
+								{
+									if (entry.Type == EntryType.Marker && entry.Column >= 4)
+									{
+										gameType = "dance-couple";
+										chart.Tags["Panels"] = "8";
+										break;
+									}
+								}
+							}
+
 							sm.CreateStepTag(chart.Entries.ToArray(), gameType, "", difficulty, "", "", System.Convert.ToInt32(chart.Tags["Panels"]), 192);
 						}
 

@@ -23,7 +23,7 @@ namespace IFSExtract
 				args = new string[] { Console.ReadLine() };
 				if (args[0] == "")
 				{
-					args[0] = @"D:\Torrent Seeds\DJHACKERS-L39\data\sd\popn20\aaaahero.ifs";
+					args[0] = @"D:\BMS\sound\[IFS]\10006.ifs";
 					//args[0] = @"d:\bms\sound\[ifs]\01000.ifs";
 				}
 			}
