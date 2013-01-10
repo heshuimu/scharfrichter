@@ -463,14 +463,14 @@ namespace Scharfrichter.Codec.Charts
 
 			int measure = 0;
 			Fraction lastMeasure = new Fraction(0, 1);
-			long quantize = quantizeValue;
+			long quantize = 0;
 
 			// quantize each event
 			foreach (Entry entry in entries)
 			{
-				if (entry.Type == EntryType.Measure)
+				if (entry.Type == EntryType.Measure || quantize == 0)
 				{
-					if (entry.MetricOffset != lastMeasure)
+					if (entry.Type == EntryType.Measure && entry.MetricOffset != lastMeasure)
 						measure++;
 
 					if (lengths.ContainsKey(measure))
