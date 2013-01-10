@@ -72,6 +72,10 @@
     <Compile Include="Encryption\BemaniPCAudio.cs" />
     <Compile Include="Fraction.cs" />
     <Compile Include="Graphics\%40Graphic.cs" />
+    <Compile Include="Heuristics\Bemani1.cs" />
+    <Compile Include="Heuristics\Bemani2DXArchive.cs" />
+    <Compile Include="Heuristics\BemaniImage2DXAC.cs" />
+    <Compile Include="Heuristics\BemaniModel2DXAC.cs" />
     <Compile Include="Media\CHD.Codec.cs" />
     <Compile Include="Media\CHD.cs" />
     <Compile Include="Media\CHD.Stream.cs" />

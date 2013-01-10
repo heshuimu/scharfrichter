@@ -39,29 +39,29 @@ namespace Scharfrichter.Codec.Archives
 			BemaniIFS result = new BemaniIFS();
 
 			// header length is 0x28 bytes
-			reader.ReadInt32(); // identifier
+			reader.ReadInt32S(); // identifier
 			Int16 headerMetaLength = reader.ReadInt16S(); // header meta amount?
 			reader.ReadInt16S(); // bitwise xor 0xFFFF of previously read value
-			reader.ReadInt32();
-			reader.ReadInt32();
-			Int32 headerLength = SwapEndian(reader.ReadInt32());
-			reader.ReadInt32();
+			reader.ReadInt32S();
+			reader.ReadInt32S();
+			Int32 headerLength = reader.ReadInt32S();
+			reader.ReadInt32S();
 
 			for (int i = 1; i < headerMetaLength; i++)
 			{
-				reader.ReadInt32();
-				reader.ReadInt32();
+				reader.ReadInt32S();
+				reader.ReadInt32S();
 			}
 
 			Console.WriteLine("Header length: " + headerLength.ToString());
 
 			// read table A
-			Int32 tableALength = SwapEndian(reader.ReadInt32());
+			Int32 tableALength = reader.ReadInt32S();
 			Console.WriteLine("Table A length: " + tableALength.ToString());
 			MemoryStream tableAMem = new MemoryStream(reader.ReadBytes(tableALength));
 
 			// read table B
-			Int32 tableBLength = SwapEndian(reader.ReadInt32());
+			Int32 tableBLength = reader.ReadInt32S();
 			Console.WriteLine("Table B length: " + tableBLength.ToString());
 			MemoryStream tableBMem = new MemoryStream(reader.ReadBytes(tableBLength));
 
@@ -141,22 +141,6 @@ namespace Scharfrichter.Codec.Archives
 			}
 
 			result.files = dataList;
-			return result;
-		}
-
-		static private Int32 SwapEndian(Int32 operand)
-		{
-			Int32 a = (operand >> 0) & (0xFF);
-			Int32 b = (operand >> 8) & (0xFF);
-			Int32 c = (operand >> 16) & (0xFF);
-			Int32 d = (operand >> 24) & (0xFF);
-			Int32 result = a;
-			result <<= 8;
-			result |= b;
-			result <<= 8;
-			result |= c;
-			result <<= 8;
-			result |= d;
 			return result;
 		}
 	}

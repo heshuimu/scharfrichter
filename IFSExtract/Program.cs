@@ -1,5 +1,6 @@
 ﻿using Scharfrichter.Codec;
 using Scharfrichter.Codec.Archives;
+using Scharfrichter.Codec.Heuristics;
 
 using System;
 using System.Collections.Generic;
@@ -49,39 +50,27 @@ namespace IFSExtract
 							BemaniIFS archive = BemaniIFS.Read(fs);
 							int count = archive.RawDataCount;
 
-							bool standardLayout = false;
-
-							if (count > 1)
-							{
-								byte[] data = archive.RawData[count - 1];
-								if (data.Length > 0x60)
-								{
-									if (data[0] == 0x60 && data[1] == 0x00 && data[2] == 0x00 && data[3] == 0x00)
-									{
-										standardLayout = true;
-									}
-								}
-							}
-
 							Console.WriteLine("Exporting files.");
 
 							for (int j = 0; j < count; j++)
 							{
-								string outputNumber = Util.ConvertToDecimalString(j, 3);
+								string outputNumber = Util.ConvertToDecimalString(j, 4);
 								string outputFile = outputFileBase;
-								if (!standardLayout)
-								{
-									outputFile += "." + outputNumber;
-								}
-								else
-								{
-									if (j == count - 1)
-										outputFile += ".1";
-									else
-										outputFile += "-" + outputNumber + ".2dx";
-								}
+								string extension = "dat";
+
 								byte[] data = archive.RawData[j];
 
+								// heuristics block
+								if (Heuristics.DetectBemaniModel2DXAC(data))
+									extension = "model";
+								else if (Heuristics.DetectBemani2DXArchive(data))
+									extension = "2dx";
+								else if (Heuristics.DetectBemani1(data))
+									extension = "1";
+								else if (Heuristics.DetectBemaniImage2DXAC(data))
+									extension = "cimg";
+
+								outputFile += "-" + outputNumber + "." + extension;
 								File.WriteAllBytes(outputFile, archive.RawData[j]);
 							}
 						}
