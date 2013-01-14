@@ -21,6 +21,11 @@ namespace NAudio.Wave
 			writer = new BinaryWriter(target);
 		}
 
+		~WaveWriter()
+		{
+			Dispose(true);
+		}
+
 		public void Update()
 		{
 			UpdateHeader(writer);

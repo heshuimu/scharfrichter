@@ -15,13 +15,13 @@ namespace ConvertHelper
 		static string[] chartTitlesIIDX1 = new string[]
 		{
 			"[1P Hyper]",
-			"[1P Light]",
+			"[1P Normal]",
 			"[1P Another]",
 			"[1P Beginner]",
 			"[1P 4]",
 			"[1P 5]",
 			"[2P Hyper]",
-			"[2P Light]",
+			"[2P Normal]",
 			"[2P Another]",
 			"[2P Beginner]",
 			"[2P 4]",
