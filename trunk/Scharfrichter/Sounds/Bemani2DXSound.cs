@@ -37,10 +37,13 @@ namespace Scharfrichter.Codec.Sounds
 			{
 				int infoLength = reader.ReadInt32();
 				int dataLength = reader.ReadInt32();
-				reader.ReadInt32();
+				reader.ReadInt16();
+				int channel = reader.ReadInt16();
 				int panning = reader.ReadInt16();
 				int volume = reader.ReadInt16();
-				reader.ReadBytes(infoLength - 20);
+				int options = reader.ReadInt32();
+
+				reader.ReadBytes(infoLength - 24);
 
 				byte[] wavData = reader.ReadBytes(dataLength);
 				using (MemoryStream wavDataMem = new MemoryStream(wavData))
@@ -67,6 +70,8 @@ namespace Scharfrichter.Codec.Sounds
 						else if (volume > 0xFF)
 							volume = 0xFF;
 						result.Volume = VolumeTable[volume];
+
+						result.Channel = channel;
 					}
 				}
 			}

@@ -1,6 +1,7 @@
 ﻿using NAudio;
 using NAudio.Codecs;
 using NAudio.Wave;
+using NAudio.Utils;
 
 using System;
 using System.Collections.Generic;
@@ -16,6 +17,7 @@ namespace Scharfrichter.Codec.Sounds
 		public WaveFormat Format;
 		public float Panning = 0.5f;
 		public float Volume = 1.0f;
+		public int Channel = -1;
 
 		public Sound()
 		{
@@ -48,6 +50,76 @@ namespace Scharfrichter.Codec.Sounds
 			return result;
 		}
 
+		public byte[] Render(float masterVolume)
+		{
+			// due to the way NAudio works, the source files must be provided twice.
+			// this is because all channels are kept in sync by the mux, and the unused
+			// channel data is discarded. If we tried to use the same source for both
+			// muxes, it would try to read 2x the data present in the buffer!
+			// If only we had a way to create separate WaveProviders from within the
+			// MultiplexingWaveProvider..
+
+			MemoryStream sourceLeft = new MemoryStream(Data);
+			MemoryStream sourceRight = new MemoryStream(Data);
+			RawSourceWaveStream waveLeft = new RawSourceWaveStream(sourceLeft, Format);
+			RawSourceWaveStream waveRight = new RawSourceWaveStream(sourceRight, Format);
+
+			// step 1: separate the stereo stream
+			MultiplexingWaveProvider demuxLeft = new MultiplexingWaveProvider(new IWaveProvider[] { waveLeft }, 1);
+			MultiplexingWaveProvider demuxRight = new MultiplexingWaveProvider(new IWaveProvider[] { waveRight }, 1);
+			demuxLeft.ConnectInputToOutput(0, 0);
+			demuxRight.ConnectInputToOutput(1, 0);
+
+			// step 2: adjust the volume of a stereo stream
+			VolumeWaveProvider16 volLeft = new VolumeWaveProvider16(demuxLeft);
+			VolumeWaveProvider16 volRight = new VolumeWaveProvider16(demuxRight);
+
+			// note: use logarithmic scale
+#if (true)
+			// log scale is applied to each operation
+			float volumeValueLeft = (float)Math.Pow(1.0f - Panning, 0.5f);
+			float volumeValueRight = (float)Math.Pow(Panning, 0.5f);
+			// ensure 1:1 conversion
+			volumeValueLeft /= (float)Math.Sqrt(0.5);
+			volumeValueRight /= (float)Math.Sqrt(0.5);
+			// apply volume
+			volumeValueLeft *= (float)Math.Pow(Volume, 0.5f);
+			volumeValueRight *= (float)Math.Pow(Volume, 0.5f);
+			// clamp
+			volumeValueLeft = Math.Min(Math.Max(volumeValueLeft, 0.0f), 1.0f);
+			volumeValueRight = Math.Min(Math.Max(volumeValueRight, 0.0f), 1.0f);
+#else
+					// log scale is applied to the result of the operations
+					float volumeValueLeft = (float)Math.Pow(1.0f - Panning, 0.5f);
+					float volumeValueRight = (float)Math.Pow(Panning, 0.5f);
+					// ensure 1:1 conversion
+					volumeValueLeft /= (float)Math.Sqrt(0.5);
+					volumeValueRight /= (float)Math.Sqrt(0.5);
+					// apply volume
+					volumeValueLeft *= Volume;
+					volumeValueRight *= Volume;
+					// apply log scale
+					volumeValueLeft = (float)Math.Pow(volumeValueLeft, 0.5f);
+					volumeValueRight = (float)Math.Pow(volumeValueRight, 0.5f);
+					// clamp
+					volumeValueLeft = Math.Min(Math.Max(volumeValueLeft, 0.0f), 1.0f);
+					volumeValueRight = Math.Min(Math.Max(volumeValueRight, 0.0f), 1.0f);
+#endif
+			// use linear scale for master volume
+			volLeft.Volume = volumeValueLeft * masterVolume;
+			volRight.Volume = volumeValueRight * masterVolume;
+
+			// step 3: combine them again
+			IWaveProvider[] tracks = new IWaveProvider[] { volLeft, volRight };
+			MultiplexingWaveProvider mux = new MultiplexingWaveProvider(tracks, 2);
+
+			// step 4: export them to a byte array
+			byte[] finalData = new byte[Data.Length];
+			mux.Read(finalData, 0, finalData.Length);
+
+			return finalData;
+		}
+
 		public void SetSound(byte[] data, WaveFormat sourceFormat)
 		{
 			MemoryStream dataStream = new MemoryStream(data);
@@ -70,75 +142,11 @@ namespace Scharfrichter.Codec.Sounds
 			{
 				using (MemoryStream mem = new MemoryStream())
 				{
-					// due to the way NAudio works, the source files must be provided twice.
-					// this is because all channels are kept in sync by the mux, and the unused
-					// channel data is discarded. If we tried to use the same source for both
-					// muxes, it would try to read 2x the data present in the buffer!
-					// If only we had a way to create separate WaveProviders from within the
-					// MultiplexingWaveProvider..
-
-					MemoryStream sourceLeft = new MemoryStream(Data);
-					MemoryStream sourceRight = new MemoryStream(Data);
-					RawSourceWaveStream waveLeft = new RawSourceWaveStream(sourceLeft, Format);
-					RawSourceWaveStream waveRight = new RawSourceWaveStream(sourceRight, Format);
-
-					// step 1: separate the stereo stream
-					MultiplexingWaveProvider demuxLeft = new MultiplexingWaveProvider(new IWaveProvider[] { waveLeft }, 1);
-					MultiplexingWaveProvider demuxRight = new MultiplexingWaveProvider(new IWaveProvider[] { waveRight }, 1);
-					demuxLeft.ConnectInputToOutput(0, 0);
-					demuxRight.ConnectInputToOutput(1, 0);
-
-					// step 2: adjust the volume of a stereo stream
-					VolumeWaveProvider16 volLeft = new VolumeWaveProvider16(demuxLeft);
-					VolumeWaveProvider16 volRight = new VolumeWaveProvider16(demuxRight);
-
-					// note: use logarithmic scale
-#if (true)
-					// log scale is applied to each operation
-					float volumeValueLeft = (float)Math.Pow(1.0f - Panning, 0.5f);
-					float volumeValueRight = (float)Math.Pow(Panning, 0.5f);
-					// ensure 1:1 conversion
-					volumeValueLeft /= (float)Math.Sqrt(0.5);
-					volumeValueRight /= (float)Math.Sqrt(0.5);
-					// apply volume
-					volumeValueLeft *= (float)Math.Pow(Volume, 0.5f);
-					volumeValueRight *= (float)Math.Pow(Volume, 0.5f);
-					// clamp
-					volumeValueLeft = Math.Min(Math.Max(volumeValueLeft, 0.0f), 1.0f);
-					volumeValueRight = Math.Min(Math.Max(volumeValueRight, 0.0f), 1.0f);
-#else
-					// log scale is applied to the result of the operations
-					float volumeValueLeft = (float)Math.Pow(1.0f - Panning, 0.5f);
-					float volumeValueRight = (float)Math.Pow(Panning, 0.5f);
-					// ensure 1:1 conversion
-					volumeValueLeft /= (float)Math.Sqrt(0.5);
-					volumeValueRight /= (float)Math.Sqrt(0.5);
-					// apply volume
-					volumeValueLeft *= Volume;
-					volumeValueRight *= Volume;
-					// apply log scale
-					volumeValueLeft = (float)Math.Pow(volumeValueLeft, 0.5f);
-					volumeValueRight = (float)Math.Pow(volumeValueRight, 0.5f);
-					// clamp
-					volumeValueLeft = Math.Min(Math.Max(volumeValueLeft, 0.0f), 1.0f);
-					volumeValueRight = Math.Min(Math.Max(volumeValueRight, 0.0f), 1.0f);
-#endif
-					// use linear scale for master volume
-					volLeft.Volume = volumeValueLeft * masterVolume;
-					volRight.Volume = volumeValueRight * masterVolume;
-
-					// step 3: combine them again
-					IWaveProvider[] tracks = new IWaveProvider[] { volLeft, volRight };
-					MultiplexingWaveProvider mux = new MultiplexingWaveProvider(tracks, 2);
-
-					// step 4: export them to a byte array
-					byte[] finalData = new byte[Data.Length];
-					mux.Read(finalData, 0, finalData.Length);
-
-					using (WaveWriter writer = new WaveWriter(mem, Format))
+					using (WaveFileWriter writer = new WaveFileWriter(new IgnoreDisposeStream(mem), Format))
 					{
+						byte[] finalData = Render(masterVolume);
 						writer.Write(finalData, 0, finalData.Length);
-						writer.Update();
+						writer.Flush();
 						target.Write(mem.ToArray(), 0, (int)mem.Length);
 					}
 				}
