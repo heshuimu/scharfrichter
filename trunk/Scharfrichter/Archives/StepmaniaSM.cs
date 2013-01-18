@@ -73,10 +73,13 @@ namespace Scharfrichter.Codec.Archives
 
 		public void CreateTempoTags(Entry[] entries)
 		{
-			// build the BPMS and STOPS tags
+			// build the DISPLAYBPM, BPMS and STOPS tags
 			string bpmTag = "";
 			string stopTag = "";
 			int bpmCount = entries.Length;
+			double lowBPM = double.MaxValue;
+			double highBPM = double.MinValue;
+
 			for (int i = 0; i < bpmCount; i++)
 			{
 				Entry entry = entries[i];
@@ -86,7 +89,18 @@ namespace Scharfrichter.Codec.Archives
 				if (value > 0)
 				{
 					if (bpmTag.Length > 0)
+					{
 						bpmTag += ",";
+						if (value < lowBPM)
+							lowBPM = Math.Round(value);
+						if (value > highBPM)
+							highBPM = Math.Round(value);
+					}
+					else
+					{
+						Tags["DisplayBPM"] = Math.Round(value).ToString();
+					}
+
 					bpmTag += offset.ToString();
 					bpmTag += "=";
 					bpmTag += value.ToString();
@@ -100,6 +114,16 @@ namespace Scharfrichter.Codec.Archives
 					stopTag += "=";
 					stopTag += stopLength.ToString();
 				}
+			}
+
+			if (lowBPM < highBPM)
+			{
+				string bpmResult;
+				if (lowBPM != highBPM)
+					bpmResult = lowBPM.ToString() + ":" + highBPM.ToString();
+				else
+					bpmResult = lowBPM.ToString();
+				Tags["DisplayBPM"] = bpmResult;
 			}
 
 			Tags["BPMs"] = bpmTag;
