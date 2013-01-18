@@ -59,7 +59,7 @@
     <Compile Include="Archives\DJMain.cs" />
     <Compile Include="Archives\MicrosoftXWB.cs" />
     <Compile Include="Archives\StepmaniaSM.cs" />
-    <Compile Include="Xact3WaveBank.cs" />
+    <Compile Include="XACT3\Xact3WaveBank.cs" />
     <Compile Include="BinaryIO.cs" />
     <Compile Include="Charts\%40Chart.cs" />
     <Compile Include="Charts\Beatmania5Key.cs" />

@@ -32,6 +32,18 @@ namespace ConvertHelper
 				args = new string[] { Console.ReadLine() };
 			}
 
+			if (args.Length == 0)
+			{
+				Console.WriteLine();
+				Console.WriteLine("Usage: Render2DX <files..>");
+				Console.WriteLine();
+				Console.WriteLine("Drag and drop with files and folders is fully supported for this application.");
+				Console.WriteLine();
+				Console.WriteLine("You must have both the chart file (.1) and the sound file (.2dx).");
+				Console.WriteLine("Supported formats:");
+				Console.WriteLine("1, 2DX");
+			}
+
 			Sound[] sounds = null;
 			Chart[] charts = null;
 			bool cancel = false;
