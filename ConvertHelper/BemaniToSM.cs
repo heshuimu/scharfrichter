@@ -30,68 +30,78 @@ namespace ConvertHelper
 				{
 					switch (Path.GetExtension(filename).ToUpper())
 					{
-						case @".SSQ":
-							string outTitle = Path.GetFileNameWithoutExtension(filename);
-							string outFile = Path.Combine(Path.GetDirectoryName(filename), Path.GetFileNameWithoutExtension(filename) + ".SM");
-
-							Console.WriteLine();
-							Console.WriteLine("Processing file " + filename);
-
-							using (FileStream fs = new FileStream(filename, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+						case @".XWB":
 							{
-								BemaniSSQ ssq = BemaniSSQ.Read(fs, 0x1000);
-								StepmaniaSM sm = new StepmaniaSM();
-
-								sm.Tags["Title"] = outTitle;
-								sm.Tags["Artist"] = "";
-								sm.Tags["TitleTranslit"] = "";
-								sm.Tags["ArtistTranslit"] = "";
-								sm.Tags["Banner"] = outTitle + ".png";
-								sm.Tags["Background"] = outTitle + "-bg.png";
-								sm.Tags["Offset"] = "0.000";
-								sm.Tags["SampleLength"] = "14.000";
-
-								sm.CreateTempoTags(ssq.TempoEntries.ToArray());
-
-								foreach (Chart chart in ssq.Charts)
+								using (FileStream fs = new FileStream(filename, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
 								{
-									string gameType;
-									string difficulty;
-									switch (chart.Tags["Difficulty"])
-									{
-										case @"1": difficulty = "Light"; break;
-										case @"2": difficulty = "Standard"; break;
-										case @"3": difficulty = "Heavy"; break;
-										case @"4": difficulty = "Beginner"; break;
-										case @"6": difficulty = "Challenge"; break;
-										default: difficulty = ""; break;
-									}
-									switch (chart.Tags["Panels"])
-									{
-										case @"4": gameType = "dance-single"; break;
-										case @"8": gameType = "dance-double"; break;
-										default: gameType = ""; break;
-									}
-									chart.Entries.Sort();
+									MicrosoftXWB bank = MicrosoftXWB.Read(fs);
+								}
+							}
+							break;
+						case @".SSQ":
+							{
+								string outTitle = Path.GetFileNameWithoutExtension(filename);
+								string outFile = Path.Combine(Path.GetDirectoryName(filename), Path.GetFileNameWithoutExtension(filename) + ".SM");
 
-									// couples chart check
-									if (gameType == "dance-single")
+								Console.WriteLine();
+								Console.WriteLine("Processing file " + filename);
+
+								using (FileStream fs = new FileStream(filename, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+								{
+									BemaniSSQ ssq = BemaniSSQ.Read(fs, 0x1000);
+									StepmaniaSM sm = new StepmaniaSM();
+
+									sm.Tags["Title"] = outTitle;
+									sm.Tags["Artist"] = "";
+									sm.Tags["TitleTranslit"] = "";
+									sm.Tags["ArtistTranslit"] = "";
+									sm.Tags["Banner"] = outTitle + ".png";
+									sm.Tags["Background"] = outTitle + "-bg.png";
+									sm.Tags["Offset"] = "0.000";
+									sm.Tags["SampleLength"] = "14.000";
+
+									sm.CreateTempoTags(ssq.TempoEntries.ToArray());
+
+									foreach (Chart chart in ssq.Charts)
 									{
-										foreach (Entry entry in chart.Entries)
+										string gameType;
+										string difficulty;
+										switch (chart.Tags["Difficulty"])
 										{
-											if (entry.Type == EntryType.Marker && entry.Column >= 4)
+											case @"1": difficulty = "Light"; break;
+											case @"2": difficulty = "Standard"; break;
+											case @"3": difficulty = "Heavy"; break;
+											case @"4": difficulty = "Beginner"; break;
+											case @"6": difficulty = "Challenge"; break;
+											default: difficulty = ""; break;
+										}
+										switch (chart.Tags["Panels"])
+										{
+											case @"4": gameType = "dance-single"; break;
+											case @"8": gameType = "dance-double"; break;
+											default: gameType = ""; break;
+										}
+										chart.Entries.Sort();
+
+										// couples chart check
+										if (gameType == "dance-single")
+										{
+											foreach (Entry entry in chart.Entries)
 											{
-												gameType = "dance-couple";
-												chart.Tags["Panels"] = "8";
-												break;
+												if (entry.Type == EntryType.Marker && entry.Column >= 4)
+												{
+													gameType = "dance-couple";
+													chart.Tags["Panels"] = "8";
+													break;
+												}
 											}
 										}
+
+										sm.CreateStepTag(chart.Entries.ToArray(), gameType, "", difficulty, "", "", System.Convert.ToInt32(chart.Tags["Panels"]), 192);
 									}
 
-									sm.CreateStepTag(chart.Entries.ToArray(), gameType, "", difficulty, "", "", System.Convert.ToInt32(chart.Tags["Panels"]), 192);
+									sm.WriteFile(outFile);
 								}
-
-								sm.WriteFile(outFile);
 							}
 							break;
 					}
