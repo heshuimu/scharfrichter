@@ -58,7 +58,14 @@ namespace ConvertHelper
 
 									for (int i = 0; i < count; i++)
 									{
-										string outFile = Path.Combine(outPath, Util.ConvertToHexString(i, 4) + ".wav");
+										string outFileName;
+
+										if ((bank.Sounds[i].Name == null) || (bank.Sounds[i].Name == ""))
+											outFileName = Util.ConvertToHexString(i, 4);
+										else
+											outFileName = bank.Sounds[i].Name;
+
+										string outFile = Path.Combine(outPath, outFileName + ".wav");
 										bank.Sounds[i].WriteFile(outFile, 1.0f);
 									}
 
