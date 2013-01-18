@@ -12,13 +12,154 @@ namespace Scharfrichter.Codec.Archives
 	{
 		public Dictionary<string, string> Tags = new Dictionary<string, string>();
 
+		private class SMNoteEntry
+		{
+			public int Column;
+			public int Measure;
+			public string NoteChar;
+			public int Offset;
+
+			public SMNoteEntry()
+			{
+				Measure = 0;
+				NoteChar = "0";
+				Offset = 0;
+			}
+
+			public SMNoteEntry(Entry source, int quantize)
+			{
+				if (source.MetricOffsetInitialized)
+				{
+					Column = source.Column;
+					Measure = source.MetricMeasure;
+					Offset = (int)Math.Round((double)(source.MetricOffset * new Fraction(quantize, 1)));
+					while (Offset >= quantize)
+					{
+						Offset -= quantize;
+						Measure++;
+					}
+					if (source.Type == EntryType.Mine)
+						NoteChar = "M";
+					else if (source.Type == EntryType.Marker)
+						NoteChar = "1";
+					else
+						NoteChar = "0";
+				}
+				else
+				{
+					throw new Exception("Cannot create SM Note entry without metric offset");
+				}
+			}
+		}
+
 		public void CreateStepTag(Entry[] entries, string gameType, string description, string difficulty, string playLevel, string grooveRadar, int panelCount, int quantize)
 		{
-			string tagName = "NOTES:" + gameType + ":" + description + ":" + difficulty + ":" + playLevel + ":" + grooveRadar;
+			StringBuilder builder = new StringBuilder();
+
+			builder.AppendLine("NOTES:");
+			builder.AppendLine(gameType + ":");
+			builder.AppendLine(description + ":");
+			builder.AppendLine(difficulty + ":");
+			builder.AppendLine(playLevel + ":");
+			builder.Append(grooveRadar);
+
+			string tagName = builder.ToString();
 			int count = entries.Length;
 			int highestMeasure = entries[count - 1].MetricMeasure + 2;
-			double quantDouble = (double)quantize;
 
+			builder.Clear();
+
+			List<SMNoteEntry> noteEntries = new List<SMNoteEntry>();
+			Dictionary<int, SMNoteEntry> previousEntries = new Dictionary<int,SMNoteEntry>();
+
+			foreach (Entry entry in entries)
+			{
+				SMNoteEntry noteEntry = new SMNoteEntry(entry, quantize);
+				if (noteEntry.NoteChar != "0")
+				{
+					if (entry.Freeze)
+					{
+						if (previousEntries.ContainsKey(entry.Column))
+						{
+							previousEntries[entry.Column].NoteChar = "2";
+							previousEntries.Remove(entry.Column);
+							noteEntry.NoteChar = "3";
+						}
+					}
+					else
+					{
+						previousEntries[entry.Column] = noteEntry;
+					}
+					noteEntries.Add(noteEntry);
+				}
+			}
+
+			bool firstMeasure = true;
+
+			for (int measure = 0; measure < highestMeasure; measure++)
+			{
+				List<SMNoteEntry> measureEntries = new List<SMNoteEntry>();
+				List<int> offsets = new List<int>();
+
+				foreach (SMNoteEntry entry in noteEntries)
+				{
+					if (entry.Measure == measure)
+					{
+						measureEntries.Add(entry);
+						offsets.Add(entry.Offset);
+					}
+				}
+				offsets.Add(quantize);
+
+				if (!firstMeasure)
+					builder.Append(",");
+				builder.AppendLine("   // measure " + (measure + 1).ToString());
+
+				firstMeasure = false;
+
+				if (measureEntries.Count > 0)
+				{
+					int reduction = Util.GetLineReductionDivisor(offsets.ToArray());
+					int subdivisions = quantize / reduction;
+					if (subdivisions < 1)
+						subdivisions = 1;
+					while (subdivisions < 4)
+					{
+						subdivisions *= 2;
+						reduction /= 2;
+					}
+
+					string[,] measureChars = new string[subdivisions, panelCount];
+					for (int i = 0; i < subdivisions; i++)
+						for (int j = 0; j < panelCount; j++)
+							measureChars[i, j] = "0";
+
+					foreach (SMNoteEntry entry in measureEntries)
+						measureChars[entry.Offset / reduction, entry.Column] = entry.NoteChar;
+
+					for (int i = 0; i < subdivisions; i++)
+					{
+						for (int j = 0; j < panelCount; j++)
+							builder.Append(measureChars[i, j]);
+						builder.AppendLine();
+					}
+				}
+				else
+				{
+					for (int i = 0; i < 4; i++)
+					{
+						for (int j = 0; j < panelCount; j++)
+							builder.Append("0");
+						builder.AppendLine();
+					}
+				}
+			}
+
+			Tags[tagName] = builder.ToString();
+
+
+#if (false)
+			// old method
 			int[, ,] notes = new int[highestMeasure, quantize, panelCount];
 			int[,] lastNoteData = new int[panelCount, 2];
 
@@ -67,8 +208,8 @@ namespace Scharfrichter.Codec.Archives
 					builder.AppendLine();
 				}
 			}
-
 			Tags[tagName] = builder.ToString();
+#endif
 		}
 
 		public void CreateTempoTags(Entry[] entries)
@@ -135,7 +276,7 @@ namespace Scharfrichter.Codec.Archives
 			StreamWriter writer = new StreamWriter(target);
 			foreach (KeyValuePair<string, string> tag in Tags)
 			{
-				string val = "#" + tag.Key.ToUpper() + ":" + tag.Value + ";";
+				string val = "#" + tag.Key + ":" + tag.Value + ";";
 				writer.WriteLine(val);
 			}
 			writer.Flush();
