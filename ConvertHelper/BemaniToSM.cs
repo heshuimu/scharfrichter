@@ -132,7 +132,7 @@ namespace ConvertHelper
 											}
 										}
 
-										sm.CreateStepTag(chart.Entries.ToArray(), gameType, "", difficulty, "", "", System.Convert.ToInt32(chart.Tags["Panels"]), 192);
+										sm.CreateStepTag(chart.Entries.ToArray(), gameType, "", difficulty, "0", "", System.Convert.ToInt32(chart.Tags["Panels"]), 192);
 									}
 
 									sm.WriteFile(outFile);
