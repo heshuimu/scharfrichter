@@ -61,6 +61,7 @@
     <Compile Include="Archives\BemaniSSQ.cs" />
     <Compile Include="Archives\BMS.cs" />
     <Compile Include="Archives\DJMain.cs" />
+    <Compile Include="Archives\MicrosoftXWB.cs" />
     <Compile Include="Archives\StepmaniaSM.cs" />
     <Compile Include="BinaryIO.cs" />
     <Compile Include="Charts\%40Chart.cs" />
