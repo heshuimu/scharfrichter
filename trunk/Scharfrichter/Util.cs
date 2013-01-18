@@ -190,5 +190,12 @@ namespace Scharfrichter.Codec
 		{
 			return ConvertToAlphabetString(value, places, alphabetHex);
 		}
+
+		public static string TrimNulls(string value)
+		{
+			if (value.Contains((char)0))
+				value = value.Substring(0, value.IndexOf((char)0));
+			return value;
+		}
 	}
 }

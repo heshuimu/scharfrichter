@@ -64,6 +64,17 @@ namespace ConvertHelper
 				args = new string[] { Console.ReadLine() };
 			}
 
+			if (args.Length == 0)
+			{
+				Console.WriteLine();
+				Console.WriteLine("Usage: BemaniToBMS <input file>");
+				Console.WriteLine();
+				Console.WriteLine("Drag and drop with files and folders is fully supported for this application.");
+				Console.WriteLine();
+				Console.WriteLine("Supported formats:");
+				Console.WriteLine("1, 2DX, CS, SD9, SSP");
+			}
+
 			for (int i = 0; i < args.Length; i++)
 			{
 				if (File.Exists(args[i]))

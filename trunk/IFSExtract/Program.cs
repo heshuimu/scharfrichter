@@ -29,13 +29,24 @@ namespace IFSExtract
 				}
 			}
 
+			if (args.Length == 0)
+			{
+				Console.WriteLine();
+				Console.WriteLine("Usage: IFSExtract <input file>");
+				Console.WriteLine();
+				Console.WriteLine("Drag and drop with files and folders is fully supported for this application.");
+				Console.WriteLine();
+				Console.WriteLine("Supported formats:");
+				Console.WriteLine("IFS");
+			}
+
 			if (args != null && args.Length > 0)
 			{
 				for (int i = 0; i < args.Length; i++)
 				{
 					string filename = args[i];
 
-					if (File.Exists(filename))
+					if (File.Exists(filename) && Path.GetExtension(filename).ToUpper() == @".IFS")
 					{
 						Console.WriteLine();
 						Console.WriteLine("Processing file " + args[i]);

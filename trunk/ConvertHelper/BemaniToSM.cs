@@ -24,17 +24,45 @@ namespace ConvertHelper
 			else
 				args = inArgs;
 
+			if (args.Length == 0)
+			{
+				Console.WriteLine();
+				Console.WriteLine("Usage: BemaniToSM <input file>");
+				Console.WriteLine();
+				Console.WriteLine("Drag and drop with files and folders is fully supported for this application.");
+				Console.WriteLine();
+				Console.WriteLine("Supported formats:");
+				Console.WriteLine("SSQ, XWB");
+			}
+
 			foreach (string filename in args)
 			{
 				if (File.Exists(filename))
 				{
+					Console.WriteLine();
+					Console.WriteLine("Processing File: " + filename);
 					switch (Path.GetExtension(filename).ToUpper())
 					{
 						case @".XWB":
 							{
 								using (FileStream fs = new FileStream(filename, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
 								{
+									Console.WriteLine("Reading XWB bank");
 									MicrosoftXWB bank = MicrosoftXWB.Read(fs);
+									string outPath = Path.Combine(Path.GetDirectoryName(filename), Path.GetFileNameWithoutExtension(filename));
+
+									Directory.CreateDirectory(outPath);
+
+									int count = bank.SoundCount;
+									Console.WriteLine("Writing " + count.ToString() + " samples.");
+
+									for (int i = 0; i < count; i++)
+									{
+										string outFile = Path.Combine(outPath, Util.ConvertToHexString(i, 4) + ".wav");
+										bank.Sounds[i].WriteFile(outFile, 1.0f);
+									}
+
+									bank = null;
 								}
 							}
 							break;

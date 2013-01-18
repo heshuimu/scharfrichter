@@ -12,7 +12,7 @@ namespace BemaniToSM
 		{
 			if (System.Diagnostics.Debugger.IsAttached && args.Length == 0)
 			{
-				args = new string[] { @"D:\Torrent Seeds\DJHACKERS-KDX\data\sound\win\voice.xwb" };
+				args = new string[] { @"D:\Torrent Seeds\DJHACKERS-KDX\data\sound\win" };
 			}
 
 			ConvertHelper.BemaniToSM.Convert(args);
