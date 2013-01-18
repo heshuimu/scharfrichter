@@ -139,6 +139,26 @@ namespace Scharfrichter.Codec
 			}
 		}
 
+		public static long CommonDenominator(Fraction[] fractions)
+		{
+			int count = fractions.Length;
+			long result = 1;
+
+			for (int i = 0; i < count; i++)
+			{
+				Fraction frac = Fraction.Reduce(fractions[i]);
+				if (frac.denominator != 0)
+				{
+					if (result % frac.denominator != 0)
+					{
+						result *= frac.denominator;
+					}
+				}
+			}
+
+			return result;
+		}
+
 		public static void Commonize(Fraction a, Fraction b, out Fraction outputA, out Fraction outputB)
 		{
 			checked
