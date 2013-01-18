@@ -156,60 +156,6 @@ namespace Scharfrichter.Codec.Archives
 			}
 
 			Tags[tagName] = builder.ToString();
-
-
-#if (false)
-			// old method
-			int[, ,] notes = new int[highestMeasure, quantize, panelCount];
-			int[,] lastNoteData = new int[panelCount, 2];
-
-			foreach (Entry entry in entries)
-			{
-				int noteData = 1;
-				if (entry.Column < panelCount)
-				{
-					if (entry.Freeze)
-					{
-						noteData = 3;
-						int test = notes[lastNoteData[entry.Column, 0], lastNoteData[entry.Column, 1], entry.Column];
-						notes[lastNoteData[entry.Column, 0], lastNoteData[entry.Column, 1], entry.Column] = 2;
-					}
-					else if (entry.Type == EntryType.Mine)
-					{
-						noteData = -1;
-					}
-					int offset = (int)Math.Truncate(quantDouble * (double)entry.MetricOffset);
-					notes[entry.MetricMeasure, offset, entry.Column] = noteData;
-					lastNoteData[entry.Column, 0] = entry.MetricMeasure;
-					lastNoteData[entry.Column, 1] = offset;
-				}
-			}
-
-			StringBuilder builder = new StringBuilder();
-			builder.AppendLine();
-			for (int measure = 0; measure < highestMeasure; measure++)
-			{
-				if (measure > 0)
-					builder.AppendLine(",");
-
-				for (int offset = 0; offset < quantize; offset++)
-				{
-					for (int column = 0; column < panelCount; column++)
-					{
-						switch (notes[measure, offset, column])
-						{
-							case -1: builder.Append("M"); break;
-							case 1: builder.Append("1"); break;
-							case 2: builder.Append("2"); break;
-							case 3: builder.Append("3"); break;
-							default: builder.Append("0"); break;
-						}
-					}
-					builder.AppendLine();
-				}
-			}
-			Tags[tagName] = builder.ToString();
-#endif
 		}
 
 		public void CreateTempoTags(Entry[] entries)
