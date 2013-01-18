@@ -92,7 +92,7 @@ namespace ConvertHelper
 									sm.Tags["ArtistTranslit"] = "";
 									sm.Tags["Banner"] = outTitle + ".png";
 									sm.Tags["Background"] = outTitle + "-bg.png";
-									sm.Tags["Offset"] = "0.000";
+									sm.Tags["Offset"] = "-0.040";
 									sm.Tags["SampleLength"] = "14.000";
 
 									sm.CreateTempoTags(ssq.TempoEntries.ToArray());

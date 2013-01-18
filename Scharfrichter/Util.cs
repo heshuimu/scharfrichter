@@ -191,6 +191,57 @@ namespace Scharfrichter.Codec
 			return ConvertToAlphabetString(value, places, alphabetHex);
 		}
 
+		public static int GetLineReductionDivisor(int[] offsets)
+		{
+			int offsetCount = offsets.Length;
+			int result = 1;
+			bool finished = false;
+
+			if (offsets.Length == 0)
+				return result;
+
+			for (int i = 0; i < PrimeCount; i++)
+			{
+				bool success = true;
+				bool nonzero = false;
+				int prime = (int)Primes[i];
+				int divisor = result * prime;
+				while (success)
+				{
+					for (int j = 0; j < offsetCount; j++)
+					{
+						int value = offsets[j];
+						if (value != 0)
+						{
+							nonzero = true;
+							if (prime > value)
+							{
+								finished = true;
+								success = false;
+								break;
+							}
+							if (value % divisor != 0)
+							{
+								success = false;
+								break;
+							}
+						}
+					}
+					if (finished || (!nonzero))
+						break;
+					if (success)
+					{
+						result *= prime;
+						divisor *= prime;
+					}
+				}
+				if (finished || (!nonzero))
+					break;
+			}
+
+			return result;
+		}
+
 		public static string TrimNulls(string value)
 		{
 			if (value.Contains((char)0))
