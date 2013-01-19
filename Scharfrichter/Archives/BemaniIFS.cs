@@ -8,6 +8,56 @@ namespace Scharfrichter.Codec.Archives
 {
 	public class BemaniIFS : Archive
 	{
+		static public readonly string PropBinaryNameChars =
+			"0123456789:ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz";
+
+		public struct Header
+		{
+			public const int Size = 0x24;
+
+			public int Unk00;
+			public int Unk04;
+			public int Unk08;
+			public int Unk0C;
+			public int BodyStart;
+			public int Unk14;
+			public int Unk18;
+			public int Unk1C;
+			public int Unk20;
+
+			static public Header Read(Stream source)
+			{
+				BinaryReaderEx reader = new BinaryReaderEx(source);
+				Header result = new Header();
+				result.Unk00 = reader.ReadInt32S();
+				result.Unk04 = reader.ReadInt32S();
+				result.Unk08 = reader.ReadInt32S();
+				result.Unk0C = reader.ReadInt32S();
+				result.BodyStart = reader.ReadInt32S();
+				result.Unk14 = reader.ReadInt32S();
+				result.Unk18 = reader.ReadInt32S();
+				result.Unk1C = reader.ReadInt32S();
+				result.Unk20 = reader.ReadInt32S();
+				return result;
+			}
+		}
+
+		public struct Stat
+		{
+			public int Offset;
+			public int Length;
+			public int TimeStamp;
+
+			static public Stat Read(Stream source)
+			{
+				BinaryReaderEx reader = new BinaryReaderEx(source);
+				Stat result = new Stat();
+				result.Offset = reader.ReadInt32S();
+				result.Length = reader.ReadInt32S();
+				result.TimeStamp = reader.ReadInt32S();
+				return result;
+			}
+		}
 
 		private List<byte[]> files = new List<byte[]>();
 
@@ -34,6 +84,21 @@ namespace Scharfrichter.Codec.Archives
 
 		static public BemaniIFS Read(Stream source)
 		{
+			BemaniIFS result = new BemaniIFS();
+
+			// read header
+			Header header = Header.Read(source);
+			byte[] propertyPageData = new byte[header.BodyStart - Header.Size];
+			source.Read(propertyPageData, 0, propertyPageData.Length);
+
+			// read property page
+
+
+
+
+
+
+#if (false)
 			List<byte[]> dataList = new List<byte[]>();
 			BinaryReaderEx reader = new BinaryReaderEx(source);
 			BemaniIFS result = new BemaniIFS();
@@ -141,6 +206,8 @@ namespace Scharfrichter.Codec.Archives
 			}
 
 			result.files = dataList;
+#endif
+
 			return result;
 		}
 	}
