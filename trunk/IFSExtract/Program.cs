@@ -61,29 +61,29 @@ namespace IFSExtract
 							BemaniIFS archive = BemaniIFS.Read(fs);
 							int count = archive.RawDataCount;
 
-							Console.WriteLine("Exporting files.");
+							//Console.WriteLine("Exporting files.");
 
-							for (int j = 0; j < count; j++)
-							{
-								string outputNumber = Util.ConvertToDecimalString(j, 4);
-								string outputFile = outputFileBase;
-								string extension = "dat";
+							//for (int j = 0; j < count; j++)
+							//{
+							//    string outputNumber = Util.ConvertToDecimalString(j, 4);
+							//    string outputFile = outputFileBase;
+							//    string extension = "dat";
 
-								byte[] data = archive.RawData[j];
+							//    byte[] data = archive.RawData[j];
 
-								// heuristics block
-								if (Heuristics.DetectBemaniModel2DXAC(data))
-									extension = "model";
-								else if (Heuristics.DetectBemani2DXArchive(data))
-									extension = "2dx";
-								else if (Heuristics.DetectBemani1(data))
-									extension = "1";
-								else if (Heuristics.DetectBemaniImage2DXAC(data))
-									extension = "cimg";
+							//    // heuristics block
+							//    if (Heuristics.DetectBemaniModel2DXAC(data))
+							//        extension = "model";
+							//    else if (Heuristics.DetectBemani2DXArchive(data))
+							//        extension = "2dx";
+							//    else if (Heuristics.DetectBemani1(data))
+							//        extension = "1";
+							//    else if (Heuristics.DetectBemaniImage2DXAC(data))
+							//        extension = "cimg";
 
-								outputFile += "-" + outputNumber + "." + extension;
-								File.WriteAllBytes(outputFile, archive.RawData[j]);
-							}
+							//    outputFile += "-" + outputNumber + "." + extension;
+							//    File.WriteAllBytes(outputFile, archive.RawData[j]);
+							//}
 						}
 					}
 				}

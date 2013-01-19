@@ -60,6 +60,20 @@ namespace Scharfrichter.Codec.Archives
 		}
 
 		private List<byte[]> files = new List<byte[]>();
+		private List<string> properties = new List<string>();
+
+		public string[] Properties
+		{
+			get
+			{
+				return properties.ToArray();
+			}
+			set
+			{
+				properties.Clear();
+				properties.AddRange(value);
+			}
+		}
 
 		public override byte[][] RawData
 		{
