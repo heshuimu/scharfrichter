@@ -13,6 +13,9 @@ namespace ConvertHelper
 {
 	static public class BemaniToBMS
 	{
+		private const string configFileName = "Convert";
+		private const string databaseFileName = "BeatmaniaDB";
+
 		static string[] chartTitlesIIDX1 = new string[]
 		{
 			"[1P Hyper]",
@@ -48,10 +51,9 @@ namespace ConvertHelper
 		static public void Convert(string[] inArgs, long unitNumerator, long unitDenominator)
 		{
 			// configuration
-			string configFileName = "BMS";
-			Configuration config = Configuration.ReadFile(configFileName);
-			int quantizeMeasure = config["Main"].Default("QuantizeMeasure", 16);
-			int quantizeNotes = config["Main"].Default("QuantizeNotes", 192);
+			Configuration config = LoadConfig();
+			int quantizeMeasure = config["BMS"].GetValue("QuantizeMeasure");
+			int quantizeNotes = config["BMS"].GetValue("QuantizeNotes");
 
 			// splash
 			Splash.Show("Bemani to BeMusic Script");
@@ -141,7 +143,7 @@ namespace ConvertHelper
 
 			// wrap up
 			Console.WriteLine("BemaniToBMS finished.");
-			config.WriteFile(configFileName);
+			SaveConfig(config);
 		}
 
 		static public void ConvertArchive(Archive archive, int quantizeMeasure, int quantizeNotes, string filename, string[] chartTitles, int[] difficultyTags)
@@ -213,6 +215,29 @@ namespace ConvertHelper
 				int sampleIndex = j + 1;
 				sounds[j].WriteFile(Path.Combine(targetPath, Scharfrichter.Codec.Util.ConvertToBMEString(sampleIndex, 4) + @".wav"), volume);
 			}
+		}
+
+		static private Configuration LoadConfig()
+		{
+			Configuration config = Configuration.ReadFile(configFileName);
+			config["BMS"].SetDefaultValue("QuantizeMeasure", 16);
+			config["BMS"].SetDefaultValue("QuantizeNotes", 192);
+			config["IIDX"].SetDefaultString("Difficulty0", "Hyper");
+			config["IIDX"].SetDefaultString("Difficulty1", "Normal");
+			config["IIDX"].SetDefaultString("Difficulty2", "Another");
+			config["IIDX"].SetDefaultString("Difficulty3", "Beginner");
+			return config;
+		}
+
+		static private Configuration LoadDB()
+		{
+			Configuration config = Configuration.ReadFile(databaseFileName);
+			return config;
+		}
+
+		static private void SaveConfig(Configuration config)
+		{
+			config.WriteFile(configFileName);
 		}
 	}
 }
