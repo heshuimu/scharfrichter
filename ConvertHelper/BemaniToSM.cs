@@ -55,7 +55,6 @@ namespace ConvertHelper
 									Directory.CreateDirectory(outPath);
 
 									int count = bank.SoundCount;
-									Console.WriteLine("Writing " + count.ToString() + " samples.");
 
 									for (int i = 0; i < count; i++)
 									{
@@ -67,6 +66,7 @@ namespace ConvertHelper
 											outFileName = bank.Sounds[i].Name;
 
 										string outFile = Path.Combine(outPath, outFileName + ".wav");
+										Console.WriteLine("Writing " + outFile);
 										bank.Sounds[i].WriteFile(outFile, 1.0f);
 									}
 

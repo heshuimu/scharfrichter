@@ -62,76 +62,73 @@ namespace Scharfrichter.Codec.Sounds
 
 			try
 			{
-				MemoryStream sourceLeft = new MemoryStream(Data);
-				MemoryStream sourceRight = new MemoryStream(Data);
-				RawSourceWaveStream waveLeft = new RawSourceWaveStream(sourceLeft, Format);
-				RawSourceWaveStream waveRight = new RawSourceWaveStream(sourceRight, Format);
+				using (MemoryStream sourceLeft = new MemoryStream(Data), sourceRight = new MemoryStream(Data))
+				{
+					using (RawSourceWaveStream waveLeft = new RawSourceWaveStream(new IgnoreDisposeStream(sourceLeft), Format), waveRight = new RawSourceWaveStream(new IgnoreDisposeStream(sourceRight), Format))
+					{
+						// step 1: separate the stereo stream
+						MultiplexingWaveProvider demuxLeft = new MultiplexingWaveProvider(new IWaveProvider[] { waveLeft }, 1);
+						MultiplexingWaveProvider demuxRight = new MultiplexingWaveProvider(new IWaveProvider[] { waveRight }, 1);
+						demuxLeft.ConnectInputToOutput(0, 0);
+						demuxRight.ConnectInputToOutput(1, 0);
 
-				// step 1: separate the stereo stream
-				MultiplexingWaveProvider demuxLeft = new MultiplexingWaveProvider(new IWaveProvider[] { waveLeft }, 1);
-				MultiplexingWaveProvider demuxRight = new MultiplexingWaveProvider(new IWaveProvider[] { waveRight }, 1);
-				demuxLeft.ConnectInputToOutput(0, 0);
-				demuxRight.ConnectInputToOutput(1, 0);
+						// step 2: adjust the volume of a stereo stream
+						VolumeWaveProvider16 volLeft = new VolumeWaveProvider16(demuxLeft);
+						VolumeWaveProvider16 volRight = new VolumeWaveProvider16(demuxRight);
 
-				// step 2: adjust the volume of a stereo stream
-				VolumeWaveProvider16 volLeft = new VolumeWaveProvider16(demuxLeft);
-				VolumeWaveProvider16 volRight = new VolumeWaveProvider16(demuxRight);
-
-				// note: use logarithmic scale
+						// note: use logarithmic scale
 #if (true)
-				// log scale is applied to each operation
-				float volumeValueLeft = (float)Math.Pow(1.0f - Panning, 0.5f);
-				float volumeValueRight = (float)Math.Pow(Panning, 0.5f);
-				// ensure 1:1 conversion
-				volumeValueLeft /= (float)Math.Sqrt(0.5);
-				volumeValueRight /= (float)Math.Sqrt(0.5);
-				// apply volume
-				volumeValueLeft *= (float)Math.Pow(Volume, 0.5f);
-				volumeValueRight *= (float)Math.Pow(Volume, 0.5f);
-				// clamp
-				volumeValueLeft = Math.Min(Math.Max(volumeValueLeft, 0.0f), 1.0f);
-				volumeValueRight = Math.Min(Math.Max(volumeValueRight, 0.0f), 1.0f);
+						// log scale is applied to each operation
+						float volumeValueLeft = (float)Math.Pow(1.0f - Panning, 0.5f);
+						float volumeValueRight = (float)Math.Pow(Panning, 0.5f);
+						// ensure 1:1 conversion
+						volumeValueLeft /= (float)Math.Sqrt(0.5);
+						volumeValueRight /= (float)Math.Sqrt(0.5);
+						// apply volume
+						volumeValueLeft *= (float)Math.Pow(Volume, 0.5f);
+						volumeValueRight *= (float)Math.Pow(Volume, 0.5f);
+						// clamp
+						volumeValueLeft = Math.Min(Math.Max(volumeValueLeft, 0.0f), 1.0f);
+						volumeValueRight = Math.Min(Math.Max(volumeValueRight, 0.0f), 1.0f);
 #else
-					// log scale is applied to the result of the operations
-					float volumeValueLeft = (float)Math.Pow(1.0f - Panning, 0.5f);
-					float volumeValueRight = (float)Math.Pow(Panning, 0.5f);
-					// ensure 1:1 conversion
-					volumeValueLeft /= (float)Math.Sqrt(0.5);
-					volumeValueRight /= (float)Math.Sqrt(0.5);
-					// apply volume
-					volumeValueLeft *= Volume;
-					volumeValueRight *= Volume;
-					// apply log scale
-					volumeValueLeft = (float)Math.Pow(volumeValueLeft, 0.5f);
-					volumeValueRight = (float)Math.Pow(volumeValueRight, 0.5f);
-					// clamp
-					volumeValueLeft = Math.Min(Math.Max(volumeValueLeft, 0.0f), 1.0f);
-					volumeValueRight = Math.Min(Math.Max(volumeValueRight, 0.0f), 1.0f);
+						// log scale is applied to the result of the operations
+						float volumeValueLeft = (float)Math.Pow(1.0f - Panning, 0.5f);
+						float volumeValueRight = (float)Math.Pow(Panning, 0.5f);
+						// ensure 1:1 conversion
+						volumeValueLeft /= (float)Math.Sqrt(0.5);
+						volumeValueRight /= (float)Math.Sqrt(0.5);
+						// apply volume
+						volumeValueLeft *= Volume;
+						volumeValueRight *= Volume;
+						// apply log scale
+						volumeValueLeft = (float)Math.Pow(volumeValueLeft, 0.5f);
+						volumeValueRight = (float)Math.Pow(volumeValueRight, 0.5f);
+						// clamp
+						volumeValueLeft = Math.Min(Math.Max(volumeValueLeft, 0.0f), 1.0f);
+						volumeValueRight = Math.Min(Math.Max(volumeValueRight, 0.0f), 1.0f);
 #endif
-				// use linear scale for master volume
-				volLeft.Volume = volumeValueLeft * masterVolume;
-				volRight.Volume = volumeValueRight * masterVolume;
+						// use linear scale for master volume
+						volLeft.Volume = volumeValueLeft * masterVolume;
+						volRight.Volume = volumeValueRight * masterVolume;
 
-				// step 3: combine them again
-				IWaveProvider[] tracks = new IWaveProvider[] { volLeft, volRight };
-				MultiplexingWaveProvider mux = new MultiplexingWaveProvider(tracks, 2);
+						// step 3: combine them again
+						IWaveProvider[] tracks = new IWaveProvider[] { volLeft, volRight };
+						MultiplexingWaveProvider mux = new MultiplexingWaveProvider(tracks, 2);
 
-				// step 4: export them to a byte array
-				byte[] finalData = new byte[Data.Length];
-				mux.Read(finalData, 0, finalData.Length);
+						// step 4: export them to a byte array
+						byte[] finalData = new byte[Data.Length];
+						mux.Read(finalData, 0, finalData.Length);
 
-				// cleanup
-				sourceLeft.Dispose();
-				sourceRight.Dispose();
-				waveLeft.Dispose();
-				waveRight.Dispose();
-				demuxLeft = null;
-				demuxRight = null;
-				volLeft = null;
-				volRight = null;
-				mux = null;
+						// cleanup
+						demuxLeft = null;
+						demuxRight = null;
+						volLeft = null;
+						volRight = null;
+						mux = null;
 
-				return finalData;
+						return finalData;
+					}
+				}
 			}
 			catch
 			{
@@ -143,10 +140,11 @@ namespace Scharfrichter.Codec.Sounds
 		{
 			MemoryStream dataStream = new MemoryStream(data);
 			RawSourceWaveStream wavStream = new RawSourceWaveStream(dataStream, sourceFormat);
+			WaveStream wavConvertStream = null;
 
 			try
 			{
-				WaveStream wavConvertStream = WaveFormatConversionStream.CreatePcmStream(wavStream);
+				wavConvertStream = WaveFormatConversionStream.CreatePcmStream(wavStream);
 
 				// using a mux, we force all sounds to be 2 channels
 				MultiplexingWaveProvider sourceProvider = new MultiplexingWaveProvider(new IWaveProvider[] { wavConvertStream }, 2);
@@ -156,11 +154,24 @@ namespace Scharfrichter.Codec.Sounds
 
 				Data = rawWaveData;
 				Format = sourceProvider.WaveFormat;
+
+				// clean up
+				sourceProvider = null;
 			}
 			catch
 			{
 				Data = data;
 				Format = sourceFormat;
+			}
+			finally
+			{
+				if (wavConvertStream != null)
+					wavConvertStream.Dispose();
+				wavConvertStream = null;
+				wavStream.Dispose();
+				wavStream = null;
+				dataStream.Dispose();
+				dataStream = null;
 			}
 		}
 
