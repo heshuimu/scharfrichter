@@ -86,14 +86,14 @@ namespace ConvertHelper
 									BemaniSSQ ssq = BemaniSSQ.Read(fs, 0x1000);
 									StepmaniaSM sm = new StepmaniaSM();
 
-									sm.Tags["Title"] = outTitle;
-									sm.Tags["Artist"] = "";
-									sm.Tags["TitleTranslit"] = "";
-									sm.Tags["ArtistTranslit"] = "";
-									sm.Tags["Banner"] = outTitle + ".png";
-									sm.Tags["Background"] = outTitle + "-bg.png";
-									sm.Tags["Offset"] = "-0.040";
-									sm.Tags["SampleLength"] = "14.000";
+									sm.Tags["TITLE"] = outTitle;
+									sm.Tags["ARTIST"] = "";
+									sm.Tags["TITLETRANSLIT"] = "";
+									sm.Tags["ARTISTTRANSLIT"] = "";
+									sm.Tags["BANNER"] = outTitle + ".png";
+									sm.Tags["BACKGROUND"] = outTitle + "-bg.png";
+									sm.Tags["OFFSET"] = "0.000";
+									sm.Tags["SAMPLELENGTH"] = "14.000";
 
 									sm.CreateTempoTags(ssq.TempoEntries.ToArray());
 
@@ -103,9 +103,9 @@ namespace ConvertHelper
 										string difficulty;
 										switch (chart.Tags["Difficulty"])
 										{
-											case @"1": difficulty = "Light"; break;
-											case @"2": difficulty = "Standard"; break;
-											case @"3": difficulty = "Heavy"; break;
+											case @"1": difficulty = "Easy"; break;
+											case @"2": difficulty = "Medium"; break;
+											case @"3": difficulty = "Hard"; break;
 											case @"4": difficulty = "Beginner"; break;
 											case @"6": difficulty = "Challenge"; break;
 											default: difficulty = ""; break;
