@@ -50,7 +50,7 @@ namespace Scharfrichter.Common
 			try
 			{
 				StreamReader reader = new StreamReader(source);
-				Encoding enc = Encoding.GetEncoding(Convert.ToInt32(reader.ReadLine()));
+				Encoding enc = Encoding.Unicode;
 				Configuration result = new Configuration(enc);
 				InfoCollection currentKey = null;
 				string currentKeyName = "";
@@ -109,7 +109,6 @@ namespace Scharfrichter.Common
 		public void Write(Stream target)
 		{
 			StreamWriter writer = new StreamWriter(target);
-			writer.WriteLine(enc.CodePage.ToString());
 			foreach (KeyValuePair<string, InfoCollection> entry in DB)
 			{
 				if (entry.Key.Length > 0)
@@ -153,7 +152,15 @@ namespace Scharfrichter.Common
 			}
 		}
 
-		public string Default(string key, string defaultValue)
+		public string GetString(string key)
+		{
+			key = key.ToUpper();
+			if (Items.ContainsKey(key))
+				return Items[key];
+			return "";
+		}
+
+		public string GetString(string key, string defaultValue)
 		{
 			key = key.ToUpper();
 			if (!Items.ContainsKey(key))
@@ -161,13 +168,45 @@ namespace Scharfrichter.Common
 			return Items[key];
 		}
 
-		public int Default(string key, int defaultValue)
+		public int GetValue(string key)
+		{
+			key = key.ToUpper();
+			if (Items.ContainsKey(key))
+				return Convert.ToInt32(Items[key]);
+			return 0;
+		}
+
+		public int GetValue(string key, int defaultValue)
 		{
 			string stringValue = defaultValue.ToString();
 			key = key.ToUpper();
 			if (!Items.ContainsKey(key))
 				Items[key] = stringValue;
 			return Convert.ToInt32(Items[key]);
+		}
+
+		public void SetDefaultString(string key, string defaultValue)
+		{
+			key = key.ToUpper();
+			if (!Items.ContainsKey(key))
+				Items[key] = defaultValue;
+		}
+
+		public void SetDefaultValue(string key, int defaultValue)
+		{
+			key = key.ToUpper();
+			if (!Items.ContainsKey(key))
+				Items[key] = defaultValue.ToString();
+		}
+
+		public void SetString(string key, string newValue)
+		{
+			Items[key] = newValue;
+		}
+
+		public void SetValue(string key, int newValue)
+		{
+			Items[key] = newValue.ToString();
 		}
 	}
 }

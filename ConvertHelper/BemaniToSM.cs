@@ -14,17 +14,25 @@ namespace ConvertHelper
 {
 	static public class BemaniToSM
 	{
+		private const string configFileName = "Convert";
+		private const string databaseFileName = "DDRDB";
+
 		static public void Convert(string[] inArgs)
 		{
+			// configuration
+			Configuration config = LoadConfig();
+
+			// splash
 			Splash.Show("Bemani To Stepmania");
 
+			// parse args
 			string[] args;
-
 			if (inArgs.Length > 0)
 				args = Subfolder.Parse(inArgs);
 			else
 				args = inArgs;
 
+			// usage if no args present
 			if (args.Length == 0)
 			{
 				Console.WriteLine();
@@ -36,6 +44,7 @@ namespace ConvertHelper
 				Console.WriteLine("SSQ, XWB");
 			}
 
+			// process
 			foreach (string filename in args)
 			{
 				if (File.Exists(filename))
@@ -100,40 +109,25 @@ namespace ConvertHelper
 
 									foreach (Chart chart in ssq.Charts)
 									{
-										string gameType;
-										string difficulty;
-										switch (chart.Tags["Difficulty"])
-										{
-											case @"1": difficulty = "Easy"; break;
-											case @"2": difficulty = "Medium"; break;
-											case @"3": difficulty = "Hard"; break;
-											case @"4": difficulty = "Beginner"; break;
-											case @"6": difficulty = "Challenge"; break;
-											default: difficulty = ""; break;
-										}
-										switch (chart.Tags["Panels"])
-										{
-											case @"4": gameType = "dance-single"; break;
-											case @"8": gameType = "dance-double"; break;
-											default: gameType = ""; break;
-										}
+										string gameType = config["SM"]["DanceMode" + chart.Tags["Panels"]];
+										string difficulty = config["SM"]["Difficulty" + config["DDR"]["Difficulty" + chart.Tags["Difficulty"]]];
 										chart.Entries.Sort();
 
 										// couples chart check
-										if (gameType == "dance-single")
+										if (gameType == config["SM"]["DanceMode4"])
 										{
 											foreach (Entry entry in chart.Entries)
 											{
 												if (entry.Type == EntryType.Marker && entry.Column >= 4)
 												{
-													gameType = "dance-couple";
+													gameType = config["SM"]["DanceModeCouple"];
 													chart.Tags["Panels"] = "8";
 													break;
 												}
 											}
 										}
 
-										sm.CreateStepTag(chart.Entries.ToArray(), gameType, "", difficulty, "0", "", System.Convert.ToInt32(chart.Tags["Panels"]), 192);
+										sm.CreateStepTag(chart.Entries.ToArray(), gameType, "", difficulty, "0", "", System.Convert.ToInt32(chart.Tags["Panels"]), config["SM"].GetValue("QuantizeNotes"));
 									}
 
 									sm.WriteFile(outFile);
@@ -143,6 +137,43 @@ namespace ConvertHelper
 					}
 				}
 			}
+
+			// cleanup
+			SaveConfig(config);
+		}
+
+		static private Configuration LoadConfig()
+		{
+			Configuration config = Configuration.ReadFile(configFileName);
+			config["SM"].SetDefaultValue("QuantizeNotes", 192);
+			config["SM"].SetDefaultString("DanceMode4", "dance-single");
+			config["SM"].SetDefaultString("DanceMode6", "dance-solo");
+			config["SM"].SetDefaultString("DanceMode8", "dance-double");
+			config["SM"].SetDefaultString("DanceModeCouple", "dance-couple");
+			config["SM"].SetDefaultString("Difficulty0", "Beginner");
+			config["SM"].SetDefaultString("Difficulty1", "Easy");
+			config["SM"].SetDefaultString("Difficulty2", "Medium");
+			config["SM"].SetDefaultString("Difficulty3", "Hard");
+			config["SM"].SetDefaultString("Difficulty4", "Challenge");
+			config["SM"].SetDefaultString("Difficulty5", "Edit");
+
+			config["DDR"].SetDefaultString("Difficulty1", "1");
+			config["DDR"].SetDefaultString("Difficulty2", "2");
+			config["DDR"].SetDefaultString("Difficulty3", "3");
+			config["DDR"].SetDefaultString("Difficulty4", "4");
+			config["DDR"].SetDefaultString("Difficulty6", "0");
+			return config;
+		}
+
+		static private Configuration LoadDB()
+		{
+			Configuration config = Configuration.ReadFile(databaseFileName);
+			return config;
+		}
+
+		static private void SaveConfig(Configuration config)
+		{
+			config.WriteFile(configFileName);
 		}
 	}
 }
