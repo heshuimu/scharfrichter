@@ -60,7 +60,7 @@ namespace Scharfrichter.Codec.Sounds
 			// If only we had a way to create separate WaveProviders from within the
 			// MultiplexingWaveProvider..
 
-			if (Format.Encoding == WaveFormatEncoding.Pcm)
+			try
 			{
 				MemoryStream sourceLeft = new MemoryStream(Data);
 				MemoryStream sourceRight = new MemoryStream(Data);
@@ -120,9 +120,20 @@ namespace Scharfrichter.Codec.Sounds
 				byte[] finalData = new byte[Data.Length];
 				mux.Read(finalData, 0, finalData.Length);
 
+				// cleanup
+				sourceLeft.Dispose();
+				sourceRight.Dispose();
+				waveLeft.Dispose();
+				waveRight.Dispose();
+				demuxLeft = null;
+				demuxRight = null;
+				volLeft = null;
+				volRight = null;
+				mux = null;
+
 				return finalData;
 			}
-			else
+			catch
 			{
 				return Data;
 			}
