@@ -9,13 +9,12 @@ namespace BemaniToBMSGold
 {
 	class Program
 	{
-		static int quantizeMeasure = 16;
 		static long unitNumerator = 100;
 		static long unitDenominator = 6004;
 
 		static void Main(string[] args)
 		{
-			BemaniToBMS.Convert(args, unitNumerator, unitDenominator, quantizeMeasure);
+			BemaniToBMS.Convert(args, unitNumerator, unitDenominator);
 		}
 	}
 }

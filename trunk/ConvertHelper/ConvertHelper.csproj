@@ -47,6 +47,10 @@
     <Compile Include="Render.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Scharfrichter.Common\Scharfrichter.Common.csproj">
+      <Project>{DB95AECE-00C7-46A3-8281-00B232052D31}</Project>
+      <Name>Scharfrichter.Common</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Scharfrichter\Scharfrichter.Codec.csproj">
       <Project>{DB34F6AF-C522-4149-A6D3-37A36D2D9590}</Project>
       <Name>Scharfrichter.Codec</Name>

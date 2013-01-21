@@ -2,6 +2,7 @@
 using Scharfrichter.Codec.Archives;
 using Scharfrichter.Codec.Charts;
 using Scharfrichter.Codec.Sounds;
+using Scharfrichter.Common;
 
 using System;
 using System.Collections.Generic;
@@ -15,7 +16,7 @@ namespace ConvertHelper
 	{
 		static public void Convert(string[] inArgs)
 		{
-			Console.WriteLine("DJSLACKERS - BemaniToSM");
+			Splash.Show("Bemani To Stepmania");
 
 			string[] args;
 

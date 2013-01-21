@@ -10,7 +10,7 @@ namespace Scharfrichter.Common
 
 	static public class Splash
 	{
-		public void Show(string applicationName)
+		static public void Show(string applicationName)
 		{
 			Console.WriteLine(@"DJHACKERS - " + applicationName);
 			Console.WriteLine(@"Using modified NAudio - http://naudio.codeplex.com/");

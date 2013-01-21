@@ -2,6 +2,7 @@
 using Scharfrichter.Codec.Archives;
 using Scharfrichter.Codec.Charts;
 using Scharfrichter.Codec.Sounds;
+using Scharfrichter.Common;
 
 using System;
 using System.Collections.Generic;
@@ -44,19 +45,27 @@ namespace ConvertHelper
 			0
 		};
 
-		static public void Convert(string[] inArgs, long unitNumerator, long unitDenominator, int quantizeMeasure)
+		static public void Convert(string[] inArgs, long unitNumerator, long unitDenominator)
 		{
-			Console.WriteLine("DJSLACKERS - BemaniToBMS");
+			// configuration
+			string configFileName = "BMS";
+			Configuration config = Configuration.ReadFile(configFileName);
+			int quantizeMeasure = config["Main"].Default("QuantizeMeasure", 16);
+			int quantizeNotes = config["Main"].Default("QuantizeNotes", 192);
+
+			// splash
+			Splash.Show("Bemani to BeMusic Script");
 			Console.WriteLine("Timing: " + unitNumerator.ToString() + "/" + unitDenominator.ToString());
 			Console.WriteLine("Measure Quantize: " + quantizeMeasure.ToString());
 
+			// args
 			string[] args;
-
 			if (inArgs.Length > 0)
 				args = Subfolder.Parse(inArgs);
 			else
 				args = inArgs;
 
+			// debug args (if applicable)
 			if (System.Diagnostics.Debugger.IsAttached && args.Length == 0)
 			{
 				Console.WriteLine();
@@ -64,6 +73,7 @@ namespace ConvertHelper
 				args = new string[] { Console.ReadLine() };
 			}
 
+			// show usage if no args provided
 			if (args.Length == 0)
 			{
 				Console.WriteLine();
@@ -75,6 +85,7 @@ namespace ConvertHelper
 				Console.WriteLine("1, 2DX, CS, SD9, SSP");
 			}
 
+			// process files
 			for (int i = 0; i < args.Length; i++)
 			{
 				if (File.Exists(args[i]))
@@ -87,7 +98,7 @@ namespace ConvertHelper
 					{
 						case @".1":
 							using (MemoryStream source = new MemoryStream(data))
-								ConvertArchive(Bemani1.Read(source, unitNumerator, unitDenominator), quantizeMeasure, args[i], chartTitlesIIDX1, difficultyTagsIIDX1);
+								ConvertArchive(Bemani1.Read(source, unitNumerator, unitDenominator), quantizeMeasure, quantizeNotes, args[i], chartTitlesIIDX1, difficultyTagsIIDX1);
 							break;
 						case @".2DX":
 							using (MemoryStream source = new MemoryStream(data))
@@ -99,15 +110,15 @@ namespace ConvertHelper
 							break;
 						case @".CS":
 							using (MemoryStream source = new MemoryStream(data))
-								ConvertChart(BeatmaniaIIDXCSNew.Read(source), quantizeMeasure, args[i], "", 0, null);
+								ConvertChart(BeatmaniaIIDXCSNew.Read(source), quantizeMeasure, quantizeNotes, args[i], "", 0, null);
 							break;
 						case @".CS2":
 							using (MemoryStream source = new MemoryStream(data))
-								ConvertChart(BeatmaniaIIDXCSOld.Read(source), quantizeMeasure, args[i], "", 0, null);
+								ConvertChart(BeatmaniaIIDXCSOld.Read(source), quantizeMeasure, quantizeNotes, args[i], "", 0, null);
 							break;
 						case @".CS5":
 							using (MemoryStream source = new MemoryStream(data))
-								ConvertChart(Beatmania5Key.Read(source), quantizeMeasure, args[i], "", 0, null);
+								ConvertChart(Beatmania5Key.Read(source), quantizeMeasure, quantizeNotes, args[i], "", 0, null);
 							break;
 						case @".CS9":
 							break;
@@ -127,22 +138,25 @@ namespace ConvertHelper
 					}
 				}
 			}
+
+			// wrap up
 			Console.WriteLine("BemaniToBMS finished.");
+			config.WriteFile(configFileName);
 		}
 
-		static public void ConvertArchive(Archive archive, int quantizeMeasure, string filename, string[] chartTitles, int[] difficultyTags)
+		static public void ConvertArchive(Archive archive, int quantizeMeasure, int quantizeNotes, string filename, string[] chartTitles, int[] difficultyTags)
 		{
 			for (int j = 0; j < archive.ChartCount; j++)
 			{
 				if (archive.Charts[j] != null)
 				{
 					Console.WriteLine("Converting Chart " + j.ToString());
-					ConvertChart(archive.Charts[j], quantizeMeasure, filename, chartTitles[j], difficultyTags[j], null);
+					ConvertChart(archive.Charts[j], quantizeMeasure, quantizeNotes, filename, chartTitles[j], difficultyTags[j], null);
 				}
 			}
 		}
 
-		static public void ConvertChart(Chart chart, int quantizeMeasure, string filename, string title, int difficulty, int[] map)
+		static public void ConvertChart(Chart chart, int quantizeMeasure, int quantizeNotes, string filename, string title, int difficulty, int[] map)
 		{
 			if (quantizeMeasure > 0)
 				chart.QuantizeMeasureLengths(quantizeMeasure);
@@ -176,7 +190,7 @@ namespace ConvertHelper
 				else
 					bms.SampleMap = map;
 
-				bms.Charts[0].QuantizeNoteOffsets(192);
+				bms.Charts[0].QuantizeNoteOffsets(quantizeNotes);
 				bms.GenerateSampleTags();
 				bms.Write(mem, true);
 

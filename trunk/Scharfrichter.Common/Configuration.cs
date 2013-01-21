@@ -27,10 +27,9 @@ namespace Scharfrichter.Common
 		{
 			get 
 			{
-				if (DB.ContainsKey(key))
-					return DB[key];
-				else
-					return new InfoCollection();
+				if (!DB.ContainsKey(key))
+					DB[key] = new InfoCollection();
+				return DB[key];
 			}
 			set 
 			{ 
@@ -38,9 +37,12 @@ namespace Scharfrichter.Common
 			}
 		}
 
-		static public string ConfigPath
+		static public string ConfigPath(string configName)
 		{
-			get { return Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().CodeBase), "Config"); }
+			string result = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+			result = Path.Combine(result, @"Config");
+			result = Path.Combine(result, configName + ".txt");
+			return result;
 		}
 
 		static public Configuration Read(Stream source)
@@ -53,13 +55,22 @@ namespace Scharfrichter.Common
 				InfoCollection currentKey = null;
 				string currentKeyName = "";
 
-				while (reader.EndOfStream)
+				while (!reader.EndOfStream)
 				{
 					string line = reader.ReadLine().Trim();
 					if (line.StartsWith("[") && line.EndsWith("]"))
 					{
-						currentKey = new InfoCollection();
-						currentKeyName = line.Substring(1, line.Length - 2);
+						if (line.Length > 2)
+						{
+							currentKey = new InfoCollection();
+							currentKeyName = line.Substring(1, line.Length - 2);
+							result[currentKeyName] = currentKey;
+						}
+						else
+						{
+							currentKey = null;
+							currentKeyName = "";
+						}
 					}
 					else if (currentKey != null && line.Contains("="))
 					{
@@ -83,8 +94,16 @@ namespace Scharfrichter.Common
 
 		static public Configuration ReadFile(string configName)
 		{
-			using (FileStream fs = new FileStream(Path.Combine(Configuration.ConfigPath, configName), FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
-				return Read(fs);
+			string configFile = Configuration.ConfigPath(configName);
+			if (File.Exists(configFile))
+			{
+				using (FileStream fs = new FileStream(configFile, FileMode.Open, FileAccess.Read))
+					return Read(fs);
+			}
+			else
+			{
+				return new Configuration();
+			}
 		}
 
 		public void Write(Stream target)
@@ -93,10 +112,13 @@ namespace Scharfrichter.Common
 			writer.WriteLine(enc.CodePage.ToString());
 			foreach (KeyValuePair<string, InfoCollection> entry in DB)
 			{
-				writer.WriteLine("[" + entry.Key + "]");
-				foreach (KeyValuePair<string, string> item in entry.Value.Items)
+				if (entry.Key.Length > 0)
 				{
-					writer.WriteLine(item.Key + "=" + item.Value);
+					writer.WriteLine("[" + entry.Key + "]");
+					foreach (KeyValuePair<string, string> item in entry.Value.Items)
+					{
+						writer.WriteLine(item.Key + "=" + item.Value);
+					}
 				}
 			}
 			writer.Flush();
@@ -104,19 +126,22 @@ namespace Scharfrichter.Common
 
 		public void WriteFile(string configName)
 		{
-			using (FileStream fs = new FileStream(Path.Combine(Configuration.ConfigPath, configName), FileMode.Create, FileAccess.Write, FileShare.None))
+			string configFile = Configuration.ConfigPath(configName);
+			Directory.CreateDirectory(Path.GetDirectoryName(configFile));
+			using (FileStream fs = new FileStream(configFile, FileMode.Create, FileAccess.Write))
 				Write(fs);
 		}
 	}
 
 	public class InfoCollection
 	{
-		public Dictionary<string, string> Items;
+		public Dictionary<string, string> Items = new Dictionary<string,string>();
 
 		public string this[string key]
 		{
 			get
 			{
+				key = key.ToUpper();
 				if (Items.ContainsKey(key))
 					return Items[key];
 				else
@@ -124,8 +149,25 @@ namespace Scharfrichter.Common
 			}
 			set
 			{
-				Items[key] = value;
+				Items[key.ToUpper()] = value;
 			}
+		}
+
+		public string Default(string key, string defaultValue)
+		{
+			key = key.ToUpper();
+			if (!Items.ContainsKey(key))
+				Items[key] = defaultValue;
+			return Items[key];
+		}
+
+		public int Default(string key, int defaultValue)
+		{
+			string stringValue = defaultValue.ToString();
+			key = key.ToUpper();
+			if (!Items.ContainsKey(key))
+				Items[key] = stringValue;
+			return Convert.ToInt32(Items[key]);
 		}
 	}
 }

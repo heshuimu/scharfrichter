@@ -9,7 +9,6 @@ namespace BemaniToBMSTroopers
 {
 	class Program
 	{
-		static int quantizeMeasure = 16;
 		static long unitNumerator = 1;
 		static long unitDenominator = 1000;
 
@@ -18,9 +17,9 @@ namespace BemaniToBMSTroopers
 			if (System.Diagnostics.Debugger.IsAttached && (args == null || args.Length == 0))
 			{
 				Console.WriteLine("Debugger attached without commandline args. Inserting test file..");
-				args = new string[] { @"D:\BMS\sound\[TRICORO]\20002" };
+				args = new string[] { @"D:\BMS\sound\[TRICORO]\20002\20002.1" };
 			}
-			BemaniToBMS.Convert(args, unitNumerator, unitDenominator, quantizeMeasure);
+			BemaniToBMS.Convert(args, unitNumerator, unitDenominator);
 		}
 	}
 }
