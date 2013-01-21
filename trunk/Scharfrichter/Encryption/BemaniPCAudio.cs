@@ -52,7 +52,7 @@ namespace Scharfrichter.Codec.Encryption
 			BinaryReader reader = new BinaryReader(source);
 			BinaryWriter writer = new BinaryWriter(target);
 
-			byte[] lastBlock = {0, 0, 0, 0, 0, 0, 0, 0};
+			byte[] lastBlock = {0, 0, 0, 0, 0, 0, 0, 0 };
 			byte[] currentBlock = { 0, 0, 0, 0, 0, 0, 0, 0 };
 
 			while (source.Position < source.Length)
