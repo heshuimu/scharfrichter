@@ -2,6 +2,7 @@
 using Scharfrichter.Codec.Archives;
 using Scharfrichter.Codec.Charts;
 using Scharfrichter.Codec.Sounds;
+using Scharfrichter.Common;
 
 using System;
 using System.Collections.Generic;
@@ -15,7 +16,7 @@ namespace ConvertHelper
 	{
 		static public void RenderWAV(string[] inArgs, long unitNumerator, long unitDenominator)
 		{
-			Console.WriteLine("DJSLACKERS - Render");
+			Splash.Show("Render");
 			Console.WriteLine("Timing: " + unitNumerator.ToString() + "/" + unitDenominator.ToString());
 
 			string[] args;
