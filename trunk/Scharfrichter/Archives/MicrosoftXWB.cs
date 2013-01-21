@@ -98,7 +98,7 @@ namespace Scharfrichter.Codec.Archives
 								dataFormat = WaveFormat.CreateCustomFormat(WaveFormatEncoding.Adpcm, entry.Format.SamplesPerSec, entry.Format.Channels, entry.Format.AvgBytesPerSec, entry.Format.BlockAlign, entry.Format.BitsPerSample);
 								break;
 							case Constants.WavebankminiformatTagWma:
-								dataFormat = WaveFormat.CreateCustomFormat(WaveFormatEncoding.WAVE_FORMAT_WMAUDIO3, entry.Format.SamplesPerSec, entry.Format.Channels, entry.Format.AvgBytesPerSec, entry.Format.BlockAlign, entry.Format.BitsPerSample);
+								dataFormat = WaveFormat.CreateCustomFormat(WaveFormatEncoding.WindowsMediaAudio, entry.Format.SamplesPerSec, entry.Format.Channels, entry.Format.AvgBytesPerSec, entry.Format.BlockAlign, entry.Format.BitsPerSample);
 								break;
 							default:
 								dataFormat = null;
