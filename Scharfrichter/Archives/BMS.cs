@@ -342,7 +342,7 @@ namespace Scharfrichter.Codec.Archives
 		public void Write(Stream target, bool enableBackspinScratch)
 		{
 			Dictionary<int, Fraction> bpmMap = new Dictionary<int, Fraction>();
-			BinaryWriter writer = new BinaryWriter(target);
+			BinaryWriter writer = new BinaryWriter(target, Encoding.GetEncoding(932));
 			Chart chart = charts[0];
 
 			MemoryStream header = new MemoryStream();

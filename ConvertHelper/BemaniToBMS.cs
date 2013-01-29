@@ -16,42 +16,11 @@ namespace ConvertHelper
 		private const string configFileName = "Convert";
 		private const string databaseFileName = "BeatmaniaDB";
 
-		static string[] chartTitlesIIDX1 = new string[]
-		{
-			"[1P Hyper]",
-			"[1P Normal]",
-			"[1P Another]",
-			"[1P Beginner]",
-			"[1P 4]",
-			"[1P 5]",
-			"[2P Hyper]",
-			"[2P Normal]",
-			"[2P Another]",
-			"[2P Beginner]",
-			"[2P 4]",
-			"[2P 5]"
-		};
-
-		static int[] difficultyTagsIIDX1 = new int[]
-		{
-			3,
-			2,
-			4,
-			1,
-			0,
-			0,
-			3,
-			2,
-			4,
-			1,
-			0,
-			0
-		};
-
 		static public void Convert(string[] inArgs, long unitNumerator, long unitDenominator)
 		{
 			// configuration
 			Configuration config = LoadConfig();
+			Configuration db = LoadDB();
 			int quantizeMeasure = config["BMS"].GetValue("QuantizeMeasure");
 			int quantizeNotes = config["BMS"].GetValue("QuantizeNotes");
 
@@ -94,33 +63,60 @@ namespace ConvertHelper
 				{
 					Console.WriteLine();
 					Console.WriteLine("Processing File: " + args[i]);
+					string filename = args[i];
+
+					string IIDXDBName = Path.GetFileNameWithoutExtension(filename);
+					while (IIDXDBName.StartsWith("0"))
+						IIDXDBName = IIDXDBName.Substring(1);
 
 					byte[] data = File.ReadAllBytes(args[i]);
 					switch (Path.GetExtension(args[i]).ToUpper())
 					{
 						case @".1":
 							using (MemoryStream source = new MemoryStream(data))
-								ConvertArchive(Bemani1.Read(source, unitNumerator, unitDenominator), quantizeMeasure, quantizeNotes, args[i], chartTitlesIIDX1, difficultyTagsIIDX1);
+							{
+								Bemani1 archive = Bemani1.Read(source, unitNumerator, unitDenominator);
+
+								if (db[IIDXDBName]["TITLE"] != "")
+								{
+									for (int j = 0; j < archive.ChartCount; j++)
+									{
+										Chart chart = archive.Charts[j];
+										if (chart != null)
+										{
+											chart.Tags["TITLE"] = db[IIDXDBName]["TITLE"];
+											chart.Tags["ARTIST"] = db[IIDXDBName]["ARTIST"];
+											chart.Tags["GENRE"] = db[IIDXDBName]["GENRE"];
+											if (j < 6)
+												chart.Tags["PLAYLEVEL"] = db[IIDXDBName]["DIFFICULTYSP" + config["IIDX"]["DIFFICULTY" + j.ToString()]];
+											else if (j < 12)
+												chart.Tags["PLAYLEVEL"] = db[IIDXDBName]["DIFFICULTYDP" + config["IIDX"]["DIFFICULTY" + j.ToString()]];
+										}
+									}
+								}
+
+								ConvertArchive(archive, config, args[i]);
+							}
 							break;
 						case @".2DX":
 							using (MemoryStream source = new MemoryStream(data))
 							{
 								Console.WriteLine("Converting Samples");
 								Bemani2DX archive = Bemani2DX.Read(source);
-								ConvertSounds(archive.Sounds, args[i], 0.6f);
+								ConvertSounds(archive.Sounds, filename, 0.6f);
 							}
 							break;
 						case @".CS":
 							using (MemoryStream source = new MemoryStream(data))
-								ConvertChart(BeatmaniaIIDXCSNew.Read(source), quantizeMeasure, quantizeNotes, args[i], "", 0, null);
+								ConvertChart(BeatmaniaIIDXCSNew.Read(source), config, filename, -1, null);
 							break;
 						case @".CS2":
 							using (MemoryStream source = new MemoryStream(data))
-								ConvertChart(BeatmaniaIIDXCSOld.Read(source), quantizeMeasure, quantizeNotes, args[i], "", 0, null);
+								ConvertChart(BeatmaniaIIDXCSOld.Read(source), config, filename, -1, null);
 							break;
 						case @".CS5":
 							using (MemoryStream source = new MemoryStream(data))
-								ConvertChart(Beatmania5Key.Read(source), quantizeMeasure, quantizeNotes, args[i], "", 0, null);
+								ConvertChart(Beatmania5Key.Read(source), config, filename, -1, null);
 							break;
 						case @".CS9":
 							break;
@@ -128,14 +124,14 @@ namespace ConvertHelper
 							using (MemoryStream source = new MemoryStream(data))
 							{
 								Sound sound = BemaniSD9.Read(source);
-								string targetFile = Path.GetFileNameWithoutExtension(args[i]);
-								string targetPath = Path.Combine(Path.GetDirectoryName(args[i]), targetFile) + ".wav";
+								string targetFile = Path.GetFileNameWithoutExtension(filename);
+								string targetPath = Path.Combine(Path.GetDirectoryName(filename), targetFile) + ".wav";
 								sound.WriteFile(targetPath, 1.0f);
 							}
 							break;
 						case @".SSP":
 							using (MemoryStream source = new MemoryStream(data))
-								ConvertSounds(BemaniSSP.Read(source).Sounds, args[i], 1.0f);
+								ConvertSounds(BemaniSSP.Read(source).Sounds, filename, 1.0f);
 							break;
 					}
 				}
@@ -146,20 +142,25 @@ namespace ConvertHelper
 			SaveConfig(config);
 		}
 
-		static public void ConvertArchive(Archive archive, int quantizeMeasure, int quantizeNotes, string filename, string[] chartTitles, int[] difficultyTags)
+		static public void ConvertArchive(Archive archive, Configuration config, string filename)
 		{
 			for (int j = 0; j < archive.ChartCount; j++)
 			{
 				if (archive.Charts[j] != null)
 				{
 					Console.WriteLine("Converting Chart " + j.ToString());
-					ConvertChart(archive.Charts[j], quantizeMeasure, quantizeNotes, filename, chartTitles[j], difficultyTags[j], null);
+					ConvertChart(archive.Charts[j], config, filename, j, null);
 				}
 			}
 		}
 
-		static public void ConvertChart(Chart chart, int quantizeMeasure, int quantizeNotes, string filename, string title, int difficulty, int[] map)
+		static public void ConvertChart(Chart chart, Configuration config, string filename, int index, int[] map)
 		{
+			int quantizeNotes = config["BMS"].GetValue("QuantizeNotes");
+			int quantizeMeasure = config["BMS"].GetValue("QuantizeMeasure");
+			int difficulty = config["IIDX"].GetValue("Difficulty" + index.ToString());
+			string title = config["BMS"]["Players" + config["IIDX"]["Players" + index.ToString()]] + " " + config["BMS"]["Difficulty" + difficulty.ToString()].Trim();
+
 			if (quantizeMeasure > 0)
 				chart.QuantizeMeasureLengths(quantizeMeasure);
 
@@ -168,16 +169,18 @@ namespace ConvertHelper
 				BMS bms = new BMS();
 				bms.Charts = new Chart[] { chart };
 
-				string name = Path.GetFileNameWithoutExtension(Path.GetFileName(filename)); //ex: "1204 [1P Another]"
-				if (title != null && title.Length > 0)
-				{
-					name += " " + title;
-				}
-
-				string output = Path.Combine(Path.GetDirectoryName(filename), @"@" + name + ".bms");
+				string name = "";
+				if (chart.Tags.ContainsKey("TITLE"))
+					name = chart.Tags["TITLE"];
+				if (name == "")
+					name = Path.GetFileNameWithoutExtension(Path.GetFileName(filename)); //ex: "1204 [1P Another]"
 
 				// write some tags
-				bms.Charts[0].Tags["TITLE"] = Path.GetFileNameWithoutExtension(Path.GetFileName(filename));
+				bms.Charts[0].Tags["TITLE"] = name;
+				if (chart.Tags.ContainsKey("ARTIST"))
+					bms.Charts[0].Tags["ARTIST"] = chart.Tags["ARTIST"];
+				if (chart.Tags.ContainsKey("GENRE"))
+					bms.Charts[0].Tags["GENRE"] = chart.Tags["GENRE"];
 
 				if (difficulty > 0)
 					bms.Charts[0].Tags["DIFFICULTY"] = difficulty.ToString();
@@ -187,12 +190,25 @@ namespace ConvertHelper
 				else
 					bms.Charts[0].Tags["PLAYER"] = "1";
 
+				name = name.Replace(":", "_");
+				name = name.Replace("/", "_");
+				name = name.Replace("?", "_");
+				name = name.Replace("\\", "_");
+
+				if (title != null && title.Length > 0)
+				{
+					name += " [" + title + "]";
+				}
+
+				string output = Path.Combine(Path.GetDirectoryName(filename), @"@" + name + ".bms");
+
 				if (map == null)
 					bms.GenerateSampleMap();
 				else
 					bms.SampleMap = map;
 
-				bms.Charts[0].QuantizeNoteOffsets(quantizeNotes);
+				if (quantizeNotes > 0)
+					bms.Charts[0].QuantizeNoteOffsets(quantizeNotes);
 				bms.GenerateSampleTags();
 				bms.Write(mem, true);
 
@@ -222,10 +238,29 @@ namespace ConvertHelper
 			Configuration config = Configuration.ReadFile(configFileName);
 			config["BMS"].SetDefaultValue("QuantizeMeasure", 16);
 			config["BMS"].SetDefaultValue("QuantizeNotes", 192);
-			config["IIDX"].SetDefaultString("Difficulty0", "Hyper");
-			config["IIDX"].SetDefaultString("Difficulty1", "Normal");
-			config["IIDX"].SetDefaultString("Difficulty2", "Another");
-			config["IIDX"].SetDefaultString("Difficulty3", "Beginner");
+			config["BMS"].SetDefaultString("Difficulty1", "Beginner");
+			config["BMS"].SetDefaultString("Difficulty2", "Normal");
+			config["BMS"].SetDefaultString("Difficulty3", "Hyper");
+			config["BMS"].SetDefaultString("Difficulty4", "Another");
+			config["BMS"].SetDefaultString("Players1", "1P");
+			config["BMS"].SetDefaultString("Players2", "2P");
+			config["BMS"].SetDefaultString("Players3", "DP");
+			config["IIDX"].SetDefaultString("Difficulty0", "3");
+			config["IIDX"].SetDefaultString("Difficulty1", "2");
+			config["IIDX"].SetDefaultString("Difficulty2", "4");
+			config["IIDX"].SetDefaultString("Difficulty3", "1");
+			config["IIDX"].SetDefaultString("Difficulty6", "3");
+			config["IIDX"].SetDefaultString("Difficulty7", "2");
+			config["IIDX"].SetDefaultString("Difficulty8", "4");
+			config["IIDX"].SetDefaultString("Difficulty9", "1");
+			config["IIDX"].SetDefaultString("Players0", "1");
+			config["IIDX"].SetDefaultString("Players1", "1");
+			config["IIDX"].SetDefaultString("Players2", "1");
+			config["IIDX"].SetDefaultString("Players3", "1");
+			config["IIDX"].SetDefaultString("Players6", "3");
+			config["IIDX"].SetDefaultString("Players7", "3");
+			config["IIDX"].SetDefaultString("Players8", "3");
+			config["IIDX"].SetDefaultString("Players9", "3");
 			return config;
 		}
 
