@@ -156,7 +156,6 @@ namespace ConvertHelper
 			config["SM"].SetDefaultString("Difficulty3", "Hard");
 			config["SM"].SetDefaultString("Difficulty4", "Challenge");
 			config["SM"].SetDefaultString("Difficulty5", "Edit");
-
 			config["DDR"].SetDefaultString("Difficulty1", "1");
 			config["DDR"].SetDefaultString("Difficulty2", "2");
 			config["DDR"].SetDefaultString("Difficulty3", "3");
