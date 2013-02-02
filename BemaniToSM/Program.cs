@@ -12,7 +12,7 @@ namespace BemaniToSM
 		{
 			if (System.Diagnostics.Debugger.IsAttached && args.Length == 0)
 			{
-				args = new string[] { @"D:\SSQ" };
+				args = new string[] { @"D:\ddr\card00120832.ssq" };
 			}
 
 			ConvertHelper.BemaniToSM.Convert(args);

@@ -139,7 +139,6 @@ namespace ConvertHelper
 
 			// wrap up
 			Console.WriteLine("BemaniToBMS finished.");
-			SaveConfig(config);
 		}
 
 		static public void ConvertArchive(Archive archive, Configuration config, string filename)
@@ -268,11 +267,6 @@ namespace ConvertHelper
 		{
 			Configuration config = Configuration.ReadFile(databaseFileName);
 			return config;
-		}
-
-		static private void SaveConfig(Configuration config)
-		{
-			config.WriteFile(configFileName);
 		}
 	}
 }
