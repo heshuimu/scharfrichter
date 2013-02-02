@@ -100,6 +100,7 @@ namespace ConvertHelper
 									sm.Tags["ARTIST"] = "";
 									sm.Tags["TITLETRANSLIT"] = "";
 									sm.Tags["ARTISTTRANSLIT"] = "";
+									sm.Tags["CDTITLE"] = "";
 									sm.Tags["BANNER"] = outTitle + ".png";
 									sm.Tags["BACKGROUND"] = outTitle + "-bg.png";
 									sm.Tags["OFFSET"] = "0.000";
@@ -113,8 +114,18 @@ namespace ConvertHelper
 										string difficulty = config["SM"]["Difficulty" + config["DDR"]["Difficulty" + chart.Tags["Difficulty"]]];
 										chart.Entries.Sort();
 
+										// solo chart check
+										if (gameType == config["SM"]["DanceMode6"])
+										{
+											foreach (Entry entry in chart.Entries)
+											{
+												if (entry.Type == EntryType.Marker && entry.Column == 6)
+													entry.Column = 5;
+											}
+										}
+
 										// couples chart check
-										if (gameType == config["SM"]["DanceMode4"])
+										else if (gameType == config["SM"]["DanceMode4"])
 										{
 											foreach (Entry entry in chart.Entries)
 											{
@@ -137,9 +148,6 @@ namespace ConvertHelper
 					}
 				}
 			}
-
-			// cleanup
-			SaveConfig(config);
 		}
 
 		static private Configuration LoadConfig()
@@ -168,11 +176,6 @@ namespace ConvertHelper
 		{
 			Configuration config = Configuration.ReadFile(databaseFileName);
 			return config;
-		}
-
-		static private void SaveConfig(Configuration config)
-		{
-			config.WriteFile(configFileName);
 		}
 	}
 }
