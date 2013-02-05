@@ -7,14 +7,14 @@ using System.Text;
 
 namespace BemaniToBMSGold
 {
-	class Program
-	{
-		static long unitNumerator = 100;
-		static long unitDenominator = 6004;
+    class Program
+    {
+        static long unitNumerator = 100;
+        static long unitDenominator = 6004;
 
-		static void Main(string[] args)
-		{
-			BemaniToBMS.Convert(args, unitNumerator, unitDenominator);
-		}
-	}
+        static void Main(string[] args)
+        {
+            BemaniToBMS.Convert(args, unitNumerator, unitDenominator);
+        }
+    }
 }

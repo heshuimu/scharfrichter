@@ -161,7 +161,7 @@ namespace NAudio.Wave.Asio
         /// </summary>
         /// <param name="sampleRate">The sample rate.</param>
         /// <returns>
-        /// 	<c>true</c> if this instance [can sample rate] the specified sample rate; otherwise, <c>false</c>.
+        ///     <c>true</c> if this instance [can sample rate] the specified sample rate; otherwise, <c>false</c>.
         /// </returns>
         public bool canSampleRate(double sampleRate)
         {
@@ -376,7 +376,7 @@ namespace NAudio.Wave.Asio
             [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
             public delegate int ASIOgetDriverVersion(IntPtr _pUnknown);
             public ASIOgetDriverVersion getDriverVersion = null;
-            //6  virtual void getErrorMessage(char *string) = 0;	
+            //6  virtual void getErrorMessage(char *string) = 0;    
             [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
             public delegate void ASIOgetErrorMessage(IntPtr _pUnknown, StringBuilder errorMessage);
             public ASIOgetErrorMessage getErrorMessage = null;

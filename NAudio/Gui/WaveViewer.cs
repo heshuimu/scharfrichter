@@ -28,7 +28,7 @@ namespace NAudio.Gui
         {
             // This call is required by the Windows.Forms Form Designer.
             InitializeComponent();
-            this.DoubleBuffered = true;			
+            this.DoubleBuffered = true;            
 
         }
 
@@ -125,7 +125,7 @@ namespace NAudio.Gui
                     }
                     float lowPercent = ((((float) low) - short.MinValue) / ushort.MaxValue);
                     float highPercent = ((((float) high) - short.MinValue) / ushort.MaxValue);
-                    e.Graphics.DrawLine(Pens.Black,x,this.Height * lowPercent,x,this.Height * highPercent);					
+                    e.Graphics.DrawLine(Pens.Black,x,this.Height * lowPercent,x,this.Height * highPercent);                    
                 } 
             }
 

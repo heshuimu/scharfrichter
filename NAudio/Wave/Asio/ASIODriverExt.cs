@@ -134,7 +134,7 @@ namespace NAudio.Wave.Asio
         /// </summary>
         /// <param name="sampleRate">The sample rate.</param>
         /// <returns>
-        /// 	<c>true</c> if [is sample rate supported]; otherwise, <c>false</c>.
+        ///     <c>true</c> if [is sample rate supported]; otherwise, <c>false</c>.
         /// </returns>
         public bool IsSampleRateSupported(double sampleRate)
         {

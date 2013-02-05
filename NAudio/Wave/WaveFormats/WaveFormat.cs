@@ -294,7 +294,7 @@ namespace NAudio.Wave
         /// </summary>
         public WaveFormatEncoding Encoding
         {
-            get	
+            get    
             {
                 return waveFormatTag;
             }

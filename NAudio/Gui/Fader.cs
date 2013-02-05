@@ -130,7 +130,7 @@ namespace NAudio.Gui
                 }
                 else
                 {
-                    percent = (float) sliderTop / (float) (this.Height - SliderHeight);					
+                    percent = (float) sliderTop / (float) (this.Height - SliderHeight);                    
                 }
                 this.Invalidate();
             }

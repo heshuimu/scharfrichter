@@ -17,10 +17,10 @@ namespace NAudio.CoreAudioApi
         /// <summary>
         /// Music, movies, narration, and live music recording
         /// </summary>
-	    Multimedia,
+        Multimedia,
         /// <summary>
         /// Voice communications (talking to another person).
         /// </summary>
-	    Communications,
+        Communications,
     }
 }

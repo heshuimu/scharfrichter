@@ -5,7 +5,7 @@ using System.Text;
 
 namespace Scharfrichter.Codec.Videos
 {
-	public abstract class Video
-	{
-	}
+    public abstract class Video
+    {
+    }
 }

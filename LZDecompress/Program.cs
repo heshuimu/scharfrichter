@@ -10,12 +10,12 @@ using System.Text;
 
 namespace LZDecompress
 {
-	class Program
-	{
-		static void Main(string[] args)
-		{
+    class Program
+    {
+        static void Main(string[] args)
+        {
             Splash.Show("LZDecompress");
-			args = Subfolder.Parse(args);
+            args = Subfolder.Parse(args);
 
             if (args.Length == 0)
             {
@@ -28,7 +28,7 @@ namespace LZDecompress
             }
 
             if (args.Length > 0)
-			{
+            {
                 foreach (string filename in args)
                 {
                     try
@@ -50,7 +50,7 @@ namespace LZDecompress
                         Console.WriteLine("FAILED.");
                     }
                 }
-			}
-		}
-	}
+            }
+        }
+    }
 }

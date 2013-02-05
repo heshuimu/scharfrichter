@@ -185,7 +185,7 @@ namespace NAudio.CoreAudioApi
         /// <param name="shareMode">The share mode.</param>
         /// <param name="desiredFormat">The desired format.</param>
         /// <returns>
-        /// 	<c>true</c> if [is format supported] [the specified share mode]; otherwise, <c>false</c>.
+        ///     <c>true</c> if [is format supported] [the specified share mode]; otherwise, <c>false</c>.
         /// </returns>
         public bool IsFormatSupported(AudioClientShareMode shareMode,
             WaveFormat desiredFormat)
@@ -203,7 +203,7 @@ namespace NAudio.CoreAudioApi
         /// <param name="desiredFormat">Desired Format</param>
         /// <param name="closestMatchFormat">Output The closest match format.</param>
         /// <returns>
-        /// 	<c>true</c> if [is format supported] [the specified share mode]; otherwise, <c>false</c>.
+        ///     <c>true</c> if [is format supported] [the specified share mode]; otherwise, <c>false</c>.
         /// </returns>
         public bool IsFormatSupported(AudioClientShareMode shareMode, WaveFormat desiredFormat, out WaveFormatExtensible closestMatchFormat)
         {

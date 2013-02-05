@@ -263,9 +263,9 @@ namespace NAudio.Wave
         /// <param name="index"></param>
         /// <returns></returns>
         public Cue this[int index]
-	    {
+        {
             get { return cues[index]; }
-	    }
+        }
 
         /// <summary>
         /// Checks if the cue and list chunks exist and if so, creates a cue list

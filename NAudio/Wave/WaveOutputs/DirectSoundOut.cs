@@ -336,7 +336,7 @@ namespace NAudio.Wave
         /// Determines whether the SecondaryBuffer is lost.
         /// </summary>
         /// <returns>
-        /// 	<c>true</c> if [is buffer lost]; otherwise, <c>false</c>.
+        ///     <c>true</c> if [is buffer lost]; otherwise, <c>false</c>.
         /// </returns>
         private bool IsBufferLost()
         {
