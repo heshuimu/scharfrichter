@@ -9,6 +9,6 @@ namespace NAudio.Wave
     {
         //public short cbSize;
         public uint dwVorbisACMVersion;
-	    public uint dwLibVorbisVersion;
+        public uint dwLibVorbisVersion;
     } 
 }

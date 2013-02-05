@@ -120,7 +120,7 @@ namespace NAudio.CoreAudioApi
 
             Debug.WriteLine("Thread starting...");
             this.stop = false;
-            this.captureThread.Start();	
+            this.captureThread.Start();    
         }
 
         /// <summary>

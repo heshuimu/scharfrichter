@@ -114,7 +114,7 @@
     <date>3 Mar 2005</date>
     <desc>AcmStream and AcmStreamHeader bug fixes</desc>
     <desc>Improvements to WaveFileReader and WaveFileWriter</desc>
-    <desc>PCM to PCM offline conversion working</desc>		
+    <desc>PCM to PCM offline conversion working</desc>        
   </change>
   <change>
     <version>0.2.26.0</version>
@@ -216,7 +216,7 @@
     <version>0.4.42.0</version>
     <date>27 May 2005</date>
     <desc>Initial VST interfaces and enums</desc>
-  </change>	
+  </change>    
   <change>
     <version>0.4.43.0</version>
     <date>3 Jun 2005</date>
@@ -299,7 +299,7 @@
     <desc>Retired StreamMixer project</desc>
     <desc>WavePlayer better switching between settings</desc>
     <desc>DirectSound feeds in on a timer now, (from MSDN Coding 4 Fun Drum Machine demo)</desc>
-  </change>	
+  </change>    
   <change>
     <version>0.5.57.0</version>
     <date>14 Nov 2005</date>

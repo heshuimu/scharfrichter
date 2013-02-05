@@ -158,7 +158,7 @@ namespace NAudio.Mixer
                     default:
                         return "Invalid Component Type";
                 }
-            }				
+            }                
         }
         
         /// <summary>
@@ -236,7 +236,7 @@ namespace NAudio.Mixer
             {
                 throw new ArgumentOutOfRangeException("sourceIndex");
             }
-            return new MixerLine(mixerHandle, mixerLine.dwDestination, sourceIndex, this.mixerHandleType);			
+            return new MixerLine(mixerHandle, mixerLine.dwDestination, sourceIndex, this.mixerHandleType);            
         }
 
         /// <summary>

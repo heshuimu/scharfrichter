@@ -13,7 +13,7 @@ namespace NAudio.Wave.Asio
     internal enum ASIOError
     {
         ASE_OK = 0,             // This value will be returned whenever the call succeeded
-        ASE_SUCCESS = 0x3f4847a0,	// unique success return value for ASIOFuture calls
+        ASE_SUCCESS = 0x3f4847a0,    // unique success return value for ASIOFuture calls
         ASE_NotPresent = -1000, // hardware input or output is not present or available
         ASE_HWMalfunction,      // hardware is malfunctioning (can be returned by any ASIO function)
         ASE_InvalidParameter,   // input parameter invalid
@@ -101,16 +101,16 @@ namespace NAudio.Wave.Asio
 
     internal enum ASIOMessageSelector
     {
-        kAsioSelectorSupported = 1,	// selector in <value>, returns 1L if supported,
-        kAsioEngineVersion,			// returns engine (host) asio implementation version,
-        kAsioResetRequest,			// request driver reset. if accepted, this
-        kAsioBufferSizeChange,		// not yet supported, will currently always return 0L.
-        kAsioResyncRequest,			// the driver went out of sync, such that
-        kAsioLatenciesChanged, 		// the drivers latencies have changed. The engine
-        kAsioSupportsTimeInfo,		// if host returns true here, it will expect the
-        kAsioSupportsTimeCode,		// 
-        kAsioMMCCommand,			// unused - value: number of commands, message points to mmc commands
-        kAsioSupportsInputMonitor,	// kAsioSupportsXXX return 1 if host supports this
+        kAsioSelectorSupported = 1,    // selector in <value>, returns 1L if supported,
+        kAsioEngineVersion,            // returns engine (host) asio implementation version,
+        kAsioResetRequest,            // request driver reset. if accepted, this
+        kAsioBufferSizeChange,        // not yet supported, will currently always return 0L.
+        kAsioResyncRequest,            // the driver went out of sync, such that
+        kAsioLatenciesChanged,         // the drivers latencies have changed. The engine
+        kAsioSupportsTimeInfo,        // if host returns true here, it will expect the
+        kAsioSupportsTimeCode,        // 
+        kAsioMMCCommand,            // unused - value: number of commands, message points to mmc commands
+        kAsioSupportsInputMonitor,    // kAsioSupportsXXX return 1 if host supports this
         kAsioSupportsInputGain,     // unused and undefined
         kAsioSupportsInputMeter,    // unused and undefined
         kAsioSupportsOutputGain,    // unused and undefined
@@ -204,13 +204,13 @@ namespace NAudio.Wave.Asio
         internal delegate IntPtr ASIOBufferSwitchTimeInfoCallBack(IntPtr asioTimeParam, int doubleBufferIndex, bool directProcess);
         //        internal delegate IntPtr ASIOBufferSwitchTimeInfoCallBack(ref ASIOTime asioTimeParam, int doubleBufferIndex, bool directProcess);
 
-        //	void (*bufferSwitch) (long doubleBufferIndex, ASIOBool directProcess);
+        //    void (*bufferSwitch) (long doubleBufferIndex, ASIOBool directProcess);
         public ASIOBufferSwitchCallBack pbufferSwitch;
         //    void (*sampleRateDidChange) (ASIOSampleRate sRate);
         public ASIOSampleRateDidChangeCallBack psampleRateDidChange;
-        //	long (*asioMessage) (long selector, long value, void* message, double* opt);
+        //    long (*asioMessage) (long selector, long value, void* message, double* opt);
         public ASIOAsioMessageCallBack pasioMessage;
-        //	ASIOTime* (*bufferSwitchTimeInfo) (ASIOTime* params, long doubleBufferIndex, ASIOBool directProcess);
+        //    ASIOTime* (*bufferSwitchTimeInfo) (ASIOTime* params, long doubleBufferIndex, ASIOBool directProcess);
         public ASIOBufferSwitchTimeInfoCallBack pbufferSwitchTimeInfo;
     }
 }

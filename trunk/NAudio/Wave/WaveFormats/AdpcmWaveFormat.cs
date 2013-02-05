@@ -90,25 +90,25 @@ namespace NAudio.Wave
             };
         }
 
-		// *** Added for Scharfrichter
-		public AdpcmWaveFormat(int sampleRate, int channels, short blockAlign, int avgBytesPerSecond, short samplesPerBlock) :
-			base(sampleRate, 0, channels)
-		{
-			this.waveFormatTag = WaveFormatEncoding.Adpcm;
+        // *** Added for Scharfrichter
+        public AdpcmWaveFormat(int sampleRate, int channels, short blockAlign, int avgBytesPerSecond, short samplesPerBlock) :
+            base(sampleRate, 0, channels)
+        {
+            this.waveFormatTag = WaveFormatEncoding.Adpcm;
 
-			// TODO: validate sampleRate, bitsPerSample
-			this.extraSize = 32;
-			this.blockAlign = blockAlign;
+            // TODO: validate sampleRate, bitsPerSample
+            this.extraSize = 32;
+            this.blockAlign = blockAlign;
 
-			this.bitsPerSample = 4;
-			this.samplesPerBlock = samplesPerBlock;
-			this.averageBytesPerSecond = avgBytesPerSecond;
+            this.bitsPerSample = 4;
+            this.samplesPerBlock = samplesPerBlock;
+            this.averageBytesPerSecond = avgBytesPerSecond;
 
-			numCoeff = 7;
-			coefficients = new short[14] {
+            numCoeff = 7;
+            coefficients = new short[14] {
                 256,0,512,-256,0,0,192,64,240,0,460,-208,392,-232
             };
-		}
+        }
 
         /// <summary>
         /// Serializes this wave format

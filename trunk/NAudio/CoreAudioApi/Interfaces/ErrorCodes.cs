@@ -52,6 +52,6 @@ namespace NAudio.CoreAudioApi.Interfaces
         static readonly int AUDCLNT_E_CPUUSAGE_EXCEEDED  = HResult.MAKE_HRESULT(SEVERITY_ERROR, FACILITY_AUDCLNT, 0x017);
         /*static readonly int AUDCLNT_S_BUFFER_EMPTY              AUDCLNT_SUCCESS(0x001)
         static readonly int AUDCLNT_S_THREAD_ALREADY_REGISTERED AUDCLNT_SUCCESS(0x002)
-        static readonly int AUDCLNT_S_POSITION_STALLED		   AUDCLNT_SUCCESS(0x003)*/
+        static readonly int AUDCLNT_S_POSITION_STALLED           AUDCLNT_SUCCESS(0x003)*/
     }
 }

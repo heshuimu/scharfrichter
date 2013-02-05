@@ -425,13 +425,13 @@ namespace NAudio.MediaFoundation
 
 /*
 
-MECaptureAudioSessionDeviceRemoved 	The device was removed.
-MECaptureAudioSessionDisconnected 	The audio session is disconnected because the user logged off from a Windows Terminal Services (WTS) session.
-MECaptureAudioSessionExclusiveModeOverride 	The user opened an audio stream in exclusive mode.
-MECaptureAudioSessionFormatChanged 	The audio format changed.
-MECaptureAudioSessionServerShutdown 	The audio session server shutdown.
-MECaptureAudioSessionVolumeChanged 	The volume changed.
-MEContentProtectionMessage 	The configuration changed for an output protection scheme.
-MEVideoCaptureDevicePreempted 	The device has been preempted.
-MEVideoCaptureDeviceRemoved 	The device has been removed.
+MECaptureAudioSessionDeviceRemoved     The device was removed.
+MECaptureAudioSessionDisconnected     The audio session is disconnected because the user logged off from a Windows Terminal Services (WTS) session.
+MECaptureAudioSessionExclusiveModeOverride     The user opened an audio stream in exclusive mode.
+MECaptureAudioSessionFormatChanged     The audio format changed.
+MECaptureAudioSessionServerShutdown     The audio session server shutdown.
+MECaptureAudioSessionVolumeChanged     The volume changed.
+MEContentProtectionMessage     The configuration changed for an output protection scheme.
+MEVideoCaptureDevicePreempted     The device has been preempted.
+MEVideoCaptureDeviceRemoved     The device has been removed.
 }*/
