@@ -19,7 +19,7 @@ namespace Scharfrichter.Codec.Compression
 			int length = reader.ReadInt32S();
 
 			// decompress
-			BemaniLZSS2.Decompress(source, target, length, decompressedSize);
+			BemaniLZSS2.DecompressGCZ(source, target, length, decompressedSize);
 		}
 	}
 }
