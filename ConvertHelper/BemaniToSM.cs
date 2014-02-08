@@ -119,8 +119,18 @@ namespace ConvertHelper
                                         {
                                             foreach (Entry entry in chart.Entries)
                                             {
-                                                if (entry.Type == EntryType.Marker && entry.Column == 6)
-                                                    entry.Column = 5;
+                                                if (entry.Type == EntryType.Marker)
+												{
+													switch (entry.Column)
+													{
+														case 0: entry.Column = 1;
+														case 1: entry.Column = 2;
+														case 2: entry.Column = 3;
+														case 3: entry.Column = 4;
+														case 4: entry.Column = 0;
+														case 6: entry.Column = 5;
+													}
+												}
                                             }
                                         }
 
