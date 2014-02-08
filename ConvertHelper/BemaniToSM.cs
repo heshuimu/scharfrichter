@@ -123,12 +123,12 @@ namespace ConvertHelper
 												{
 													switch (entry.Column)
 													{
-                                                        case 0: entry.Column = 1; break;
+                                                        case 0: entry.Column = 0; break;
                                                         case 1: entry.Column = 2; break;
                                                         case 2: entry.Column = 3; break;
-                                                        case 3: entry.Column = 4; break;
-                                                        case 4: entry.Column = 0; break;
-                                                        case 6: entry.Column = 5; break;
+                                                        case 3: entry.Column = 5; break;
+                                                        case 4: entry.Column = 1; break;
+                                                        case 6: entry.Column = 4; break;
 													}
 												}
                                             }
