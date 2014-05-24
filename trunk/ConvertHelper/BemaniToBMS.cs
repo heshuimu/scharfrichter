@@ -155,6 +155,11 @@ namespace ConvertHelper
 
         static public void ConvertChart(Chart chart, Configuration config, string filename, int index, int[] map)
         {
+            if (config == null)
+            {
+                config = LoadConfig();
+            }
+
             int quantizeNotes = config["BMS"].GetValue("QuantizeNotes");
             int quantizeMeasure = config["BMS"].GetValue("QuantizeMeasure");
             int difficulty = config["IIDX"].GetValue("Difficulty" + index.ToString());
