@@ -163,7 +163,8 @@ namespace ConvertHelper
             int quantizeNotes = config["BMS"].GetValue("QuantizeNotes");
             int quantizeMeasure = config["BMS"].GetValue("QuantizeMeasure");
             int difficulty = config["IIDX"].GetValue("Difficulty" + index.ToString());
-            string title = config["BMS"]["Players" + config["IIDX"]["Players" + index.ToString()]] + " " + config["BMS"]["Difficulty" + difficulty.ToString()].Trim();
+            string title = config["BMS"]["Players" + config["IIDX"]["Players" + index.ToString()]] + " " + config["BMS"]["Difficulty" + difficulty.ToString()];
+            title = title.Trim();
 
             if (quantizeMeasure > 0)
                 chart.QuantizeMeasureLengths(quantizeMeasure);

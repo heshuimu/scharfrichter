@@ -15,7 +15,7 @@ namespace Scharfrichter.Codec.Sounds
         // sample volume table
         // TODO: determine correctness.
         static private float[] volTab;
-        static private float[] VolumeTable
+        static public float[] VolumeTable
         {
             get
             {
