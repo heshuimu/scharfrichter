@@ -12,33 +12,42 @@ namespace Scharfrichter.Codec.Sounds
     static public class RF5C400
     {
         // sample volume table
-        static private float[] volTab;
+        //static private float[] volTab;
 
-        static private float[] VolumeTable
+        static public float[] VolumeTable
         {
             get
             {
-                if (volTab == null)
-                {
-                    float max = 256;
-                    volTab = new float[256];
-                    for (int i = 0; i < 256; i++)
-                    {
-                        volTab[i] = max / 256;
-                        max /= (float)Math.Pow(10.0, ((4.5f / (256.0f / 16.0f)) / 20f));
-                    }
-                }
-                return volTab;
+                return Bemani2DXSound.VolumeTable;
             }
         }
+
+        //static private float[] VolumeTable
+        //{
+        //    get
+        //    {
+        //        if (volTab == null)
+        //        {
+        //            float max = 256;
+        //            volTab = new float[256];
+        //            for (int i = 0; i < 256; i++)
+        //            {
+        //                volTab[i] = max / 256;
+        //                max /= (float)Math.Pow(10.0, ((4.5f / (256.0f / 16.0f)) / 20f));
+        //            }
+        //        }
+        //        return volTab;
+        //    }
+        //}
 
         static public Sound Read(Stream source, Properties properties)
         {
             BinaryReaderEx reader = new BinaryReaderEx(source);
             Sound result = new Sound();
+            bool stereo = (properties.Flag0F & 0x80) != 0;
             byte[] data = reader.ReadBytes(properties.SampleLength);
             int dataLength = data.Length;
-            byte[] newData = new byte[dataLength * 2];
+            byte[] newData = new byte[dataLength * (stereo ? 1 : 2)];
 
             // translate the "signed" data
             int newDataPtr = 0;
@@ -51,9 +60,13 @@ namespace Scharfrichter.Codec.Sounds
                 }
                 newData[newDataPtr] = (byte)(sample & 0xFF);
                 newData[newDataPtr + 1] = (byte)((sample >> 8) & 0xFF);
-                newData[newDataPtr + 2] = newData[newDataPtr];
-                newData[newDataPtr + 3] = newData[newDataPtr + 1];
-                newDataPtr += 4;
+                if (!stereo)
+                {
+                    newData[newDataPtr + 2] = newData[newDataPtr];
+                    newData[newDataPtr + 3] = newData[newDataPtr + 1];
+                    newDataPtr += 2;
+                }
+                newDataPtr += 2;
             }
 
             // 16-bit stereo format

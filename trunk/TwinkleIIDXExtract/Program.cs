@@ -5,6 +5,7 @@ using Scharfrichter.Codec.Archives;
 using Scharfrichter.Codec.Charts;
 using Scharfrichter.Codec.Media;
 using Scharfrichter.Codec.Sounds;
+using Scharfrichter.Common;
 
 using System;
 using System.Collections.Generic;
@@ -29,7 +30,7 @@ namespace TwinkleIIDXExtract
                 args = new string[] { Console.ReadLine() };
                 if (args[0] == "")
                 {
-                    args[0] = @"C:\Users\Tony\Desktop\work\2nd\2ndstyle.img";
+                    args[0] = @"C:\Users\Tony\Desktop\work\5thstyle.img";
                 }
             }
 
@@ -45,6 +46,26 @@ namespace TwinkleIIDXExtract
                     Console.WriteLine();
                     Console.WriteLine("Processing " + args[i]);
 
+                    Configuration config = new Configuration();
+                    config["BMS"].SetDefaultValue("QuantizeMeasure", 16);
+                    config["BMS"].SetDefaultValue("QuantizeNotes", 192);
+                    config["BMS"].SetDefaultString("Difficulty1", "02000");
+                    config["BMS"].SetDefaultString("Difficulty2", "06000");
+                    config["BMS"].SetDefaultString("Difficulty3", "0A000");
+                    config["BMS"].SetDefaultString("Difficulty4", "0E000");
+                    config["BMS"].SetDefaultString("Difficulty5", "12000");
+                    config["BMS"].SetDefaultString("Difficulty6", "16000");
+                    config["BMS"].SetDefaultString("Difficulty7", "1A000");
+                    config["BMS"].SetDefaultString("Difficulty8", "1E000");
+                    config["IIDX"].SetDefaultString("Difficulty0", "1");
+                    config["IIDX"].SetDefaultString("Difficulty1", "2");
+                    config["IIDX"].SetDefaultString("Difficulty2", "3");
+                    config["IIDX"].SetDefaultString("Difficulty3", "4");
+                    config["IIDX"].SetDefaultString("Difficulty4", "5");
+                    config["IIDX"].SetDefaultString("Difficulty5", "6");
+                    config["IIDX"].SetDefaultString("Difficulty6", "7");
+                    config["IIDX"].SetDefaultString("Difficulty7", "8");
+
                     using (FileStream fs = new FileStream(args[i], FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
                     {
                         BinaryReader reader = new BinaryReader(fs);
@@ -59,22 +80,24 @@ namespace TwinkleIIDXExtract
 
                             using (MemoryStream ms = new MemoryStream(rawData))
                             {
-                                TwinkleChunk chunk = TwinkleChunk.Read(ms, new int[] { 0x002000, 0x006000, 0x00E000 }, new int[] { 0x000000 }, 0x100000);
+                                TwinkleChunk chunk = TwinkleChunk.Read(ms, new int[] { 0x002000, 0x006000, 0x00A000, 0x00E000, 0x012000, 0x016000, 0x01A000, 0x01E000 }, new int[] { 0x000000 }, 0x100000);
                                 if (chunk.ChartCount > 0)
                                 {
                                     Console.WriteLine("Exporting set " + j.ToString());
-                                    string fname = Path.Combine(Path.GetDirectoryName(args[i]), Util.ConvertToDecimalString(j, 3));
-
-                                    ConvertHelper.BemaniToBMS.ConvertChart(chunk.Charts[0], null, fname, 0, chunk.SampleMaps[0]);
-                                    ConvertHelper.BemaniToBMS.ConvertSounds(chunk.Sounds, fname, 0.6f);
+                                    string soundPath = Path.Combine(targetPath, Util.ConvertToDecimalString(j, 3));
+                                    string chartPath = Path.Combine(soundPath, Util.ConvertToDecimalString(j, 3));
+                                    Directory.CreateDirectory(soundPath);
+                                    for (int chartIndex = 0; chartIndex < chunk.ChartCount; chartIndex++)
+                                    {
+                                        ConvertHelper.BemaniToBMS.ConvertChart(chunk.Charts[chartIndex], config, chartPath, chartIndex, chunk.SampleMaps[0]);
+                                    }
+                                    ConvertHelper.BemaniToBMS.ConvertSounds(chunk.Sounds, soundPath, 0.6f);
                                 }
                             }
                         }
-
                     }
                 }
             }
-
         }
     }
 }

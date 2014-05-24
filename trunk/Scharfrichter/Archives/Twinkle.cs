@@ -69,7 +69,8 @@ namespace Scharfrichter.Codec.Archives
             if (foundChart)
             {
                 // swap the bytes for the rest of the data
-                using (MemoryStream mem = new MemoryStream(Util.ByteSwap(rawData, 2)))
+                Util.ByteSwapInPlace16(rawData);
+                using (MemoryStream mem = new MemoryStream(rawData))
                 {
                     if (sampleInfoOffsets != null)
                     {

@@ -137,6 +137,18 @@ namespace Scharfrichter.Codec
             return result;
         }
 
+        public static void ByteSwapInPlace16(byte[] target)
+        {
+            int count = (target.Length >> 1) << 1;
+            byte temp = 0;
+            for (int i = 0; i < count; i += 2)
+            {
+                temp = target[i];
+                target[i] = target[i + 1];
+                target[i + 1] = temp;
+            }
+        }
+
         public static Fraction CalculateMeasureRate(Fraction bpm)
         {
             Fraction result = new Fraction();
