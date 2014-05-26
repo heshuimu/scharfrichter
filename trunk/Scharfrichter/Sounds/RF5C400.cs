@@ -11,34 +11,14 @@ namespace Scharfrichter.Codec.Sounds
 {
     static public class RF5C400
     {
-        // sample volume table
-        //static private float[] volTab;
-
         static public float[] VolumeTable
         {
             get
             {
+                // BemaniPC and Twinkle volume tables are identical
                 return Bemani2DXSound.VolumeTable;
             }
         }
-
-        //static private float[] VolumeTable
-        //{
-        //    get
-        //    {
-        //        if (volTab == null)
-        //        {
-        //            float max = 256;
-        //            volTab = new float[256];
-        //            for (int i = 0; i < 256; i++)
-        //            {
-        //                volTab[i] = max / 256;
-        //                max /= (float)Math.Pow(10.0, ((4.5f / (256.0f / 16.0f)) / 20f));
-        //            }
-        //        }
-        //        return volTab;
-        //    }
-        //}
 
         static public Sound Read(Stream source, Properties properties)
         {
