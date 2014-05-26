@@ -197,7 +197,10 @@ namespace Scharfrichter.Codec.Sounds
             {
                 Write(target, masterVolume);
                 target.Flush();
-                File.WriteAllBytes(targetFile, target.ToArray());
+                if (target.Length > 0)
+                {
+                    File.WriteAllBytes(targetFile, target.ToArray());
+                }
             }
         }
     }

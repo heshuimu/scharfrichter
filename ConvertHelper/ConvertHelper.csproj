@@ -45,8 +45,13 @@
     <Compile Include="BemaniToSM.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Render.cs" />
+    <Compile Include="StereoCombiner.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\NAudio\NAudio.csproj">
+      <Project>{DA4F02E3-0B5E-42CD-B8D9-5583FA51D66E}</Project>
+      <Name>NAudio</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Scharfrichter.Common\Scharfrichter.Common.csproj">
       <Project>{DB95AECE-00C7-46A3-8281-00B232052D31}</Project>
       <Name>Scharfrichter.Common</Name>
